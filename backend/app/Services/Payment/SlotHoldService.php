@@ -69,6 +69,29 @@ class SlotHoldService
         return true;
     }
 
+    public function releaseOverdueHoldsForSlot(int|Slot $slotParam): int
+    {
+        $slotId = $slotParam instanceof Slot ? $slotParam->id : $slotParam;
+
+        $overdueBookings = Booking::query()
+            ->where('slot_id', $slotId)
+            ->where('booking_type', 'hospital')
+            ->where('status', 'pending_payment')
+            ->where('slot_hold_expires_at', '<=', now())
+            ->lockForUpdate()
+            ->get();
+
+        $count = 0;
+        foreach ($overdueBookings as $booking) {
+            $lockedBooking = $this->lockBooking($booking);
+            if ($this->releaseIfOverdue($lockedBooking)) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
     public function expireOverdueHolds(): int
     {
         $count = 0;
