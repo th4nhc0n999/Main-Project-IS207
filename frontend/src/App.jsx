@@ -7,6 +7,7 @@ import HomePage from "@/pages/HomePage"
 import SearchResultsPage from "@/pages/SearchResultsPage"
 import DoctorDetailPage from "@/pages/DoctorDetailPage"
 import BookingConfirmPage from "@/pages/BookingConfirmPage"
+import PaymentPage from "@/pages/PaymentPage"
 import LoginPage from "@/pages/LoginPage"
 import RegisterPage from "@/pages/RegisterPage"
 import MyBookingsPage from "@/pages/MyBookingsPage"
@@ -32,6 +33,10 @@ function App() {
 
             {/* 3.1. Xác nhận đặt lịch */}
             <Route path="/booking/confirm" element={<BookingConfirmPage />} />
+
+            {/* 3.2. Thanh toán đặt khám */}
+            <Route path="/payment" element={<PaymentPage />} />
+            <Route path="/payments" element={<Navigate to="/payment" replace />} />
 
             {/* 4. Đăng nhập / Đăng ký */}
             <Route path="/login" element={<LoginPage />} />

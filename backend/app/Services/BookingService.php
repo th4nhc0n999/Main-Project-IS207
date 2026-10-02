@@ -140,6 +140,10 @@ class BookingService
                 throw new InvalidSlotException();
             }
 
+            // Tự động kiểm tra và giải phóng giữ chỗ hết hạn khi có người khác thử đặt
+            app(\App\Services\Payment\SlotHoldService::class)->releaseOverdueHoldsForSlot($slot);
+            $slot->refresh();
+
             // Kiểm tra trạng thái và sức chứa của slot
             if ($slot->booked_count >= $slot->capacity || $slot->status !== self::SLOT_AVAILABLE) {
                 throw new SlotUnavailableException();
@@ -159,7 +163,18 @@ class BookingService
                 ->first();
 
             if ($existingBooking) {
-                throw new BookingAlreadyExistsException('Hồ sơ này đã có lịch hẹn active cho khung giờ này.');
+                if (
+                    $existingBooking->status === self::STATUS_PENDING_PAYMENT
+                    && $existingBooking->slot_hold_expires_at
+                    && now()->greaterThanOrEqualTo($existingBooking->slot_hold_expires_at)
+                ) {
+                    app(\App\Services\Payment\SlotHoldService::class)->releaseIfOverdue(
+                        app(\App\Services\Payment\SlotHoldService::class)->lockBooking($existingBooking)
+                    );
+                    $slot->refresh();
+                } else {
+                    throw new BookingAlreadyExistsException('Hồ sơ này đã có lịch hẹn active cho khung giờ này.');
+                }
             }
 
             // 6. Tính thời hạn giữ chỗ tạm thời (mặc định 15 phút)
