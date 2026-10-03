@@ -2,10 +2,23 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// -------------------------------------------------------------------------
+// Auth Routes
+// -------------------------------------------------------------------------
+
+// Public: không cần token
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login',    [AuthController::class, 'login']);
+});
+
+// Protected: yêu cầu Bearer token (Sanctum)
+Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me',      [AuthController::class, 'me']);
+});
 
 // Payment Module Routes
 Route::middleware('auth:sanctum')->prefix('payments')->group(function () {
