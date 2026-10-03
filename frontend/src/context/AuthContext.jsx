@@ -16,23 +16,23 @@ export function AuthProvider({ children }) {
     catch { return null }
   })
 
-  // loading = true saat pertama kali app boot & kita verify token ke server
+  // loading = true khi app mới boot và đang verify token với server
   const [loading, setLoading] = useState(true)
 
   // -----------------------------------------------------------------------
   // Persist helpers
   // -----------------------------------------------------------------------
-  const persistSession = (userData, token) => {
+  const persistSession = useCallback((userData, token) => {
     localStorage.setItem(TOKEN_KEY, token)
     localStorage.setItem(USER_KEY, JSON.stringify(userData))
     setUser(userData)
-  }
+  }, [])
 
-  const clearSession = () => {
+  const clearSession = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(USER_KEY)
     setUser(null)
-  }
+  }, [])
 
   // -----------------------------------------------------------------------
   // On mount: verify token → restore session hoặc clear nếu hết hạn
@@ -58,16 +58,11 @@ export function AuthProvider({ children }) {
         clearSession()
       })
       .finally(() => setLoading(false))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clearSession])
 
   // -----------------------------------------------------------------------
   // Auth actions
   // -----------------------------------------------------------------------
-
-  /**
-   * Đăng nhập thật qua API.
-   * @returns {{ success: boolean, user?: object, message?: string }}
-   */
   const login = useCallback(async (email, password) => {
     try {
       const res = await authApi.login({ email, password })
@@ -79,12 +74,8 @@ export function AuthProvider({ children }) {
     } catch (err) {
       return { success: false, message: err?.message || "Sai email hoặc mật khẩu." }
     }
-  }, [])
+  }, [persistSession])
 
-  /**
-   * Đăng ký tài khoản bệnh nhân mới.
-   * @returns {{ success: boolean, user?: object, message?: string, errors?: object }}
-   */
   const register = useCallback(async (data) => {
     try {
       const payload = {
@@ -107,33 +98,36 @@ export function AuthProvider({ children }) {
         errors:  err?.errors  || null,
       }
     }
-  }, [])
+  }, [persistSession])
 
-  /**
-   * Đăng xuất: revoke token trên server, xoá localStorage.
-   */
   const logout = useCallback(async () => {
     try {
       await authApi.logout()
     } catch {
-      // Ignore server error — vẫn clear local state
+      // Bỏ qua lỗi server — vẫn clear local state
     } finally {
       clearSession()
     }
+  }, [clearSession])
+
+  // Cập nhật user trong context sau khi gọi PUT /user thành công
+  const updateUserProfile = useCallback((updatedData) => {
+    setUser((prev) => {
+      const updated = { ...prev, ...updatedData }
+      localStorage.setItem(USER_KEY, JSON.stringify(updated))
+      return updated
+    })
   }, [])
 
   // -----------------------------------------------------------------------
   // Derived state
   // -----------------------------------------------------------------------
-  const role           = user?.role ?? "guest"
+  const role            = user?.role ?? "guest"
   const isAuthenticated = Boolean(user)
   const isPatient       = role === "patient"
   const isAdmin         = role === "admin"
   const isGuest         = !isAuthenticated
 
-  // -----------------------------------------------------------------------
-  // Context value
-  // -----------------------------------------------------------------------
   return (
     <AuthContext.Provider
       value={{
@@ -147,6 +141,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        updateUserProfile,
       }}
     >
       {children}

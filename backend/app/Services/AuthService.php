@@ -79,4 +79,19 @@ class AuthService
 
         return true;
     }
+
+    /**
+     * Cập nhật thông tin tài khoản người dùng.
+     *
+     * @param  User  $user
+     * @param  array<string, mixed>  $data
+     * @return User
+     */
+    public function updateProfile(User $user, array $data): User
+    {
+        $user->fill($data);
+        $user->save();
+
+        return $user->fresh();
+    }
 }

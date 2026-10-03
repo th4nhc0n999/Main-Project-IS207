@@ -59,13 +59,11 @@ class BookingService
             ]);
 
         $status = $filters['status'] ?? null;
-
         if (! empty($status)) {
             $query->where('status', $status);
         }
 
         $keyword = $filters['keyword'] ?? $filters['q'] ?? null;
-
         if (! empty($keyword)) {
             $query->where(function ($q) use ($keyword) {
                 $q->where('code', 'like', "%{$keyword}%")
@@ -417,4 +415,3 @@ class BookingService
         return $booking;
     }
 }
-
