@@ -1,135 +1,145 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect } from "react"
-import { getStoredPatientProfiles, savePatientProfiles } from "@/lib/mockData"
+import { createContext, useContext, useState, useEffect, useCallback } from "react"
+import authApi from "@/api/authApi"
 
 const AuthContext = createContext(null)
 
-const MOCK_ACCOUNTS = {
-  patient: {
-    id: 1,
-    name: "Nguyễn Văn A",
-    email: "nguyenvana@gmail.com",
-    phone: "0901234567",
-    role: "patient",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-  },
-  admin: {
-    id: 99,
-    name: "Quản Trị Viên MedSi",
-    email: "admin@medsi.vn",
-    phone: "19002805",
-    role: "admin",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80",
-  },
-}
-
-const AUTH_STORAGE_KEY = "medsi_mock_auth_user"
+const TOKEN_KEY = "access_token"
+const USER_KEY  = "medsi_auth_user"
 
 export function AuthProvider({ children }) {
+  // -----------------------------------------------------------------------
+  // State
+  // -----------------------------------------------------------------------
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem(AUTH_STORAGE_KEY)
-    if (saved) {
-      try {
-        return JSON.parse(saved)
-      } catch {
-        return MOCK_ACCOUNTS.patient
-      }
-    }
-    return MOCK_ACCOUNTS.patient
+    try { return JSON.parse(localStorage.getItem(USER_KEY)) ?? null }
+    catch { return null }
   })
 
-  const [patientProfiles, setPatientProfiles] = useState(() => getStoredPatientProfiles())
+  // loading = true saat pertama kali app boot & kita verify token ke server
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user))
-    } else {
-      localStorage.removeItem(AUTH_STORAGE_KEY)
-    }
-  }, [user])
-
-  const login = (identifier, _password, targetRole = "patient") => {
-    const isLoginAsAdmin =
-      targetRole === "admin" ||
-      identifier?.toLowerCase().includes("admin") ||
-      identifier === "admin@medsi.vn"
-
-    const selectedUser = isLoginAsAdmin ? MOCK_ACCOUNTS.admin : {
-      ...MOCK_ACCOUNTS.patient,
-      email: identifier?.includes("@") ? identifier : MOCK_ACCOUNTS.patient.email,
-      phone: !identifier?.includes("@") ? identifier : MOCK_ACCOUNTS.patient.phone,
-    }
-
-    setUser(selectedUser)
-    return { success: true, user: selectedUser }
+  // -----------------------------------------------------------------------
+  // Persist helpers
+  // -----------------------------------------------------------------------
+  const persistSession = (userData, token) => {
+    localStorage.setItem(TOKEN_KEY, token)
+    localStorage.setItem(USER_KEY, JSON.stringify(userData))
+    setUser(userData)
   }
 
-  const register = (userData) => {
-    const newUser = {
-      id: Date.now(),
-      name: userData.name || "Người dùng mới",
-      email: userData.email,
-      phone: userData.phone,
-      role: "patient",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-    }
-    setUser(newUser)
-
-    const newProfile = {
-      id: Date.now(),
-      user_id: newUser.id,
-      full_name: newUser.name,
-      dob: userData.dob || "1995-01-01",
-      gender: userData.gender || "male",
-      phone: newUser.phone,
-      relationship: "Bản thân",
-      identity_card: "",
-      address: userData.address || "",
-    }
-    const updatedProfiles = [...patientProfiles, newProfile]
-    setPatientProfiles(updatedProfiles)
-    savePatientProfiles(updatedProfiles)
-
-    return { success: true, user: newUser }
-  }
-
-  const logout = () => {
+  const clearSession = () => {
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(USER_KEY)
     setUser(null)
   }
 
-  const switchRole = (role) => {
-    if (role === "admin") {
-      setUser(MOCK_ACCOUNTS.admin)
-    } else if (role === "patient") {
-      setUser(MOCK_ACCOUNTS.patient)
-    } else {
-      setUser(null)
+  // -----------------------------------------------------------------------
+  // On mount: verify token → restore session hoặc clear nếu hết hạn
+  // -----------------------------------------------------------------------
+  useEffect(() => {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (!token) {
+      setLoading(false)
+      return
     }
-  }
 
-  const addPatientProfile = (profileData) => {
-    const newProfile = {
-      ...profileData,
-      id: Date.now(),
-      user_id: user?.id || 1,
+    authApi.me()
+      .then((res) => {
+        if (res?.data?.user) {
+          setUser(res.data.user)
+          localStorage.setItem(USER_KEY, JSON.stringify(res.data.user))
+        } else {
+          clearSession()
+        }
+      })
+      .catch(() => {
+        // Token không hợp lệ / hết hạn → clear
+        clearSession()
+      })
+      .finally(() => setLoading(false))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // -----------------------------------------------------------------------
+  // Auth actions
+  // -----------------------------------------------------------------------
+
+  /**
+   * Đăng nhập thật qua API.
+   * @returns {{ success: boolean, user?: object, message?: string }}
+   */
+  const login = useCallback(async (email, password) => {
+    try {
+      const res = await authApi.login({ email, password })
+      if (res?.data?.token && res?.data?.user) {
+        persistSession(res.data.user, res.data.token)
+        return { success: true, user: res.data.user }
+      }
+      return { success: false, message: res?.message || "Đăng nhập thất bại." }
+    } catch (err) {
+      return { success: false, message: err?.message || "Sai email hoặc mật khẩu." }
     }
-    const updated = [...patientProfiles, newProfile]
-    setPatientProfiles(updated)
-    savePatientProfiles(updated)
-    return newProfile
-  }
+  }, [])
 
-  const role = user ? user.role : "guest"
+  /**
+   * Đăng ký tài khoản bệnh nhân mới.
+   * @returns {{ success: boolean, user?: object, message?: string, errors?: object }}
+   */
+  const register = useCallback(async (data) => {
+    try {
+      const payload = {
+        name:                  data.name,
+        email:                 data.email,
+        password:              data.password,
+        password_confirmation: data.passwordConfirmation,
+        phone:                 data.phone || undefined,
+      }
+      const res = await authApi.register(payload)
+      if (res?.data?.token && res?.data?.user) {
+        persistSession(res.data.user, res.data.token)
+        return { success: true, user: res.data.user }
+      }
+      return { success: false, message: res?.message || "Đăng ký thất bại." }
+    } catch (err) {
+      return {
+        success: false,
+        message: err?.message || "Đăng ký thất bại.",
+        errors:  err?.errors  || null,
+      }
+    }
+  }, [])
+
+  /**
+   * Đăng xuất: revoke token trên server, xoá localStorage.
+   */
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout()
+    } catch {
+      // Ignore server error — vẫn clear local state
+    } finally {
+      clearSession()
+    }
+  }, [])
+
+  // -----------------------------------------------------------------------
+  // Derived state
+  // -----------------------------------------------------------------------
+  const role           = user?.role ?? "guest"
   const isAuthenticated = Boolean(user)
-  const isPatient = role === "patient"
-  const isAdmin = role === "admin"
-  const isGuest = role === "guest"
+  const isPatient       = role === "patient"
+  const isAdmin         = role === "admin"
+  const isGuest         = !isAuthenticated
 
+  // -----------------------------------------------------------------------
+  // Context value
+  // -----------------------------------------------------------------------
   return (
     <AuthContext.Provider
       value={{
         user,
         role,
+        loading,
         isAuthenticated,
         isPatient,
         isAdmin,
@@ -137,9 +147,6 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
-        switchRole,
-        patientProfiles,
-        addPatientProfile,
       }}
     >
       {children}
