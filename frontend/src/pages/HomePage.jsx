@@ -7,7 +7,9 @@ import {
   ChevronRight, 
   Stethoscope, 
   Star, 
-  Building2 
+  Building2,
+  Navigation,
+  Compass
 } from "lucide-react"
 import { 
   getStoredSpecialties, 
@@ -44,17 +46,23 @@ export default function HomePage() {
             </p>
 
             {/* Quick CTAs */}
-            <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
-              <Button asChild size="lg" className="bg-sky-600 hover:bg-sky-700 text-white shadow-lg shadow-sky-600/25 px-8 font-bold text-sm">
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <Button asChild size="lg" className="bg-sky-600 hover:bg-sky-700 text-white shadow-lg shadow-sky-600/25 px-7 font-bold text-sm">
                 <Link to="/doctors">
                   <Search className="w-4 h-4 mr-2" />
                   Tìm bác sĩ & Đặt khám
                 </Link>
               </Button>
+              <Button asChild size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/25 px-6 font-bold text-sm">
+                <Link to="/doctors?near=true">
+                  <Navigation className="w-4 h-4 mr-2" />
+                  Bác sĩ gần tôi (GPS)
+                </Link>
+              </Button>
               <Button asChild variant="outline" size="lg" className="border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold text-sm">
                 <Link to="/doctors?type=hospital">
                   <Building2 className="w-4 h-4 mr-2 text-sky-600" />
-                  Khám theo Phòng khám / BV
+                  Phòng khám / BV
                 </Link>
               </Button>
             </div>

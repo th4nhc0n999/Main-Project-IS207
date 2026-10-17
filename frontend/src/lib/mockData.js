@@ -87,7 +87,10 @@ export const initialDoctors = [
     specialty_name: "Tim Mạch",
     experience_years: 18,
     city: "Hồ Chí Minh",
+    district: "Quận 1",
     address: "Phòng khám MedSi Quận 1 — 120 Hai Bà Trưng, P. Bến Nghé, Quận 1, TP.HCM",
+    lat: 10.7816,
+    lng: 106.6992,
     avatar: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80",
     fee: 400000,
     rating: 4.9,
@@ -103,7 +106,10 @@ export const initialDoctors = [
     specialty_name: "Nhi Khoa",
     experience_years: 22,
     city: "Hồ Chí Minh",
+    district: "Quận 5",
     address: "Phòng khám Nhi MedSi — 340 Nguyễn Trãi, Phường 8, Quận 5, TP.HCM",
+    lat: 10.7562,
+    lng: 106.6698,
     avatar: "https://images.unsplash.com/photo-1594824813589-f3089d533b63?w=400&auto=format&fit=crop&q=80",
     fee: 450000,
     rating: 5.0,
@@ -119,7 +125,10 @@ export const initialDoctors = [
     specialty_name: "Da Liễu",
     experience_years: 12,
     city: "Hồ Chí Minh",
+    district: "Quận 3",
     address: "Trung tâm Da Liễu Thẩm Mỹ MedSi — 88 Nam Kỳ Khởi Nghĩa, Quận 3, TP.HCM",
+    lat: 10.7820,
+    lng: 106.6885,
     avatar: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&auto=format&fit=crop&q=80",
     fee: 350000,
     rating: 4.8,
@@ -135,7 +144,10 @@ export const initialDoctors = [
     specialty_name: "Tai Mũi Họng",
     experience_years: 15,
     city: "Hà Nội",
+    district: "Hoàn Kiếm",
     address: "Phòng khám MedSi Hà Nội — 45 Tràng Thi, Hoàn Kiếm, Hà Nội",
+    lat: 21.0261,
+    lng: 105.8504,
     avatar: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&auto=format&fit=crop&q=80",
     fee: 350000,
     rating: 4.9,
@@ -151,7 +163,10 @@ export const initialDoctors = [
     specialty_name: "Cơ Xương Khớp",
     experience_years: 20,
     city: "Hồ Chí Minh",
+    district: "Quận 5",
     address: "Trung tâm Chấn Thương Chỉnh Hình MedSi — 215 Hồng Bàng, Quận 5, TP.HCM",
+    lat: 10.7554,
+    lng: 106.6596,
     avatar: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&auto=format&fit=crop&q=80",
     fee: 400000,
     rating: 4.85,
@@ -167,13 +182,54 @@ export const initialDoctors = [
     specialty_name: "Sản Phụ Khoa",
     experience_years: 14,
     city: "Đà Nẵng",
+    district: "Hải Châu",
     address: "Phòng khám MedSi Đà Nẵng — 108 Hải Phòng, Thạch Thang, Hải Châu, Đà Nẵng",
+    lat: 16.0718,
+    lng: 108.2198,
     avatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80",
     fee: 380000,
     rating: 4.95,
     reviews_count: 312,
     bio: "Nguyên bác sĩ khoa Sản Bệnh viện Phụ Sản - Nhi Đà Nẵng. Đồng hành cùng hàng ngàn thai phụ trong hành trình vượt cạn an toàn.",
     workplace: "MedSi Đà Nẵng & BV Phụ Sản Nhi",
+  },
+  {
+    id: 7,
+    name: "BS. CKI Phan Thị Minh Tâm",
+    title: "Bác sĩ Chuyên khoa I",
+    specialty_id: 2,
+    specialty_name: "Nhi Khoa",
+    experience_years: 10,
+    city: "Hồ Chí Minh",
+    district: "Quận 10",
+    address: "Phòng khám Nhi MedSi Vạn Hạnh — 341 Sư Vạn Hạnh, P. 10, Quận 10, TP.HCM",
+    lat: 10.7712,
+    lng: 106.6672,
+    avatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80",
+    fee: 320000,
+    rating: 4.88,
+    reviews_count: 142,
+    bio: "Chuyên gia dinh dưỡng và tiêm chủng nhi khoa, tận tình và chu đáo với các bé nhỏ.",
+    workplace: "Bệnh viện Nhi Đồng 1 & MedSi Vạn Hạnh",
+  },
+  {
+    id: 8,
+    name: "ThS.BS Đỗ Minh Khang",
+    title: "Thạc sĩ, Bác sĩ Chuyên khoa",
+    specialty_id: 7,
+    specialty_name: "Tiêu Hóa - Gan Mật",
+    experience_years: 16,
+    city: "Hồ Chí Minh",
+    district: "Bình Thạnh",
+    address: "Phòng khám Đa Khoa MedSi Bình Thạnh — 152 Điện Biên Phủ, P. 25, Bình Thạnh, TP.HCM",
+    lat: 10.8035,
+    lng: 106.6958,
+    avatar: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80",
+    fee: 380000,
+    rating: 4.92,
+    reviews_count: 178,
+    bio: "Chuyên sâu nội soi can thiệp, tầm soát sớm polyp và ung thư đường tiêu hóa bằng công nghệ NBI hiện đại.",
+    workplace: "Bệnh viện Nhân Dân Gia Định & MedSi Clinic",
   },
 ]
 
@@ -185,6 +241,9 @@ export const initialHospitals = [
     description: "Bệnh viện đa khoa tuyến trung ương hiện đại với đội ngũ giáo sư, tiến sĩ đầu ngành và trang thiết bị chẩn đoán tân tiến.",
     address: "215 Hồng Bàng, Phường 11, Quận 5, TP. Hồ Chí Minh",
     city: "Hồ Chí Minh",
+    district: "Quận 5",
+    lat: 10.7554,
+    lng: 106.6596,
     hotline: "1900-7178",
     image: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -201,6 +260,9 @@ export const initialHospitals = [
     description: "Một trong những bệnh viện lớn nhất Việt Nam, tiếp nhận và điều trị các ca bệnh phức tạp ở tất cả chuyên khoa.",
     address: "201B Nguyễn Chí Thanh, Phường 12, Quận 5, TP. Hồ Chí Minh",
     city: "Hồ Chí Minh",
+    district: "Quận 5",
+    lat: 10.7578,
+    lng: 106.6595,
     hotline: "028-3855-4137",
     image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -216,6 +278,9 @@ export const initialHospitals = [
     description: "Không gian khám bệnh tiêu chuẩn khách sạn, đặt lịch không chờ đợi, dịch vụ chăm sóc tận tâm và bảo mật tuyệt đối.",
     address: "Số 68 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
     city: "Hồ Chí Minh",
+    district: "Quận 1",
+    lat: 10.7745,
+    lng: 106.7036,
     hotline: "1900-2805",
     image: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&auto=format&fit=crop&q=80",
     rating: 4.95,
@@ -232,6 +297,9 @@ export const initialHospitals = [
     description: "Cơ sở chuyên khoa nhi hàng đầu khu vực phía Nam, trang bị đầy đủ khoa cấp cứu, sơ sinh và phẫu thuật nhi khoa.",
     address: "341 Sư Vạn Hạnh, Phường 10, Quận 10, TP. Hồ Chí Minh",
     city: "Hồ Chí Minh",
+    district: "Quận 10",
+    lat: 10.7712,
+    lng: 106.6672,
     hotline: "028-3927-1119",
     image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=600&auto=format&fit=crop&q=80",
     rating: 4.85,
@@ -258,13 +326,13 @@ export const generateDefaultSlots = () => {
   const today = new Date()
   let slotIdCounter = 1
 
-  // Generate slots for doctors 1 to 6 for the next 7 days
+  // Generate slots for doctors 1 to 8 for the next 7 days
   for (let d = 0; d < 7; d++) {
     const targetDate = new Date(today)
     targetDate.setDate(today.getDate() + d)
     const dateStr = targetDate.toISOString().split("T")[0]
 
-    for (let docId = 1; docId <= 6; docId++) {
+    for (let docId = 1; docId <= 8; docId++) {
       timeFrames.forEach((tf, index) => {
         // Pseudo-random capacity & booked count
         const capacity = 8
@@ -469,7 +537,27 @@ export function saveSpecialties(data) {
 export function getStoredDoctors() {
   const raw = localStorage.getItem(STORAGE_KEYS.DOCTORS)
   if (raw) {
-    try { return JSON.parse(raw) } catch { /* fallback */ }
+    try {
+      const parsed = JSON.parse(raw)
+      let updated = false
+      const merged = initialDoctors.map((initDoc) => {
+        const found = parsed.find((d) => d.id === initDoc.id)
+        if (!found) {
+          updated = true
+          return initDoc
+        }
+        if (found.lat == null || found.lng == null) {
+          updated = true
+          return { ...found, lat: initDoc.lat, lng: initDoc.lng, district: initDoc.district }
+        }
+        return found
+      })
+      if (updated || parsed.length < initialDoctors.length) {
+        localStorage.setItem(STORAGE_KEYS.DOCTORS, JSON.stringify(merged))
+        return merged
+      }
+      return parsed
+    } catch { /* fallback */ }
   }
   localStorage.setItem(STORAGE_KEYS.DOCTORS, JSON.stringify(initialDoctors))
   return initialDoctors
@@ -482,7 +570,27 @@ export function saveDoctors(data) {
 export function getStoredHospitals() {
   const raw = localStorage.getItem(STORAGE_KEYS.HOSPITALS)
   if (raw) {
-    try { return JSON.parse(raw) } catch { /* fallback */ }
+    try {
+      const parsed = JSON.parse(raw)
+      let updated = false
+      const merged = initialHospitals.map((initHosp) => {
+        const found = parsed.find((h) => h.id === initHosp.id)
+        if (!found) {
+          updated = true
+          return initHosp
+        }
+        if (found.lat == null || found.lng == null) {
+          updated = true
+          return { ...found, lat: initHosp.lat, lng: initHosp.lng, district: initHosp.district }
+        }
+        return found
+      })
+      if (updated || parsed.length < initialHospitals.length) {
+        localStorage.setItem(STORAGE_KEYS.HOSPITALS, JSON.stringify(merged))
+        return merged
+      }
+      return parsed
+    } catch { /* fallback */ }
   }
   localStorage.setItem(STORAGE_KEYS.HOSPITALS, JSON.stringify(initialHospitals))
   return initialHospitals

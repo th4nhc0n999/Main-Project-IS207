@@ -1,0 +1,58 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundCorner 8
+skinparam shadowing false
+skinparam monochrome true
+skinparam swimlaneBorderColor #333333
+skinparam swimlaneBorderThickness 1.2
+skinparam activityBorderThickness 1
+skinparam arrowColor #333333
+
+title Định vị bác sĩ và cơ sở y tế gần tôi (Near-me)
+
+|Bệnh nhân|
+start
+:Bấm chọn "Bác sĩ gần tôi"\nvà chọn bán kính mong muốn;
+
+|Hệ thống|
+:Gửi yêu cầu truy cập vị trí;
+
+|Trình duyệt / GPS|
+:Kiểm tra và xác thực quyền Geolocation;
+
+|Hệ thống|
+if (Quyền vị trí hợp lệ?) then ([có])
+  :Đọc tọa độ GPS thiết bị\n(Latitude, Longitude);
+else ([từ chối] EX-UI-01)
+  -[#red,dashed]->
+  :Kích hoạt Fallback chọn địa bàn;
+  |Bệnh nhân|
+  :Chọn Quận / Huyện thủ công từ danh sách;
+  |Hệ thống|
+  :Lấy tọa độ trung tâm Quận / Huyện đã chọn;
+endif
+
+:Tính khoảng cách Haversine mặt cầu\nTham chiếu UI_NEAR_MATH;
+
+note right
+  Công thức Haversine:
+  d = 2R * arcsin(...)
+  R = 6371 km
+  Làm tròn 1 chữ số thập phân
+  (VD: "Cách bạn 1.4 km")
+end note
+
+:Lọc danh sách cơ sở trong bán kính;
+if (Có cơ sở trong bán kính?) then ([có])
+  :Sắp xếp thứ tự tăng dần theo cự ly;
+  :Hiển thị danh sách kèm tag khoảng cách;
+  |Bệnh nhân|
+  :Xem danh sách bác sĩ gần nhất\nvà chọn ca khám phù hợp;
+  stop
+else ([không có] EX-UI-02)
+  -[#red,dashed]->
+  :Báo không tìm thấy cơ sở trong bán kính\nvà gợi ý mở rộng phạm vi tìm kiếm;
+  stop
+endif
+@enduml

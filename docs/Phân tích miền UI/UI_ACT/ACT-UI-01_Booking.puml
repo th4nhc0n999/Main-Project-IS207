@@ -1,0 +1,58 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundCorner 8
+skinparam shadowing false
+skinparam monochrome true
+skinparam swimlaneBorderColor #333333
+skinparam swimlaneBorderThickness 1.2
+skinparam activityBorderThickness 1
+skinparam arrowColor #333333
+
+title Đặt lịch khám theo bác sĩ
+
+|Bệnh nhân|
+start
+:Chọn bác sĩ, cơ sở, slot và hồ sơ;
+:Kiểm tra phí và gửi yêu cầu;
+
+|Hệ thống|
+:Kiểm tra quyền, hạn đặt và trùng lịch;
+if (Dữ liệu hợp lệ?) then ([có])
+else ([không hợp lệ] EX-BKD-07)
+  -[#red,dashed]->
+  :Báo lỗi và giữ dữ liệu nhập;
+  stop
+endif
+
+:Giữ chỗ nguyên tử\nTham chiếu SEQ-BKD-02;
+if (giữ chỗ thành công?) then ([có])
+  :Tạo PENDING_PAYMENT\nChờ thanh toán, giữ 10 phút;
+  |Bệnh nhân|
+  :Thực hiện thanh toán qua PAY;
+  |Hệ thống|
+  :Chờ kết quả PAY hoặc hết hạn\nTham chiếu SEQ-BKD-01;
+  note right
+    Thất bại khi còn hạn: thử lại trong hạn.
+    Huỷ: đi theo SEQ-BKD-01.
+    Không kéo dài hạn khi bấm lại.
+  end note
+  if (Hợp lệ và còn hạn?) then ([có])
+    :Chuyển PENDING_APPROVAL\nChờ duyệt, hạn mới 30 phút;
+    |Bác sĩ|
+    :Nhận yêu cầu duyệt\nTham chiếu ACT-BKD-02;
+    stop
+  else ([hết hạn] EX-BKD-02)
+    -[#red,dashed]->
+    :Chuyển EXPIRED và nhả chỗ một lần;
+    :Chuyển PAY xử lý nếu có tiền trễ;
+    |Bệnh nhân|
+    :Nhận thông báo hết hạn;
+    stop
+  endif
+else ([hết chỗ] EX-BKD-01)
+  -[#red,dashed]->
+  :Báo hết chỗ và cho chọn lại;
+  stop
+endif
+@enduml

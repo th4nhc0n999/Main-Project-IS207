@@ -10,7 +10,8 @@ import {
   Calendar as CalendarIcon, 
   Stethoscope, 
   ChevronRight,
-  Info
+  Info,
+  Navigation
 } from "lucide-react"
 import { 
   getStoredDoctors, 
@@ -222,17 +223,36 @@ export default function DoctorDetailPage() {
                   <span className="text-[10px] text-sky-600">Đã bao gồm phí tư vấn chuyên gia</span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-                    Nơi công tác & Khám bệnh
-                  </span>
-                  <p className="text-xs font-bold text-slate-800 mt-0.5 truncate">
-                    {doctor.workplace}
-                  </p>
-                  <p className="text-[11px] text-slate-500 truncate mt-0.5 flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                    {doctor.address}
-                  </p>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                      Nơi công tác & Khám bệnh
+                    </span>
+                    <p className="text-xs font-bold text-slate-800 mt-0.5 truncate">
+                      {doctor.workplace}
+                    </p>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                      {doctor.address}
+                    </p>
+                  </div>
+                  {doctor.lat && doctor.lng && (
+                    <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                      <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Đã xác thực tọa độ GPS
+                      </span>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${doctor.lat},${doctor.lng}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-bold text-sky-600 hover:text-sky-800 flex items-center gap-1 hover:underline"
+                      >
+                        <Navigation className="w-3 h-3" />
+                        <span>Chỉ đường</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
