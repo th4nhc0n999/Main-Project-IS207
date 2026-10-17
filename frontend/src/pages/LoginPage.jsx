@@ -9,7 +9,7 @@ import {
   ShieldCheck, 
   Stethoscope, 
   ArrowRight,
-  UserCheck
+  AlertCircle
 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/button"
@@ -22,12 +22,13 @@ export default function LoginPage() {
   const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
-    identifier: "nguyenvana@gmail.com",
-    password: "password123",
+    email: "",
+    password: "",
     rememberMe: false,
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState("")
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -35,30 +36,27 @@ export default function LoginPage() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }))
+    if (errorMsg) setErrorMsg("")
   }
 
-  const handleQuickLogin = (role) => {
-    if (role === "admin") {
-      login("admin@medsi.vn", "admin123", "admin")
-      navigate("/admin/bookings")
-    } else {
-      login("nguyenvana@gmail.com", "password123", "patient")
-      navigate("/")
-    }
-  }
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    setTimeout(() => {
-      const res = login(formData.identifier, formData.password)
-      setIsSubmitting(false)
+    setErrorMsg("")
+
+    const res = await login(formData.email, formData.password)
+    setIsSubmitting(false)
+
+    if (res.success) {
+      // Redirect theo role: admin → /admin/bookings, patient → /dashboard
       if (res.user.role === "admin") {
         navigate("/admin/bookings")
       } else {
         navigate("/")
       }
-    }, 500)
+    } else {
+      setErrorMsg(res.message || "Đăng nhập thất bại. Vui lòng thử lại.")
+    }
   }
 
   return (
@@ -77,33 +75,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Quick 1-Click Login Box for Testing */}
-        <div className="bg-white p-4 rounded-2xl border border-sky-200 shadow-sm space-y-2.5">
-          <p className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-            <UserCheck className="w-4 h-4 text-sky-600" />
-            <span>Đăng nhập nhanh (Test & Demo):</span>
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickLogin("patient")}
-              className="border-sky-200 hover:bg-sky-50 text-sky-800 text-xs font-semibold h-9"
-            >
-              🩺 Bệnh nhân demo
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickLogin("admin")}
-              className="border-amber-200 hover:bg-amber-50 text-amber-800 text-xs font-semibold h-9"
-            >
-              🛡️ Admin demo
-            </Button>
-          </div>
-        </div>
 
         {/* Login Card */}
         <Card className="shadow-medical border-slate-200/90 bg-white">
@@ -118,23 +89,31 @@ export default function LoginPage() {
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Field 1: Identifier (Email/Phone) */}
+              {/* Error banner */}
+              {errorMsg && (
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              {/* Field 1: Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="identifier" className="text-xs font-semibold text-slate-700">
-                  Email hoặc Số điện thoại <span className="text-rose-500">*</span>
+                <Label htmlFor="email" className="text-xs font-semibold text-slate-700">
+                  Địa chỉ Email <span className="text-rose-500">*</span>
                 </Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <Mail className="w-4 h-4" />
                   </div>
                   <Input
-                    id="identifier"
-                    name="identifier"
-                    type="text"
+                    id="email"
+                    name="email"
+                    type="email"
                     required
-                    value={formData.identifier}
+                    value={formData.email}
                     onChange={handleChange}
-                    placeholder="vd: nguyenvana@gmail.com hoặc admin@medsi.vn"
+                    placeholder="vd: nguyenvana@gmail.com"
                     className="pl-10 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sky-500"
                   />
                 </div>

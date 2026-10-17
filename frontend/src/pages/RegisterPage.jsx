@@ -47,7 +47,7 @@ export default function RegisterPage() {
     if (errorMsg) setErrorMsg("")
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (formData.password !== formData.passwordConfirmation) {
       setErrorMsg("Mật khẩu xác nhận không khớp!")
@@ -59,14 +59,23 @@ export default function RegisterPage() {
     }
 
     setIsSubmitting(true)
-    setTimeout(() => {
-      register(formData)
-      setIsSubmitting(false)
+    setErrorMsg("")
+
+    const res = await register(formData)
+    setIsSubmitting(false)
+
+    if (res.success) {
       setFormSubmitted(true)
-      setTimeout(() => {
-        navigate("/")
-      }, 800)
-    }, 600)
+      setTimeout(() => navigate("/"), 800)
+    } else {
+      // Hiển thị lỗi từ server (email trùng, v.v.)
+      if (res.errors) {
+        const firstError = Object.values(res.errors)[0]
+        setErrorMsg(Array.isArray(firstError) ? firstError[0] : firstError)
+      } else {
+        setErrorMsg(res.message || "Đăng ký thất bại. Vui lòng thử lại.")
+      }
+    }
   }
 
   return (
@@ -108,8 +117,8 @@ export default function RegisterPage() {
               <div className="mb-5 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
                 <div>
-                  <p className="font-semibold">Mô phỏng gửi đăng ký UI tĩnh thành công!</p>
-                  <p className="text-emerald-700 mt-0.5">Form UI tĩnh đã sẵn sàng để gắn API Laravel Sanctum trong các Sprint tiếp theo.</p>
+                  <p className="font-semibold">Tài khoản đã được tạo thành công!</p>
+                  <p className="text-emerald-700 mt-0.5">Đang chuyển hướng về trang chủ...</p>
                 </div>
               </div>
             )}

@@ -26,7 +26,7 @@ return new class extends Migration
             $table->index('user_id');
             $table->index('status');
             $table->index('slot_id');
-            $table->unique(['patient_profile_id', 'slot_id']);
+            $table->index('patient_profile_id');
         });
     }
 

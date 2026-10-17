@@ -47,7 +47,14 @@ class HospitalService
             'examTypes',
             'slots' => function ($query) {
                 $query->where('status', 'available')
-                      ->whereDate('work_date', '>=', now()->toDateString())
+                      ->whereColumn('booked_count', '<', 'capacity')
+                      ->where(function ($query) {
+                          $query->whereDate('work_date', '>', today())
+                              ->orWhere(function ($query) {
+                                  $query->whereDate('work_date', today())
+                                      ->where('start_time', '>', now()->format('H:i:s'));
+                              });
+                      })
                       ->orderBy('work_date')
                       ->orderBy('start_time');
             },

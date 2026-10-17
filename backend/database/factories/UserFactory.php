@@ -25,7 +25,13 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'name' => fake()->randomElement([
+                'Nguyen Van An',
+                'Tran Thi Binh',
+                'Le Minh Chau',
+                'Pham Quoc Dung',
+                'Vo Thi Hoa',
+            ]),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
@@ -33,6 +39,13 @@ class UserFactory extends Factory
             'role' => 'patient',
             'remember_token' => Str::random(10),
         ];
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
     }
 
     /**

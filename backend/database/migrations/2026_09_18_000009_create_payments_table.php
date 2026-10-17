@@ -15,7 +15,7 @@ return new class extends Migration
             $table->decimal('exam_fee', 10, 2);
             $table->decimal('service_fee', 10, 2);
             $table->decimal('total_amount', 10, 2);
-            $table->enum('status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'failed', 'cancelled', 'expired', 'refunded'])->default('pending');
             $table->string('transaction_code', 50)->nullable();
             $table->dateTime('paid_at')->nullable();
             $table->timestamps();

@@ -13,20 +13,20 @@ class PatientProfileFactory extends Factory
 {
     protected $model = PatientProfile::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
             'user_id' => User::factory(),
-            'full_name' => fake()->name(),
-            'dob' => fake()->date('Y-m-d', '-18 years'),
+            'full_name' => fake()->randomElement([
+                'Nguyen Van An',
+                'Tran Thi Binh',
+                'Le Minh Chau',
+                'Pham Quoc Dung',
+            ]),
+            'dob' => fake()->dateTimeBetween('-80 years', '-18 years')->format('Y-m-d'),
             'gender' => fake()->randomElement(['male', 'female', 'other']),
             'phone' => fake()->numerify('09########'),
-            'relationship' => fake()->randomElement(['self', 'spouse', 'child', 'parent', 'other']),
+            'relationship' => fake()->randomElement(['Cha', 'Mẹ', 'Con', 'Chồng', 'Vợ', 'Khác']),
         ];
     }
 }

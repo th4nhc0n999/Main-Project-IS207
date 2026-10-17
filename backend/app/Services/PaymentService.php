@@ -4,11 +4,13 @@ namespace App\Services;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Exceptions\Payment\SlotHoldExpiredException;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Services\Payment\SlotHoldService;
 use Carbon\Carbon;
 use DomainException;
-use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -17,338 +19,242 @@ class PaymentService
 {
     private const PAYABLE_BOOKING_STATUS = 'pending_payment';
 
-    /**
-     * Tính bảng kê chi phí cho booking bệnh viện thuộc người dùng hiện tại.
-     *
-     * @return array<string, mixed>
-     */
+    public function __construct(private readonly SlotHoldService $holds = new SlotHoldService) {}
+
     public function calculateInvoice(int|string|Booking $bookingParam, int $userId): array
     {
-        $booking = $this->resolveBooking($bookingParam, $userId);
+        $result = DB::transaction(function () use ($bookingParam, $userId) {
+            $booking = $this->lockBooking($bookingParam, $userId);
+            if ($this->holds->releaseIfOverdue($booking)) {
+                return new SlotHoldExpiredException;
+            }
 
-        return $this->buildInvoice($booking);
+            return $this->buildInvoice($booking);
+        }, 3);
+
+        if ($result instanceof SlotHoldExpiredException) {
+            throw $result;
+        }
+
+        return $result;
     }
 
     public function getPayment(int $paymentId, int $userId): Payment
     {
-        $payment = $this->resolvePayment($paymentId, $userId);
+        return DB::transaction(function () use ($paymentId, $userId) {
+            $payment = $this->resolvePayment($paymentId, $userId);
+            $booking = $this->lockBooking($payment->booking_id, $userId);
+            $this->holds->releaseIfOverdue($booking);
 
-        if (
-            $payment->isPending()
-            && $payment->booking?->status === self::PAYABLE_BOOKING_STATUS
-            && $payment->booking->slot_hold_expires_at !== null
-            && Carbon::now()->greaterThanOrEqualTo($payment->booking->slot_hold_expires_at)
-        ) {
-            return $this->expirePayment($payment, $userId);
-        }
-
-        return $this->loadPaymentDetails($payment);
+            return $this->loadPaymentDetails($payment);
+        }, 3);
     }
 
-    /**
-     * Đồng bộ các payment bị bỏ dở sau khi thời gian giữ slot đã hết.
-     * Booking/slot sẽ do module Booking xử lý để tránh cập nhật chồng chéo.
-     */
+    /** Compatibility entry point for the existing Payment scheduler; counts released holds. */
     public function expireOverduePayments(): int
     {
-        $expiredCount = 0;
-
-        Payment::query()
-            ->where('status', PaymentStatus::PENDING->value)
-            ->whereHas('booking', static function ($bookingQuery): void {
-                $bookingQuery
-                    ->where('status', self::PAYABLE_BOOKING_STATUS)
-                    ->whereNotNull('slot_hold_expires_at')
-                    ->where('slot_hold_expires_at', '<=', Carbon::now());
-            })
-            ->select('id')
-            ->orderBy('id')
-            ->chunkById(100, function ($payments) use (&$expiredCount): void {
-                foreach ($payments as $payment) {
-                    if ($this->expireOverduePayment((int) $payment->id)) {
-                        $expiredCount++;
-                    }
-                }
-            });
-
-        return $expiredCount;
+        return $this->holds->expireOverdueHolds();
     }
 
-    /**
-     * Khởi tạo hoặc làm mới giao dịch chưa hoàn tất trong giới hạn schema hiện tại.
-     *
-     * Do booking_id đang unique trong database, một booking chỉ có một bản ghi payment.
-     * Giao dịch PAID/REFUNDED tuyệt đối không được ghi đè.
-     */
     public function createPayment(
         int|string|Booking $bookingParam,
         PaymentMethod|string $methodParam,
         int $userId
     ): Payment {
-        return DB::transaction(function () use ($bookingParam, $methodParam, $userId) {
-            $booking = $this->resolveBooking($bookingParam, $userId, true);
-            $method = $this->resolveMethod($methodParam);
-            $invoice = $this->buildInvoice($booking);
+        $method = $this->resolveMethod($methodParam);
+        $result = DB::transaction(function () use ($bookingParam, $method, $userId) {
+            $booking = $this->lockBooking($bookingParam, $userId);
+            if ($this->holds->releaseIfOverdue($booking)) {
+                return new SlotHoldExpiredException;
+            }
 
-            $payment = Payment::query()
-                ->where('booking_id', $booking->id)
-                ->lockForUpdate()
-                ->first();
-
+            $payment = Payment::query()->where('booking_id', $booking->id)->lockForUpdate()->first();
             if ($payment?->isPaid()) {
                 throw new DomainException('Đơn đặt khám này đã được thanh toán thành công.');
             }
-
             if ($payment?->isRefunded()) {
                 throw new DomainException('Giao dịch đã hoàn tiền và không thể sử dụng lại.');
             }
 
-            if ($payment?->isPending()) {
-                if ($payment->method === $method) {
-                    return $this->loadPaymentDetails($payment);
-                }
-
-                throw new DomainException(
-                    'Đang có giao dịch chờ thanh toán bằng phương thức khác. Vui lòng hủy giao dịch hiện tại trước khi đổi phương thức.'
-                );
+            $invoice = $this->buildInvoice($booking);
+            if ($payment?->isPending() && $payment->method !== $method) {
+                throw new DomainException('Vui lòng hủy giao dịch hiện tại trước khi đổi phương thức.');
             }
+            if ($payment?->isPending()) {
+                // M5 creates a pending payment before handing off to Payment.
+                // Align its fees with the invoice without changing its method or reference.
+                $this->applyInvoice($payment, $invoice);
+                $payment->save();
 
-            if ($payment !== null && ! $payment->status->canTransitionTo(PaymentStatus::PENDING)) {
+                return $this->loadPaymentDetails($payment);
+            }
+            if ($payment && ! $payment->status->canTransitionTo(PaymentStatus::PENDING)) {
                 throw new DomainException('Trạng thái giao dịch hiện tại không cho phép thử thanh toán lại.');
             }
 
             $payment ??= new Payment(['booking_id' => $booking->id]);
+            $this->applyInvoice($payment, $invoice);
             $payment->fill([
                 'method' => $method,
-                'exam_fee' => $invoice['fees']['exam_fee'],
-                'service_fee' => $invoice['fees']['service_fee'],
-                'total_amount' => $invoice['fees']['total_amount'],
                 'status' => PaymentStatus::PENDING,
-                'transaction_code' => $this->generateTransactionCode(),
+                // This is the successful simulated gateway reference, not a checkout ID.
+                'transaction_code' => null,
                 'paid_at' => null,
-            ]);
-            $payment->save();
+            ])->save();
 
             return $this->loadPaymentDetails($payment);
-        });
+        }, 3);
+
+        if ($result instanceof SlotHoldExpiredException) {
+            throw $result;
+        }
+
+        return $result;
+    }
+
+    /** Legacy API compatibility: confirmation delegates to the single processing path. */
+    public function confirmPayment(int|Payment $paymentParam, int $userId, ?string $otp = null): Payment
+    {
+        return $this->processPayment($paymentParam, $userId, $otp);
     }
 
     /**
-     * Xác nhận giao dịch giả lập thành công và cập nhật booking trong cùng transaction.
+     * Simulated gateway. Slot -> booking -> payment locks serialize processing and expiration.
+     * Expected failures are returned from the transaction and thrown after its commit.
      */
-    public function confirmPayment(
-        int|Payment $paymentParam,
-        int $userId,
-        ?string $otp = null
-    ): Payment {
-        $wasExpired = false;
-        $otpFailed = false;
-
-        $payment = DB::transaction(function () use (
-            $paymentParam,
-            $userId,
-            $otp,
-            &$wasExpired,
-            &$otpFailed
-        ) {
-            $payment = $this->resolvePayment($paymentParam, $userId);
+    public function processPayment(int|Payment $paymentParam, int $userId, ?string $otp = null): Payment
+    {
+        $result = DB::transaction(function () use ($paymentParam, $userId, $otp) {
+            $reference = $this->resolvePayment($paymentParam, $userId);
+            $booking = $this->lockBooking($reference->booking_id, $userId);
+            $payment = $this->resolvePayment($reference->id, $userId, true);
 
             if ($payment->isPaid()) {
                 return $this->loadPaymentDetails($payment);
             }
-
-            if (! $payment->status->canTransitionTo(PaymentStatus::PAID)) {
+            if ($payment->isExpired() || $this->holds->releaseIfOverdue($booking)) {
+                return new SlotHoldExpiredException;
+            }
+            if (! $payment->isPending()) {
                 throw new DomainException('Trạng thái giao dịch hiện tại không cho phép xác nhận thanh toán.');
             }
 
-            if (! $payment->booking) {
-                throw new DomainException('Giao dịch không còn liên kết với đơn đặt khám.');
+            $invoice = $this->buildInvoice($booking);
+            if (! config('payment.demo_gateway.enabled', false)) {
+                throw new DomainException('Gateway giả lập chưa được bật.');
             }
-
-            $booking = Booking::query()
-                ->whereKey($payment->booking_id)
-                ->where('user_id', $userId)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            // Giữ cùng thứ tự khóa với createPayment: booking trước, payment sau.
-            $payment = $this->resolvePayment($payment->id, $userId, true);
-
-            $payment->setRelation('booking', $booking);
-
-            // Trạng thái có thể đã đổi trong lúc chờ khóa nên phải kiểm tra lại
-            // trên bản ghi đã được lock. Nhánh PAID giúp confirm có tính idempotent.
-            if ($payment->isPaid()) {
-                return $this->loadPaymentDetails($payment);
-            }
-
-            if (! $payment->status->canTransitionTo(PaymentStatus::PAID)) {
-                throw new DomainException('Trạng thái giao dịch hiện tại không cho phép xác nhận thanh toán.');
-            }
-
-            if ($booking->status !== self::PAYABLE_BOOKING_STATUS) {
-                throw new DomainException('Trạng thái đơn đặt khám không cho phép xác nhận thanh toán.');
-            }
-
-            if (
-                $booking->slot_hold_expires_at === null
-                || Carbon::now()->greaterThanOrEqualTo($booking->slot_hold_expires_at)
-            ) {
-                $payment->status = PaymentStatus::EXPIRED;
-                $payment->save();
-                $wasExpired = true;
-
-                return $this->loadPaymentDetails($payment);
-            }
-
             if (! $this->isDemoOtpValid($payment, $otp)) {
                 $payment->status = PaymentStatus::FAILED;
                 $payment->save();
-                $otpFailed = true;
 
-                logger()->info('Payment marked as failed.', [
-                    'payment_id' => $payment->id,
-                    'reason' => 'Sai hoặc hết hạn OTP',
-                ]);
-
-                return $this->loadPaymentDetails($payment);
+                return new DomainException('Mã xác thực OTP không chính xác hoặc đã hết hạn.');
             }
 
+            $this->applyInvoice($payment, $invoice);
             $payment->status = PaymentStatus::PAID;
-            $payment->paid_at = Carbon::now();
+            $payment->transaction_code = $this->generateTransactionCode();
+            $payment->paid_at = now();
             $payment->save();
 
             $booking->status = 'confirmed';
             $booking->slot_hold_expires_at = null;
             $booking->save();
+            // M5 already counted this hold; successful payment must NOT increment slot again.
 
             return $this->loadPaymentDetails($payment);
-        });
+        }, 3);
 
-        // Ném lỗi sau khi transaction đã commit để trạng thái EXPIRED không bị rollback.
-        if ($wasExpired) {
-            throw new DomainException('Thời gian giữ slot khám đã hết. Không thể xác nhận thanh toán.');
+        if ($result instanceof \Throwable) {
+            throw $result;
         }
 
-        // Tương tự EXPIRED, lỗi được trả sau commit để trạng thái FAILED được giữ lại.
-        if ($otpFailed) {
-            throw new DomainException('Mã xác thực OTP không chính xác hoặc đã hết hạn.');
-        }
-
-        return $payment;
+        return $result;
     }
 
-    /**
-     * Ghi nhận giao dịch thất bại từ gateway hoặc quá trình xác thực.
-     */
-    public function markAsFailed(
-        int|Payment $paymentParam,
-        int $userId,
-        ?string $reason = null
-    ): Payment {
-        return DB::transaction(function () use ($paymentParam, $userId, $reason) {
-            $payment = $this->resolvePayment($paymentParam, $userId, true);
-
-            if ($payment->isFailed()) {
-                return $this->loadPaymentDetails($payment);
-            }
-
-            if (! $payment->canBeMarkedAsFailed()) {
-                throw new DomainException('Giao dịch đã hoàn tất và không thể đánh dấu thất bại.');
-            }
-
-            $payment->status = PaymentStatus::FAILED;
-            $payment->save();
-
-            if ($reason !== null && $reason !== '') {
-                logger()->info('Payment marked as failed.', [
-                    'payment_id' => $payment->id,
-                    'reason' => $reason,
-                ]);
-            }
-
-            return $this->loadPaymentDetails($payment);
-        });
+    public function markAsFailed(int|Payment $paymentParam, int $userId, ?string $reason = null): Payment
+    {
+        return $this->finishPendingPayment($paymentParam, $userId, PaymentStatus::FAILED);
     }
 
-    /**
-     * Hủy một giao dịch đang chờ theo yêu cầu của người dùng.
-     */
+    /** Cancelling payment permits another attempt until the original booking deadline. */
     public function cancelPayment(int|Payment $paymentParam, int $userId): Payment
     {
-        return DB::transaction(function () use ($paymentParam, $userId) {
-            $payment = $this->resolvePayment($paymentParam, $userId, true);
+        return $this->finishPendingPayment($paymentParam, $userId, PaymentStatus::CANCELLED);
+    }
 
-            if ($payment->isCancelled()) {
+    private function finishPendingPayment(int|Payment $paymentParam, int $userId, PaymentStatus $status): Payment
+    {
+        return DB::transaction(function () use ($paymentParam, $userId, $status) {
+            $reference = $this->resolvePayment($paymentParam, $userId);
+            $booking = $this->lockBooking($reference->booking_id, $userId);
+            $payment = $this->resolvePayment($reference->id, $userId, true);
+            if ($this->holds->releaseIfOverdue($booking)) {
                 return $this->loadPaymentDetails($payment);
             }
-
-            if (! $payment->canBeCancelled()) {
-                throw new DomainException('Chỉ có thể hủy giao dịch đang chờ thanh toán.');
+            if ($payment->status === $status) {
+                return $this->loadPaymentDetails($payment);
             }
-
-            $payment->status = PaymentStatus::CANCELLED;
+            if (! $payment->status->canTransitionTo($status)) {
+                throw new DomainException('Giao dịch đã hoàn tất, không thể đánh dấu thất bại hoặc hủy.');
+            }
+            $payment->status = $status;
             $payment->save();
 
             return $this->loadPaymentDetails($payment);
-        });
+        }, 3);
     }
 
-    /**
-     * Đánh dấu một giao dịch chờ thanh toán đã hết hạn.
-     * Có thể được gọi bởi scheduled job khi bổ sung cơ chế quét giao dịch sau này.
-     */
     public function expirePayment(int|Payment $paymentParam, int $userId): Payment
     {
         return DB::transaction(function () use ($paymentParam, $userId) {
-            $payment = $this->resolvePayment($paymentParam, $userId);
-
+            $reference = $this->resolvePayment($paymentParam, $userId);
+            $booking = $this->lockBooking($reference->booking_id, $userId);
+            $payment = $this->resolvePayment($reference->id, $userId, true);
             if ($payment->isExpired()) {
+                $this->holds->releaseIfOverdue($booking);
+
                 return $this->loadPaymentDetails($payment);
             }
-
-            if (! $payment->booking) {
-                throw new DomainException('Giao dịch không còn liên kết với đơn đặt khám.');
-            }
-
-            // Giữ thứ tự khóa thống nhất: booking trước, payment sau.
-            $booking = Booking::query()
-                ->whereKey($payment->booking_id)
-                ->where('user_id', $userId)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            $payment = $this->resolvePayment($payment->id, $userId, true);
-
-            if ($payment->isExpired()) {
-                return $this->loadPaymentDetails($payment);
-            }
-
-            if ($booking->status !== self::PAYABLE_BOOKING_STATUS) {
-                throw new DomainException('Trạng thái đơn đặt khám không cho phép đánh dấu thanh toán hết hạn.');
-            }
-
-            if (! $payment->canBeExpired()) {
+            if (! $payment->isPending()) {
                 throw new DomainException('Chỉ có thể đánh dấu hết hạn giao dịch đang chờ thanh toán.');
             }
-
-            if (
-                $booking->slot_hold_expires_at !== null
-                && Carbon::now()->lessThan($booking->slot_hold_expires_at)
-            ) {
-                throw new DomainException('Giao dịch vẫn còn trong thời gian thanh toán.');
+            if (! $this->holds->releaseIfOverdue($booking)) {
+                throw new DomainException('Đơn đặt khám không hợp lệ hoặc vẫn còn trong thời gian thanh toán.');
             }
 
-            $payment->status = PaymentStatus::EXPIRED;
-            $payment->save();
-
             return $this->loadPaymentDetails($payment);
-        });
+        }, 3);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    private function lockBooking(int|string|Booking $bookingParam, int $userId): Booking
+    {
+        $query = Booking::query()->where('user_id', $userId);
+        if ($bookingParam instanceof Booking) {
+            $query->whereKey($bookingParam->getKey());
+        } elseif (is_int($bookingParam) || ctype_digit($bookingParam)) {
+            $query->whereKey($bookingParam);
+        } else {
+            $query->where('code', $bookingParam);
+        }
+
+        $booking = $this->holds->lockBooking($query->firstOrFail());
+        // Recheck ownership after acquiring the lock, never trust a caller's model attributes.
+        if ((int) $booking->user_id !== $userId) {
+            throw new ModelNotFoundException;
+        }
+
+        return $booking->loadMissing(['hospital', 'examType', 'patientProfile']);
+    }
+
+    private function applyInvoice(Payment $payment, array $invoice): void
+    {
+        $payment->fill([
+            'exam_fee' => $invoice['fees']['exam_fee'],
+            'service_fee' => $invoice['fees']['service_fee'],
+            'total_amount' => $invoice['fees']['total_amount'],
+        ]);
+    }
+
     private function buildInvoice(Booking $booking): array
     {
         $this->ensureBookingCanBePaid($booking);
@@ -416,6 +322,10 @@ class PaymentService
             throw new InvalidArgumentException('Chỉ đơn đặt khám bệnh viện mới hỗ trợ thanh toán trực tuyến.');
         }
 
+        if ($booking->status === 'cancelled' && $booking->slot_hold_expires_at?->isPast()) {
+            throw new SlotHoldExpiredException;
+        }
+
         if ($booking->status !== self::PAYABLE_BOOKING_STATUS) {
             throw new DomainException('Trạng thái đơn đặt khám hiện tại không cho phép thanh toán.');
         }
@@ -425,7 +335,7 @@ class PaymentService
         }
 
         if (Carbon::now()->greaterThanOrEqualTo($booking->slot_hold_expires_at)) {
-            throw new DomainException('Thời gian giữ slot khám đã hết. Vui lòng chọn lại khung giờ.');
+            throw new SlotHoldExpiredException;
         }
 
         if (! $booking->patientProfile) {
@@ -442,6 +352,19 @@ class PaymentService
 
         if (! $booking->slot) {
             throw new DomainException('Không tìm thấy khung giờ khám của đơn đặt khám.');
+        }
+
+        if ((int) $booking->patientProfile->user_id !== (int) $booking->user_id) {
+            throw new DomainException('Hồ sơ bệnh nhân không thuộc chủ đơn đặt khám.');
+        }
+
+        if ($booking->slot->status === 'blocked' || $booking->slot->booked_count < 1) {
+            throw new DomainException('Khung giờ khám bị khóa hoặc không còn giữ chỗ.');
+        }
+
+        $startsAt = $booking->slot->work_date?->copy()->setTimeFromTimeString($booking->slot->start_time);
+        if ($startsAt === null || now()->greaterThanOrEqualTo($startsAt)) {
+            throw new DomainException('Khung giờ khám đã bắt đầu hoặc không hợp lệ.');
         }
 
         if ((int) $booking->examType->hospital_id !== (int) $booking->hospital_id) {
@@ -472,89 +395,11 @@ class PaymentService
             return true;
         }
 
-        if (! config('payment.demo_gateway.enabled', false)) {
-            throw new DomainException('Gateway giả lập chưa được bật để xác nhận thanh toán thẻ.');
-        }
-
         $expectedOtp = (string) config('payment.demo_gateway.otp', '');
 
         return $otp !== null
             && $expectedOtp !== ''
             && hash_equals($expectedOtp, $otp);
-    }
-
-    private function expireOverduePayment(int $paymentId): bool
-    {
-        return DB::transaction(function () use ($paymentId): bool {
-            $payment = Payment::query()->find($paymentId);
-
-            if (! $payment) {
-                return false;
-            }
-
-            $booking = Booking::query()
-                ->whereKey($payment->booking_id)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $booking) {
-                return false;
-            }
-
-            $payment = Payment::query()
-                ->whereKey($paymentId)
-                ->lockForUpdate()
-                ->first();
-
-            if (
-                ! $payment
-                || ! $payment->isPending()
-                || $booking->status !== self::PAYABLE_BOOKING_STATUS
-                || $booking->slot_hold_expires_at === null
-                || Carbon::now()->lessThan($booking->slot_hold_expires_at)
-            ) {
-                return false;
-            }
-
-            $payment->status = PaymentStatus::EXPIRED;
-            $payment->save();
-
-            return true;
-        });
-    }
-
-    private function resolveBooking(
-        int|string|Booking $bookingParam,
-        int $userId,
-        bool $lockForUpdate = false
-    ): Booking {
-        if ($bookingParam instanceof Booking) {
-            if ((int) $bookingParam->user_id !== $userId) {
-                throw new AuthorizationException('Bạn không có quyền truy cập đơn đặt khám này.');
-            }
-
-            if (! $lockForUpdate) {
-                return $bookingParam->loadMissing(['hospital', 'examType', 'patientProfile', 'slot']);
-            }
-
-            // Re-query bên trong transaction để lock thực sự có hiệu lực cả khi
-            // tầng gọi truyền vào một model Booking đã được load từ trước.
-            $bookingParam = $bookingParam->getKey();
-        }
-
-        $query = Booking::query()
-            ->with(['hospital', 'examType', 'patientProfile', 'slot'])
-            ->where('user_id', $userId);
-
-        if ($lockForUpdate) {
-            $query->lockForUpdate();
-        }
-
-        if (is_numeric($bookingParam)) {
-            return $query->findOrFail((int) $bookingParam);
-        }
-
-        return $query->where('code', (string) $bookingParam)->firstOrFail();
     }
 
     private function resolvePayment(
