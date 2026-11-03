@@ -2,12 +2,14 @@
 
 namespace App\Exceptions\Booking;
 
-use App\Exceptions\BusinessException;
+use DomainException;
 
-class SlotUnavailableException extends BusinessException
+class SlotUnavailableException extends DomainException
 {
-    public function __construct(string $message = 'Khung giờ khám đã hết chỗ hoặc không khả dụng')
+    public const ERROR_CODE = 'SE001';
+
+    public function errorCode(): string
     {
-        parent::__construct($message, 422);
+        return self::ERROR_CODE;
     }
 }

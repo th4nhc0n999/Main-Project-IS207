@@ -2,15 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Booking extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
+        'code',
         'user_id',
         'patient_profile_id',
         'booking_type',
@@ -19,82 +17,31 @@ class Booking extends Model
         'exam_type_id',
         'slot_id',
         'symptoms',
+        'patient_snapshot',
         'status',
-        'slot_hold_expires_at',
-        'note',
+        'hold_expires_at',
+        'approval_expires_at',
+        'decided_by',
+        'decided_at',
+        'reject_reason',
+        'cancelled_at',
+        'cancelled_by',
+        'cancel_reason_code',
+        'cancel_reason',
+        'request_key',
+        'version',
     ];
 
     protected function casts(): array
     {
         return [
-            'slot_hold_expires_at' => 'datetime',
+            'status' => BookingStatus::class,
+            'patient_snapshot' => 'array',
+            'hold_expires_at' => 'datetime',
+            'approval_expires_at' => 'datetime',
+            'decided_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'version' => 'integer',
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::creating(function (Booking $booking) {
-            if ($booking->code) {
-                return;
-            }
-
-            $prefix = 'BK'.now()->format('Ymd');
-            $lastCode = static::where('code', 'like', $prefix.'%')
-                ->orderByDesc('code')
-                ->value('code');
-            $sequence = $lastCode ? ((int) Str::after($lastCode, $prefix)) + 1 : 1;
-            $booking->code = $prefix.str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
-        });
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function patientProfile()
-    {
-        return $this->belongsTo(PatientProfile::class);
-    }
-
-    public function doctor()
-    {
-        return $this->belongsTo(Doctor::class);
-    }
-
-    public function hospital()
-    {
-        return $this->belongsTo(Hospital::class);
-    }
-
-    public function examType()
-    {
-        return $this->belongsTo(ExamType::class);
-    }
-
-    public function slot()
-    {
-        return $this->belongsTo(Slot::class);
-    }
-
-    public function payment()
-    {
-        return $this->hasOne(Payment::class);
-    }
-
-    /**
-     * Scope a query to only include bookings for a given user.
-     */
-    public function scopeForUser($query, int $userId)
-    {
-        return $query->where('user_id', $userId);
-    }
-
-    /**
-     * Get booking list by user_id.
-     */
-    public static function getByUserId(int $userId)
-    {
-        return static::where('user_id', $userId)->get();
     }
 }

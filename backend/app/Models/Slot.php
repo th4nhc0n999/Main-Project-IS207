@@ -2,16 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Slot extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'owner_type',
         'owner_id',
+        'specialty_id',
         'work_date',
         'start_time',
         'end_time',
@@ -27,15 +25,5 @@ class Slot extends Model
             'capacity' => 'integer',
             'booked_count' => 'integer',
         ];
-    }
-
-    public function owner()
-    {
-        return $this->morphTo();
-    }
-
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class);
     }
 }
