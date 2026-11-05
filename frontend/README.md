@@ -29,5 +29,7 @@ npm run lint
 npm run build
 ```
 
-Xem kiến trúc chung và tài liệu database tại [README.md](../README.md) và
-[docs/database-schema.md](../docs/database-schema.md).
+Xem trạng thái tích hợp tại [README.md](../README.md), baseline tại
+[docs/MedSi_Tai_lieu_thong_nhat_v0.1.md](../docs/MedSi_Tai_lieu_thong_nhat_v0.1.md)
+và schema tại [docs/medsi_schema_v1.sql](../docs/medsi_schema_v1.sql). Backend hiện
+chưa có API nghiệp vụ theo schema mới.

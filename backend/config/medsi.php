@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'hold_minutes' => 15,
+    'grace_minutes' => 5,
+    'approval_minutes' => 30,
+    'min_lead_doctor_minutes' => 120,
+    'min_lead_hospital_days' => 1,
+    'max_advance_days' => 30,
+    'free_cancel_hours' => 24,
+    'late_cancel_refund_percent' => 50,
+    'no_show_doctor_after_start_minutes' => 15,
+    'no_show_hospital_after_end_minutes' => 120,
+    'service_fee_mode' => 'fixed',
+    'service_fee_amount' => 20000,
+    'max_profiles_per_user' => 10,
+    'max_active_bookings_per_profile' => 3,
+    'guardian_age_threshold' => 16,
+    'login_max_attempts' => 5,
+    'login_window_seconds' => 60,
+    'lock_minutes' => 15,
+    'near_me_radius_options_km' => [2, 5, 10, 20],
+    'near_me_default_radius_km' => 5,
+    'symptoms_max_length' => 500,
+    'store_pay_cutoff_minutes_before' => 30,
+];

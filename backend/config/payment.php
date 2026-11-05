@@ -10,7 +10,7 @@ return [
     | phải sửa mã nguồn.
     |
     */
-    'service_fee' => (int) env('PAYMENT_SERVICE_FEE', 10000),
+    'service_fee' => (int) env('PAYMENT_SERVICE_FEE', 20000),
 
     /*
     |--------------------------------------------------------------------------

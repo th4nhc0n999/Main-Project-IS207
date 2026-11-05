@@ -1,5 +1,6 @@
 <?php
 
+<<<<<<< HEAD
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\PatientProfileController;
@@ -73,3 +74,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/bookings/{id}',         [BookingAdminController::class, 'show'])->whereNumber('id');
     Route::patch('/bookings/{id}/status', [BookingAdminController::class, 'updateStatus'])->whereNumber('id');
 });
+=======
+use Illuminate\Support\Facades\Route;
+
+Route::get('/health', fn () => response()->json(['status' => 'ok']));
+>>>>>>> f0764f58abcf7e5006e42d55a224a108a2a99c6a

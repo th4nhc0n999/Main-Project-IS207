@@ -1,8 +1,11 @@
 <?php
 
+use App\Exceptions\Booking\InvalidBookingTransitionException;
+use App\Exceptions\Booking\SlotUnavailableException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,5 +20,27 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (SlotUnavailableException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'code' => $exception->errorCode(),
+            ], 409);
+        });
+
+        $exceptions->render(function (InvalidBookingTransitionException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'code' => 'INVALID_BOOKING_TRANSITION',
+            ], 422);
+        });
     })->create();
