@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Bkd;
 
+use App\Support\Bkd\SensitiveData;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,10 +21,10 @@ class BookingResource extends JsonResource
             'approval_seconds_remaining' => $this->approval_expires_at
                 ? max(0, $this->approval_expires_at->getTimestamp() - now()->getTimestamp()) : null,
             'decided_at' => $this->decided_at?->toIso8601String(),
-            'reject_reason' => $this->reject_reason,
+            'reject_reason' => SensitiveData::maskText($this->reject_reason),
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),
             'cancel_reason_code' => $this->cancel_reason_code,
-            'cancel_reason' => $this->cancel_reason,
+            'cancel_reason' => SensitiveData::maskText($this->cancel_reason),
             'patient' => ['full_name' => $this->patient_snapshot['full_name'] ?? null],
             'slot' => $this->when($this->relationLoaded('bkdSlot'), fn () => new SlotResource($this->getRelation('bkdSlot'))),
             'payment' => $this->when($this->relationLoaded('bkdPayment'), function () {

@@ -14,6 +14,7 @@ use App\Models\Booking;
 use App\Models\Slot;
 use App\Models\User;
 use App\Services\BookingStateMachine;
+use App\Support\Bkd\SensitiveData;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
@@ -107,7 +108,9 @@ class DoctorBookingService
             }
             $event = $approve ? BookingEvent::T05 : BookingEvent::T06;
             $dependency = $this->dependency($approve ? BookingTicket::class : BookingRefund::class);
-            $booking = $this->machine->apply($booking, $event, $actor, ['reason' => $data['reason'] ?? null]);
+            $booking = $this->machine->apply($booking, $event, $actor, [
+                'reason' => SensitiveData::maskText($data['reason'] ?? null),
+            ]);
             if ($approve) {
                 $dependency->issueFor($booking);
             } else {
@@ -135,7 +138,7 @@ class DoctorBookingService
             }
             $refund = $event === BookingEvent::T04 ? null : $this->dependency(BookingRefund::class);
             $booking = $this->machine->apply($booking, $event, $actor, [
-                'reason' => $data['reason'], 'reason_code' => $data['reason_code'] ?? null,
+                'reason' => SensitiveData::maskText($data['reason']), 'reason_code' => $data['reason_code'] ?? null,
             ]);
             $refund?->requestFor($booking, $event, $actor);
 
@@ -200,7 +203,7 @@ class DoctorBookingService
         }
         foreach ($sensitive as $key) {
             $value = $snapshot[$key] ?? null;
-            if ($value !== null && $value !== '' && (! is_string($value) || ! str_contains($value, '*'))) {
+            if (! SensitiveData::isMaskedIdentifier($value, $key === 'health_insurance_code')) {
                 throw new BkdException('Snapshot hồ sơ chưa được che dữ liệu.', 503, 'BKD_INTEGRATION_UNAVAILABLE');
             }
         }
