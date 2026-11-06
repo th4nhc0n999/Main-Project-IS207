@@ -127,12 +127,12 @@ Mục tiêu của đợt triển khai chính thức này là:
 ---
 
 ### BƯỚC 4: SAO CHÉP TEST SUITES & BẰNG CHỨNG TÀI LIỆU
-- [ ] **4.1. Sao chép Test Suites Backend:**
+- [x] **4.1. Sao chép Test Suites Backend:**
   - Sao chép `backend/tests/Feature/HospitalBookingTicketTest.php`.
   - Sao chép `backend/tests/Feature/HospitalTicketConcurrencyTest.php`.
   - Sao chép `backend/tests/Support/hospital_ticket_race_worker.php`.
   - Sao chép `backend/tests/Support/generate_ticket_sample.php`.
-- [ ] **4.2. Sao chép Tài liệu & Mẫu ảnh:**
+- [x] **4.2. Sao chép Tài liệu & Mẫu ảnh:**
   - Sao chép `docs/BKH_DD.md`.
   - Sao chép `docs/images/medsi-ticket-sample.png`.
 
