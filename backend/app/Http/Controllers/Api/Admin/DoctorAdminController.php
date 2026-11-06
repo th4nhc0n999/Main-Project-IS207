@@ -61,11 +61,13 @@ class DoctorAdminController extends Controller
                 'data'    => $doctor,
             ], 201);
         } catch (Throwable $e) {
+            $status = $e instanceof \InvalidArgumentException ? 422 : 500;
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
                 'data'    => null,
-            ], 500);
+            ], $status);
         }
     }
 
@@ -84,11 +86,13 @@ class DoctorAdminController extends Controller
                 'data'    => $doctor,
             ]);
         } catch (Throwable $e) {
+            $status = $e instanceof \InvalidArgumentException ? 422 : 500;
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
                 'data'    => null,
-            ], 500);
+            ], $status);
         }
     }
 
@@ -107,11 +111,13 @@ class DoctorAdminController extends Controller
                 'data'    => null,
             ]);
         } catch (Throwable $e) {
+            $status = $e instanceof \InvalidArgumentException ? 422 : 500;
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
                 'data'    => null,
-            ], 500);
+            ], $status);
         }
     }
 }

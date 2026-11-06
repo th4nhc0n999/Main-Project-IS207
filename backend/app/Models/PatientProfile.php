@@ -15,16 +15,12 @@ class PatientProfile extends Model
     protected $fillable = [
         'user_id',
         'full_name',
-        'relationship',
+        'dob',
         'gender',
-        'date_of_birth',
         'phone',
+        'relationship',
         'identity_card_number',
-        'health_insurance_number',
-        'province',
-        'district',
-        'ward',
-        'address',
+        'health_insurance_code',
         'guardian_name',
         'guardian_phone',
         'guardian_relationship',
@@ -32,7 +28,7 @@ class PatientProfile extends Model
     ];
 
     protected $casts = [
-        'date_of_birth' => 'date',
+        'dob' => 'date',
         'is_default' => 'boolean',
     ];
 
