@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Http\Resources;
+
+use App\Support\DataMasker;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class PatientProfileResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array with masked sensitive fields.
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'full_name' => $this->full_name,
+            'dob' => $this->dob?->format('Y-m-d'),
+            'gender' => $this->gender,
+            'phone' => DataMasker::maskPhone($this->phone),
+            'relationship' => $this->relationship,
+            'identity_card_number' => DataMasker::maskIdentityCard($this->identity_card_number),
+            'health_insurance_code' => $this->health_insurance_code,
+            'guardian_name' => $this->guardian_name,
+            'guardian_phone' => DataMasker::maskPhone($this->guardian_phone),
+            'guardian_relationship' => $this->guardian_relationship,
+            'is_default' => (bool) $this->is_default,
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+        ];
+    }
+}
