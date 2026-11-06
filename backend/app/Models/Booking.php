@@ -4,6 +4,9 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
 {
@@ -43,5 +46,50 @@ class Booking extends Model
             'cancelled_at' => 'datetime',
             'version' => 'integer',
         ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function patientProfile(): BelongsTo
+    {
+        return $this->belongsTo(PatientProfile::class);
+    }
+
+    public function slot(): BelongsTo
+    {
+        return $this->belongsTo(Slot::class);
+    }
+
+    public function doctor(): BelongsTo
+    {
+        return $this->belongsTo(Doctor::class);
+    }
+
+    public function hospital(): BelongsTo
+    {
+        return $this->belongsTo(Hospital::class);
+    }
+
+    public function examType(): BelongsTo
+    {
+        return $this->belongsTo(ExamType::class);
+    }
+
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    public function ticket(): HasOne
+    {
+        return $this->hasOne(Ticket::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
     }
 }

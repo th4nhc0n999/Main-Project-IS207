@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Admin\BookingAdminController;
 use App\Http\Controllers\Api\Admin\DoctorAdminController;
 use App\Http\Controllers\Api\Admin\ExamTypeAdminController;
 use App\Http\Controllers\Api\Admin\HospitalAdminController;
+use App\Http\Controllers\Api\Admin\NoShowAdminController;
 use App\Http\Controllers\Api\Admin\RefundAdminController;
 use App\Http\Controllers\Api\Admin\SlotController;
 use App\Http\Controllers\Api\Admin\SpecialtyController;
@@ -47,6 +48,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/refunds/{id}', [RefundAdminController::class, 'show'])->whereNumber('id');
     Route::post('/refunds/{id}/decide', [RefundAdminController::class, 'decide'])->whereNumber('id');
     Route::post('/refunds/{id}/process-simulation', [RefundAdminController::class, 'processSimulation'])->whereNumber('id');
+
+    // Màn hình Quản trị Không đến khám & Khiếu nại (No-Show Console - S4-36 / E12)
+    Route::get('/no-shows/eligible', [NoShowAdminController::class, 'eligible']);
+    Route::post('/no-shows/bookings/{id}/confirm', [NoShowAdminController::class, 'confirm'])->whereNumber('id');
+    Route::post('/no-shows/bookings/{id}/complaint', [NoShowAdminController::class, 'complaint'])->whereNumber('id');
 
     // Chế độ Demo Sandbox (S4-33)
     Route::prefix('demo')->group(function () {
