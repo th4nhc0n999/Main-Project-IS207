@@ -23,7 +23,13 @@ class PaymentApi
                     ? 'Không thể xử lý thanh toán. Vui lòng kiểm tra lại giao dịch.'
                     : (collect($body['errors'] ?? [])->flatten()->first() ?? $body['message'] ?? 'Không được phép thực hiện.');
 
-                return response()->json(['success' => false, 'message' => $message, 'data' => null], $response->getStatusCode());
+                // Preserve the shared auth middleware's safe recovery details.
+                $details = array_intersect_key($body, array_flip([
+                    'status', 'require_password_change', 'remaining_minutes',
+                ]));
+
+                return response()->json(['success' => false, 'message' => $message,
+                    'data' => $details ?: null], $response->getStatusCode());
             }
 
             return $response;

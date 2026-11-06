@@ -15,6 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Preserve the PAY response envelope for authentication failures as well.
+        $middleware->prependToPriorityList(
+            \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            \App\Http\Middleware\PaymentApi::class,
+        );
+
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserRole::class,
             'active' => \App\Http\Middleware\EnsureUserActive::class,

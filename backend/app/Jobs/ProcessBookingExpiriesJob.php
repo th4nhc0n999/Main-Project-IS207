@@ -16,7 +16,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Throwable;
 
 class ProcessBookingExpiriesJob implements ShouldQueue
@@ -67,7 +66,7 @@ class ProcessBookingExpiriesJob implements ShouldQueue
                         ->where('status', 'pending')
                         ->exists();
 
-                    if ($hasPendingTxn) {
+                    if ($hasPendingTxn && $payment->method !== 'store_pay') {
                         $graceDeadline = CarbonImmutable::parse($candidate->hold_expires_at)->addMinutes($graceMinutes);
                         if ($now->lt($graceDeadline)) {
                             // Still within grace period, skip expiring now
@@ -137,49 +136,7 @@ class ProcessBookingExpiriesJob implements ShouldQueue
                     'Hết hạn duyệt 30 phút'
                 );
 
-                // Auto-create refund request if not already created (PAY_POLICY row 6)
-                $payment = DB::table('payments')->where('booking_id', $candidate->id)->first();
-                if ($payment && ! DB::table('refunds')->where('booking_id', $candidate->id)->exists()) {
-                    $refundAmount = (int) $payment->received_amount;
-                    $examFeeRefunded = (int) ($payment->exam_fee - $payment->discount_amount);
-                    $serviceFeeRefunded = (int) $payment->service_fee;
-
-                    // Ensure sum constraint
-                    if ($examFeeRefunded + $serviceFeeRefunded !== $refundAmount) {
-                        $examFeeRefunded = $refundAmount - $serviceFeeRefunded;
-                    }
-
-                    $refundId = DB::table('refunds')->insertGetId([
-                        'payment_id' => $payment->id,
-                        'booking_id' => $candidate->id,
-                        'amount' => $refundAmount,
-                        'exam_fee_refunded' => $examFeeRefunded,
-                        'service_fee_refunded' => $serviceFeeRefunded,
-                        'policy_case' => 'T07_expired',
-                        'reason' => 'Bác sĩ không duyệt lịch trong 30 phút (T07)',
-                        'status' => 'requested',
-                        'refund_ref' => 'RF'.now()->format('ymd').Str::upper(Str::random(8)),
-                        'requested_by' => null,
-                        'approved_by' => null,
-                        'requested_at' => now(),
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-
-                    $auditLogger->log(
-                        AuditEvent::AU_18,
-                        'refund',
-                        $refundId,
-                        'system',
-                        [
-                            'booking_id' => $candidate->id,
-                            'amount' => $refundAmount,
-                            'policy_case' => 'T07_expired',
-                            'status' => 'requested',
-                        ],
-                        'Tự động tạo yêu cầu hoàn tiền do hết hạn duyệt'
-                    );
-                }
+                // T07 creates the refund through RefundService in the state-machine transaction.
 
                 $count++;
             } catch (Throwable $e) {

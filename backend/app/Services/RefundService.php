@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AuditEvent;
 use App\Enums\BookingEvent;
 use App\Models\Booking;
 use App\Models\User;
@@ -101,12 +102,10 @@ class RefundService
                 'status' => 'requested', 'refund_ref' => $ref, 'requested_by' => null,
                 'requested_at' => now(), 'created_at' => now(), 'updated_at' => now(),
             ]);
-            DB::table('audit_logs')->insert([
-                'actor_id' => null, 'actor_type' => 'system', 'action' => 'refund.requested',
-                'entity_type' => 'refund', 'entity_id' => $id, 'occurred_at' => now(),
-                'reason' => mb_substr($reason, 0, 255),
-                'changes' => json_encode(['policy_case' => $policy, 'amount' => $amount, 'refund_ref' => $ref]),
-            ]);
+            app(AuditLogger::class)->log(AuditEvent::AU_18, 'refund', $id, 'system', [
+                'event' => 'refund.requested', 'status' => 'requested',
+                'policy_case' => $policy, 'amount' => $amount, 'refund_ref' => $ref,
+            ], $reason);
 
             return DB::table('refunds')->find($id);
         });
@@ -146,10 +145,9 @@ class RefundService
                 ]);
             }
             DB::table('refunds')->where('id', $id)->update($changes);
-            DB::table('audit_logs')->insert([
-                'actor_id' => $admin->id, 'actor_type' => 'user', 'action' => 'refund.'.$next,
-                'entity_type' => 'refund', 'entity_id' => $id, 'occurred_at' => now(),
-                'changes' => json_encode(['from' => $refund->status, 'to' => $next]),
+            app(AuditLogger::class)->log(AuditEvent::AU_18, 'refund', $id, $admin, [
+                'event' => 'refund.'.$next, 'from' => $refund->status, 'to' => $next,
+                'amount' => (int) $refund->amount, 'refund_ref' => $refund->refund_ref,
             ]);
 
             return DB::table('refunds')->find($id);

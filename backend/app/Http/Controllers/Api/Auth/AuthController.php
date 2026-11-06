@@ -193,7 +193,7 @@ class AuthController extends Controller
             'Đăng nhập thành công'
         );
 
-        $isPending = ($user->status === UserStatus::PENDING || (string) $user->status === 'pending');
+        $isPending = $user->status === UserStatus::PENDING;
 
         $userData = [
             'id' => $user->id,

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AuditEvent;
 use App\Enums\BookingEvent;
 use App\Models\Booking;
 use App\Models\Slot;
@@ -66,9 +67,9 @@ class PaymentGatewayService
     }
 
     /** Only a verified simulated gateway or authorized Admin may call this method. */
-    public function callback(int $bookingId, string $code, int $amount, string $status, string $source = 'gateway'): object
+    public function callback(int $bookingId, string $code, int $amount, string $status, string $source = 'gateway', ?User $actor = null): object
     {
-        return DB::transaction(function () use ($bookingId, $code, $amount, $status, $source) {
+        return DB::transaction(function () use ($bookingId, $code, $amount, $status, $source, $actor) {
             [$booking, $payment] = $this->lock($bookingId);
             if (! in_array($status, ['success', 'failed'], true) || $amount !== (int) $payment->total_amount
                 || ! in_array($source, ['gateway', 'counter', 'demo_admin'], true)) {
@@ -104,13 +105,11 @@ class PaymentGatewayService
                     'source' => $source, 'created_at' => now(),
                 ]);
             }
-            DB::table('audit_logs')->insert([
-                'actor_id' => null, 'actor_type' => $source === 'counter' ? 'system' : 'gateway',
-                'action' => 'payment_transaction.'.$status, 'entity_type' => 'payment_transaction',
-                'entity_id' => $id, 'occurred_at' => now(),
-                'changes' => json_encode(['from' => $transaction?->status, 'to' => $status,
-                    'transaction_code' => $code, 'amount' => $amount]),
-            ]);
+            app(AuditLogger::class)->log(AuditEvent::AU_17, 'payment_transaction', $id,
+                $actor ?? ($source === 'counter' ? 'system' : 'gateway'), [
+                    'event' => 'payment_transaction.'.$status, 'from' => $transaction?->status, 'to' => $status,
+                    'transaction_code' => $code, 'amount' => $amount, 'source' => $source,
+                ]);
             if ($status === 'failed') {
                 if ($booking->status->value === 'pending_payment' && (int) $payment->received_amount === 0) {
                     DB::table('payments')->where('id', $payment->id)->update(['status' => 'failed', 'updated_at' => now()]);
@@ -159,16 +158,8 @@ class PaymentGatewayService
                 $this->invalid('Chưa đăng ký thanh toán tại quầy.');
             }
 
-            $result = $this->callback($bookingId, $transaction->transaction_code,
-                (int) $transaction->amount, 'success', 'counter');
-            if ($transaction->status === 'pending') {
-                DB::table('audit_logs')->insert(['actor_id' => $admin->id, 'actor_type' => 'user',
-                    'action' => 'payment.counter_confirmed', 'entity_type' => 'payment',
-                    'entity_id' => $payment->id, 'occurred_at' => now(),
-                    'changes' => json_encode(['transaction_code' => $transaction->transaction_code])]);
-            }
-
-            return $result;
+            return $this->callback($bookingId, $transaction->transaction_code,
+                (int) $transaction->amount, 'success', 'counter', $admin);
         });
     }
 
