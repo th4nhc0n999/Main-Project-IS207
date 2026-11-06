@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Admin\BookingAdminController;
 use App\Http\Controllers\Api\Admin\DoctorAdminController;
 use App\Http\Controllers\Api\Admin\ExamTypeAdminController;
 use App\Http\Controllers\Api\Admin\HospitalAdminController;
+use App\Http\Controllers\Api\Admin\RefundAdminController;
 use App\Http\Controllers\Api\Admin\SlotController;
 use App\Http\Controllers\Api\Admin\SpecialtyController;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +41,12 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/bookings', [BookingAdminController::class, 'index']);
     Route::get('/bookings/{id}', [BookingAdminController::class, 'show'])->whereNumber('id');
     Route::patch('/bookings/{id}/status', [BookingAdminController::class, 'updateStatus'])->whereNumber('id');
+
+    // Màn hình Quản trị Hoàn tiền (Refund Console - S4-34)
+    Route::get('/refunds', [RefundAdminController::class, 'index']);
+    Route::get('/refunds/{id}', [RefundAdminController::class, 'show'])->whereNumber('id');
+    Route::post('/refunds/{id}/decide', [RefundAdminController::class, 'decide'])->whereNumber('id');
+    Route::post('/refunds/{id}/process-simulation', [RefundAdminController::class, 'processSimulation'])->whereNumber('id');
 
     // Chế độ Demo Sandbox (S4-33)
     Route::prefix('demo')->group(function () {

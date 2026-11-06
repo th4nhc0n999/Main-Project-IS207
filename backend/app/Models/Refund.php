@@ -21,17 +21,17 @@ class Refund extends Model
         'status',
         'refund_ref',
         'requested_by',
-        'decided_by',
-        'decided_at',
-        'gateway_response',
+        'approved_by',
+        'requested_at',
+        'processed_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:0',
         'exam_fee_refunded' => 'decimal:0',
         'service_fee_refunded' => 'decimal:0',
-        'decided_at' => 'datetime',
-        'gateway_response' => 'array',
+        'requested_at' => 'datetime',
+        'processed_at' => 'datetime',
     ];
 
     public function payment(): BelongsTo
@@ -49,8 +49,8 @@ class Refund extends Model
         return $this->belongsTo(User::class, 'requested_by');
     }
 
-    public function decidedUser(): BelongsTo
+    public function approvedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'decided_by');
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }
