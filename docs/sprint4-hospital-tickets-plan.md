@@ -101,22 +101,22 @@ Mục tiêu của đợt triển khai chính thức này là:
 ---
 
 ### BƯỚC 3: SAO CHÉP & KHẮC PHỤC TẦNG FRONTEND
-- [ ] **3.1. Sao chép API Client:**
+- [x] **3.1. Sao chép API Client:**
   - Sao chép `frontend/src/api/hospitalBookingApi.js`.
-- [ ] **3.2. Sao chép các trang giao diện chuẩn:**
+- [x] **3.2. Sao chép các trang giao diện chuẩn:**
   - Sao chép `frontend/src/pages/HospitalBookingPage.jsx`.
   - Sao chép `frontend/src/pages/TicketPage.jsx`.
   - Sao chép `frontend/src/pages/BookingHistoryPage.jsx`.
-- [ ] **3.3. Áp dụng các bản sửa lỗi (Fixes) vào Frontend:**
+- [x] **3.3. Áp dụng các bản sửa lỗi (Fixes) vào Frontend:**
   - **Khắc phục P1-02 tại `frontend/src/pages/CheckInPage.jsx`:**
     Bắt trường hợp quét lặp (mã lỗi 409 hoặc `EX-TKT-02`), hiển thị banner thông báo tiếp đón màu vàng/xanh thân thiện kèm thông tin số thứ tự thay vì báo alert đỏ.
   - **Khắc phục P1-03 tại Layout:**
     Bổ sung class `print:hidden` vào `frontend/src/components/layout/Navbar.jsx` và `Footer.jsx` để trang in phiếu khám không bị dính thanh điều hướng.
   - **Khắc phục P2-02 tại `Navbar.jsx`:**
     Bổ sung nút bấm `Staff (BV Mẫu)` vào thanh Switcher demo trên Navbar để chuyển role nhanh phục vụ test.
-- [ ] **3.4. Cập nhật `PaymentPage.jsx`:**
+- [x] **3.4. Cập nhật `PaymentPage.jsx`:**
   - Đồng bộ logic xử lý query param `booking_id`: khi có `booking_id`, bật chế độ `strictBooking`, tắt fallback mock, chờ kết quả API thật từ Khôi.
-- [ ] **3.5. Cập nhật Router trong `frontend/src/App.jsx`:**
+- [x] **3.5. Cập nhật Router trong `frontend/src/App.jsx`:**
   - Đăng ký các Route mới:
     - `/hospital-booking` $\rightarrow$ `HospitalBookingPage`
     - `/hospitals/:hospitalId/book` $\rightarrow$ `HospitalBookingPage`

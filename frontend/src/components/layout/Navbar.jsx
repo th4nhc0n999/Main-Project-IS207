@@ -44,11 +44,11 @@ export default function Navbar() {
   // Determine active doctor/clinic toggle derived directly
   const currentType = searchParams.get("type") || "doctor"
   const isDoctorOrClinicRoute = location.pathname.startsWith("/doctors")
-  const activeToggle = isDoctorOrClinicRoute && currentType === "hospital" ? "clinic" : "doctor"
+  const activeToggle = (isDoctorOrClinicRoute && currentType === "hospital") || location.pathname === '/hospital-booking' || location.pathname.startsWith('/hospitals/') ? "clinic" : "doctor"
 
   const handleToggle = (type) => {
     if (type === "clinic") {
-      navigate("/doctors?type=hospital")
+      navigate("/hospital-booking")
     } else {
       navigate("/doctors?type=doctor")
     }
@@ -60,7 +60,7 @@ export default function Navbar() {
   const isAdminCatalogActive = location.pathname.startsWith("/admin/catalog")
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md transition-all shadow-sm">
+    <header className="print:hidden sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md transition-all shadow-sm">
       {/* Top Banner: Hotline, Demo Role Switcher & Admin Portal Link */}
       <div className="bg-slate-900 text-slate-200 text-xs py-1.5 px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
@@ -78,6 +78,11 @@ export default function Navbar() {
 
           {/* Right: Quick Role Switcher for Testing/Demo & Portal Link */}
           <div className="flex items-center gap-3">
+            {['staff', 'admin'].includes(user?.role) && (
+              <Link to="/check-in" className="text-sky-300 hover:underline font-medium text-[11px]">
+                Tiếp nhận bệnh nhân
+              </Link>
+            )}
             {/* Quick Demo Role Switcher */}
             <div className="flex items-center gap-1 bg-slate-800/90 rounded-lg p-0.5 border border-slate-700">
               <span className="text-[10px] text-slate-400 px-1.5 hidden lg:inline-block font-medium">
@@ -106,6 +111,21 @@ export default function Navbar() {
                 title="Chế độ Bệnh nhân"
               >
                 Bệnh nhân
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  switchRole("staff")
+                  navigate("/check-in")
+                }}
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${
+                  user?.role === "staff"
+                    ? "bg-emerald-600 text-white shadow-sm font-semibold" 
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Chế độ Nhân viên tiếp đón (BV Mẫu)"
+              >
+                Staff (BV Mẫu)
               </button>
               <button
                 type="button"
