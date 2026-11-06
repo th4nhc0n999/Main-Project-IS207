@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\ExamTypeAdminController;
 use App\Http\Controllers\Api\Admin\HospitalAdminController;
 use App\Http\Controllers\Api\Admin\NoShowAdminController;
 use App\Http\Controllers\Api\Admin\RefundAdminController;
+use App\Http\Controllers\Api\Admin\ReportAdminController;
 use App\Http\Controllers\Api\Admin\SlotController;
 use App\Http\Controllers\Api\Admin\SpecialtyController;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +54,14 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/no-shows/eligible', [NoShowAdminController::class, 'eligible']);
     Route::post('/no-shows/bookings/{id}/confirm', [NoShowAdminController::class, 'confirm'])->whereNumber('id');
     Route::post('/no-shows/bookings/{id}/complaint', [NoShowAdminController::class, 'complaint'])->whereNumber('id');
+
+    // Bốn Báo cáo Quản trị Vận hành (S4-37 / RPT_ADM / DL-25)
+    Route::prefix('reports')->group(function () {
+        Route::get('/booking-status', [ReportAdminController::class, 'bookingStatus']);
+        Route::get('/net-revenue', [ReportAdminController::class, 'netRevenue']);
+        Route::get('/cancellation-rate', [ReportAdminController::class, 'cancellationRate']);
+        Route::get('/top-booked', [ReportAdminController::class, 'topBooked']);
+    });
 
     // Chế độ Demo Sandbox (S4-33)
     Route::prefix('demo')->group(function () {
