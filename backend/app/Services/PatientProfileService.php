@@ -132,17 +132,17 @@ class PatientProfileService
 
                 return [
                     'action' => 'soft_deleted',
-                    'message' => 'Hồ sơ đã được xóa mềm (lưu trữ) do có lịch sử đặt khám.',
+                    'message' => 'Đã xóa hồ sơ thành công! Dữ liệu lịch sử khám trước đây vẫn được lưu trữ bảo mật theo quy định y tế.',
                 ];
             }
 
-            // 3. Chưa từng đặt lịch khám: Xóa cứng
+            // 3. Chưa từng đặt lịch khám: Xóa hoàn toàn
             // Bản ghi consent không có foreign key cứng nên vẫn được bảo lưu đối soát
             $profile->forceDelete();
 
             return [
                 'action' => 'hard_deleted',
-                'message' => 'Hồ sơ đã được xóa hoàn toàn.',
+                'message' => 'Đã xóa hồ sơ thành công!',
             ];
         });
     }
