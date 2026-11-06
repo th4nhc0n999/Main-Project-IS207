@@ -139,13 +139,13 @@ Mục tiêu của đợt triển khai chính thức này là:
 ---
 
 ### BƯỚC 5: KIỂM THỬ XÁC NHẬN TOÀN DIỆN (DEFINITION OF DONE)
-- [ ] **5.1. Kiểm thử Runtime Backend trên MySQL thật:**
-  - Chạy `php artisan test --filter=HospitalBookingTicketTest` (Yêu cầu: 14/14 tests pass).
-  - Chạy `php artisan test --filter=HospitalTicketConcurrencyTest` với `RUN_MYSQL_CONCURRENCY_TESTS=1` (Yêu cầu: 4/4 tests pass).
-  - Chạy toàn bộ test suite `php artisan test` (Yêu cầu: Đạt 54/54 tests, 225 assertions pass 100%).
-- [ ] **5.2. Kiểm thử Frontend Lint:**
-  - Chạy `eslint` trên toàn bộ 5 file mới/sửa đổi (Yêu cầu: 0 lỗi, 0 cảnh báo).
-- [ ] **5.3. Báo cáo kết quả và sẵn sàng tạo PR:**
+- [x] **5.1. Kiểm thử Runtime Backend trên MySQL thật:**
+  - Chạy `php artisan test --filter=HospitalBookingTicketTest` (Đạt: 14/14 tests pass, 124 assertions).
+  - Chạy `php artisan test --filter=HospitalTicketConcurrencyTest` với `RUN_MYSQL_CONCURRENCY_TESTS=1` (Đạt: 4/4 tests pass, 44 assertions).
+  - Chạy toàn bộ test suite `php artisan test` (Đạt: 54/54 tests, 225 assertions pass 100%).
+- [x] **5.2. Kiểm thử Frontend Lint:**
+  - Chạy `eslint` trên toàn bộ các file mới/sửa đổi (Đạt: 0 lỗi, 0 cảnh báo).
+- [x] **5.3. Báo cáo kết quả và sẵn sàng tạo PR:**
   - Xác nhận hoàn tất, sẵn sàng commit và push lên nhánh `s4/hospital-tickets-tuan-anh`.
 
 ---
