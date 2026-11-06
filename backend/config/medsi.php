@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'qr_secret' => env('MEDSI_QR_SECRET'),
     'hold_minutes' => 15,
     'grace_minutes' => 5,
     'approval_minutes' => 30,
