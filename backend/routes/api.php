@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AdminDemoController;
 use App\Http\Controllers\Api\Admin\BookingAdminController;
 use App\Http\Controllers\Api\Admin\DoctorAdminController;
 use App\Http\Controllers\Api\Admin\ExamTypeAdminController;
@@ -39,4 +40,10 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/bookings', [BookingAdminController::class, 'index']);
     Route::get('/bookings/{id}', [BookingAdminController::class, 'show'])->whereNumber('id');
     Route::patch('/bookings/{id}/status', [BookingAdminController::class, 'updateStatus'])->whereNumber('id');
+
+    // Chế độ Demo Sandbox (S4-33)
+    Route::prefix('demo')->group(function () {
+        Route::post('/bookings/{id}/simulate-payment', [AdminDemoController::class, 'simulatePayment'])->whereNumber('id');
+        Route::post('/bookings/{id}/override-decision', [AdminDemoController::class, 'overrideDecision'])->whereNumber('id');
+    });
 });

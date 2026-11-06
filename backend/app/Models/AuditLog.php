@@ -18,15 +18,15 @@ class AuditLog extends Model
         'action',
         'entity_type',
         'entity_id',
-        'ip_address',
-        'user_agent',
+        'reason',
         'changes',
-        'created_at',
+        'ip_address',
+        'occurred_at',
     ];
 
     protected $casts = [
         'changes' => 'array',
-        'created_at' => 'datetime',
+        'occurred_at' => 'datetime',
     ];
 
     public function actor(): BelongsTo

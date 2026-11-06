@@ -13,18 +13,17 @@ class PaymentTransaction extends Model
     protected $fillable = [
         'payment_id',
         'transaction_code',
-        'gateway',
         'amount',
         'status',
         'source',
+        'received_at',
         'raw_payload',
-        'paid_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:0',
         'raw_payload' => 'array',
-        'paid_at' => 'datetime',
+        'received_at' => 'datetime',
     ];
 
     public function payment(): BelongsTo
