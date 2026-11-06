@@ -11,6 +11,7 @@ use App\Services\BookingStateMachine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminBookingOverrideController extends Controller
@@ -33,7 +34,7 @@ class AdminBookingOverrideController extends Controller
         $admin = $request->user();
 
         return DB::transaction(function () use ($id, $validated, $admin, $stateMachine, $auditLogger) {
-            $booking = Booking::query()->findOrFail($id);
+            $booking = Booking::query()->lockForUpdate()->findOrFail($id);
 
             // Execute transition via BookingStateMachine
             $updatedBooking = $stateMachine->apply(
@@ -46,11 +47,48 @@ class AdminBookingOverrideController extends Controller
                 ]
             );
 
-            // BookingStateMachine already creates the policy refund atomically.
-            $refundAmount = (int) (DB::table('refunds')
-                ->where('booking_id', $booking->id)
-                ->where('refund_ref', 'booking-'.$booking->id.'-T10')
-                ->value('amount') ?? 0);
+            // Calculate refund according to PAY_POLICY row 2: 50% exam fee, 0% service fee
+            $payment = DB::table('payments')->where('booking_id', $booking->id)->first();
+            $refundAmount = 0;
+
+            if ($payment && $payment->received_amount > 0) {
+                $examFee = (int) ($payment->exam_fee - $payment->discount_amount);
+                $examFeeRefunded = (int) round($examFee * 0.5); // 50%
+                $serviceFeeRefunded = 0;
+                $refundAmount = $examFeeRefunded + $serviceFeeRefunded;
+
+                $refundId = DB::table('refunds')->insertGetId([
+                    'payment_id' => $payment->id,
+                    'booking_id' => $booking->id,
+                    'amount' => $refundAmount,
+                    'exam_fee_refunded' => $examFeeRefunded,
+                    'service_fee_refunded' => $serviceFeeRefunded,
+                    'policy_case' => 'patient_cancel_under_24h_admin',
+                    'reason' => $validated['reason'],
+                    'status' => 'requested',
+                    'refund_ref' => 'RF'.now()->format('ymd').Str::upper(Str::random(8)),
+                    'requested_by' => $admin->id,
+                    'approved_by' => null,
+                    'requested_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $auditLogger->log(
+                    AuditEvent::AU_18,
+                    'refund',
+                    $refundId,
+                    $admin,
+                    [
+                        'booking_id' => $booking->id,
+                        'amount' => $refundAmount,
+                        'exam_fee_refunded' => $examFeeRefunded,
+                        'service_fee_refunded' => 0,
+                        'policy_case' => 'patient_cancel_under_24h_admin',
+                    ],
+                    'Admin huỷ hộ lịch dưới 24h, tạo yêu cầu hoàn 50% phí khám'
+                );
+            }
 
             $auditLogger->log(
                 AuditEvent::AU_11,
@@ -63,11 +101,11 @@ class AdminBookingOverrideController extends Controller
                     'reason' => $validated['reason'],
                     'refund_amount' => $refundAmount,
                 ],
-                'Admin hủy lịch theo chính sách hoàn tiền'
+                'Admin huỷ hộ lịch dưới 24 giờ'
             );
 
             return response()->json([
-                'message' => 'Admin đã hủy lịch thành công. Tiền hoàn được xác định theo chính sách.',
+                'message' => 'Admin đã huỷ lịch thành công và tạo yêu cầu hoàn 50% phí khám.',
                 'booking' => $updatedBooking,
                 'refund_amount' => $refundAmount,
             ]);

@@ -24,6 +24,11 @@ class PaymentGatewayService
             if (! in_array($method, ['atm', 'credit_card', 'qr_pay', 'momo', 'store_pay'], true)) {
                 $this->invalid('Phương thức thanh toán không hợp lệ.');
             }
+            $momo = array_key_exists($method, MomoSandboxService::METHODS);
+            if ($momo && ((int) $payment->total_amount < 1000
+                || (int) $payment->total_amount > ($method === 'credit_card' ? 10000000 : 50000000))) {
+                $this->invalid('Số tiền ngoài hạn mức của phương thức MoMo.');
+            }
             if ($booking->status->value !== 'pending_payment' || (int) $payment->received_amount > 0
                 || ! $booking->hold_expires_at || now()->gte($booking->hold_expires_at)) {
                 $this->invalid('Lịch không còn được phép bắt đầu thanh toán.');
@@ -56,9 +61,10 @@ class PaymentGatewayService
                 'method' => $method, 'status' => 'pending', 'updated_at' => now(),
             ]);
             $id = DB::table('payment_transactions')->insertGetId([
-                'payment_id' => $payment->id, 'transaction_code' => 'SIM-'.Str::uuid(),
+                'payment_id' => $payment->id, 'transaction_code' => ($momo ? 'MOMO-' : 'SIM-').Str::uuid(),
                 'amount' => $payment->total_amount, 'status' => 'pending',
                 'source' => $method === 'store_pay' ? 'counter' : 'gateway',
+                'raw_payload' => $momo ? json_encode(['provider' => 'momo_sandbox', 'request_type' => MomoSandboxService::METHODS[$method]]) : null,
                 'received_at' => now(), 'created_at' => now(), 'updated_at' => now(),
             ]);
 
