@@ -62,7 +62,7 @@ class BookingStateMachine
 
         if ($event === BookingEvent::T16) {
             if (! in_array($currentValue, [
-                'expired', 'rejected', 'cancelled', 'confirmed',
+                'expired', 'rejected', 'cancelled', 'pending_approval', 'confirmed',
                 'checked_in', 'completed', 'no_show',
             ], true)) {
                 throw new InvalidBookingTransitionException('T16 chỉ áp dụng cho lịch đã đóng hoặc đã thanh toán.');
@@ -123,7 +123,7 @@ class BookingStateMachine
 
             $this->validateEventContext($lockedBooking, $event, $actor, $context, $slot);
             if (in_array($event, [BookingEvent::T02, BookingEvent::T02H], true)) {
-                $this->assertPaidWithinHold($lockedBooking);
+                $this->assertPaidWithinHold($lockedBooking, $context);
             }
             if ($event === BookingEvent::T03) {
                 $this->assertHoldExpired($lockedBooking);
@@ -157,12 +157,13 @@ class BookingStateMachine
             if ($event === BookingEvent::T04) {
                 DB::table('payments')
                     ->where('booking_id', $lockedBooking->getKey())
-                    ->where('status', 'pending')
+                    ->whereIn('status', ['pending', 'failed'])
                     ->update(['status' => 'cancelled', 'updated_at' => now()]);
             }
 
             $lockedBooking->save();
             $this->syncTicket($lockedBooking, $event);
+            app(RefundService::class)->forBookingEvent($lockedBooking, $event, $actor, $context);
             $this->writeAudit($lockedBooking, $event, $actor, $oldStatus, $next->value, $context);
 
             return $lockedBooking->refresh();
@@ -239,34 +240,7 @@ class BookingStateMachine
 
     private function createPendingPayment(Booking $booking): void
     {
-        $examFee = $booking->booking_type === 'doctor'
-            ? DB::table('doctors')->where('id', $booking->doctor_id)->value('consultation_fee')
-            : DB::table('exam_types')
-                ->where('id', $booking->exam_type_id)
-                ->where('hospital_id', $booking->hospital_id)
-                ->value('price');
-
-        if ($examFee === null) {
-            throw new InvalidBookingTransitionException('Không xác định được phí khám cho booking.');
-        }
-
-        $serviceFee = (int) config('medsi.service_fee_amount', 20000);
-        $examFee = (int) $examFee;
-
-        DB::table('payments')->insert([
-            'booking_id' => $booking->getKey(),
-            'method' => null,
-            'exam_fee' => $examFee,
-            'discount_amount' => 0,
-            'service_fee' => $serviceFee,
-            'total_amount' => $examFee + $serviceFee,
-            'received_amount' => 0,
-            'refunded_amount' => 0,
-            'status' => 'pending',
-            'paid_at' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        app(PaymentService::class)->create($booking);
     }
 
     private function assertCurrent(?string $current, string $expected, BookingEvent $event): void
@@ -539,7 +513,7 @@ class BookingStateMachine
         }
     }
 
-    private function assertPaidWithinHold(Booking $booking): void
+    private function assertPaidWithinHold(Booking $booking, array $context): void
     {
         $payment = DB::table('payments')->where('booking_id', $booking->getKey())->first();
 
@@ -548,7 +522,16 @@ class BookingStateMachine
             throw new InvalidBookingTransitionException('Chỉ xác nhận lịch sau khi payment đã paid.');
         }
 
-        if (! $booking->hold_expires_at || now()->gt($booking->hold_expires_at)) {
+        $deadline = $booking->hold_expires_at?->copy();
+        $transaction = DB::table('payment_transactions')
+            ->where('payment_id', $payment->id)
+            ->where('transaction_code', $context['transaction_code'] ?? '')
+            ->where('status', 'success')->first();
+        if ($deadline && $payment->method !== 'store_pay' && $transaction
+            && CarbonImmutable::parse($transaction->created_at)->lt($deadline)) {
+            $deadline->addMinutes((int) config('medsi.grace_minutes'));
+        }
+        if (! $deadline || now()->gte($deadline)) {
             throw new InvalidBookingTransitionException('Thanh toán đã quá hạn giữ chỗ; xử lý theo T16.');
         }
     }
@@ -560,13 +543,14 @@ class BookingStateMachine
         }
 
         $deadline = $booking->hold_expires_at;
-        $paymentId = DB::table('payments')->where('booking_id', $booking->getKey())->value('id');
+        $payment = DB::table('payments')->where('booking_id', $booking->getKey())->first();
+        $paymentId = $payment?->id;
         $hasPendingTransaction = $paymentId && DB::table('payment_transactions')
             ->where('payment_id', $paymentId)
             ->where('status', 'pending')
             ->exists();
 
-        if ($hasPendingTransaction) {
+        if ($hasPendingTransaction && $payment->method !== 'store_pay') {
             $deadline = $deadline->copy()->addMinutes((int) config('medsi.grace_minutes', 5));
         }
 
