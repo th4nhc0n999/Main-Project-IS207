@@ -8,6 +8,16 @@ use Illuminate\Validation\Rule;
 
 class StorePatientProfileRequest extends FormRequest
 {
+    public const ALLOWED_RELATIONSHIPS = [
+        'Bản thân',
+        'Cha',
+        'Mẹ',
+        'Con',
+        'Vợ',
+        'Chồng',
+        'Khác',
+    ];
+
     public function authorize(): bool
     {
         return auth()->check();
@@ -32,7 +42,7 @@ class StorePatientProfileRequest extends FormRequest
             'dob' => ['required', 'date', 'before_or_equal:today'],
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
             'phone' => ['nullable', 'string', 'regex:/^(0[3|5|7|8|9])[0-9]{8}$/'],
-            'relationship' => ['required', 'string', 'max:50'],
+            'relationship' => ['required', 'string', Rule::in(self::ALLOWED_RELATIONSHIPS)],
             'identity_card_number' => [
                 'nullable',
                 'string',
@@ -44,7 +54,7 @@ class StorePatientProfileRequest extends FormRequest
             'health_insurance_code' => ['nullable', 'string', 'max:20'],
             'is_default' => ['nullable', 'boolean'],
 
-            // Người giám hộ bắt buộc khi tuổi dưới ngưỡng cấu hình
+            // Người giám hộ bắt buộc khi tuổi dưới ngưỡng cấu hình (mặc định 16 tuổi theo Luật Trẻ em 2016)
             'guardian_name' => [
                 Rule::requiredIf($isChild),
                 'nullable',
@@ -64,7 +74,7 @@ class StorePatientProfileRequest extends FormRequest
                 'max:50',
             ],
 
-            // Bắt buộc đồng ý điều khoản
+            // Bắt buộc đồng ý điều khoản trước khi lưu hồ sơ
             'consent_agreed' => ['required', 'accepted'],
         ];
     }
@@ -75,7 +85,8 @@ class StorePatientProfileRequest extends FormRequest
             'guardian_name.required' => 'Họ tên người giám hộ là bắt buộc đối với bệnh nhân dưới 16 tuổi.',
             'guardian_phone.required' => 'Số điện thoại người giám hộ là bắt buộc đối với bệnh nhân dưới 16 tuổi.',
             'guardian_relationship.required' => 'Mối quan hệ với người giám hộ là bắt buộc đối với bệnh nhân dưới 16 tuổi.',
-            'consent_agreed.accepted' => 'Bạn phải đồng ý với điều khoản sử dụng và chính sách xử lý dữ liệu y tế.',
+            'relationship.in' => 'Quan hệ với chủ tài khoản phải thuộc danh sách: Bản thân, Cha, Mẹ, Con, Vợ, Chồng, Khác.',
+            'consent_agreed.accepted' => 'Bạn phải đồng ý với điều khoản sử dụng và chính sách xử lý dữ liệu y tế trước khi lưu hồ sơ.',
             'consent_agreed.required' => 'Bạn phải xác nhận đồng ý điều khoản để tạo hồ sơ.',
             'identity_card_number.unique' => 'Số CCCD/Định danh này đã tồn tại trong danh sách hồ sơ của bạn.',
         ];

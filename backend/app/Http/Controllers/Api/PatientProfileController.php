@@ -28,7 +28,7 @@ class PatientProfileController extends Controller
     }
 
     /**
-     * Chi tiết một hồ sơ
+     * Chi tiết một hồ sơ (che CCCD, BHYT, SĐT trừ khi chủ sở hữu xem để sửa với mode=edit)
      */
     public function show(Request $request, PatientProfile $patientProfile): JsonResponse|PatientProfileResource
     {
@@ -40,7 +40,7 @@ class PatientProfileController extends Controller
     }
 
     /**
-     * Tạo hồ sơ mới
+     * Tạo hồ sơ mới (bắt buộc đồng thuận điều khoản)
      */
     public function store(StorePatientProfileRequest $request): JsonResponse
     {
@@ -66,7 +66,7 @@ class PatientProfileController extends Controller
     }
 
     /**
-     * Xóa hồ sơ (xử lý theo 3 kịch bản chính sách)
+     * Xóa hồ sơ (xử lý theo 3 kịch bản: chặn EX-PRF-06, xóa mềm, xóa cứng)
      */
     public function destroy(Request $request, PatientProfile $patientProfile): JsonResponse
     {
@@ -80,6 +80,38 @@ class PatientProfileController extends Controller
             'success' => true,
             'action' => $result['action'],
             'message' => $result['message'],
+        ]);
+    }
+
+    /**
+     * Khôi phục hồ sơ đã xóa mềm (restore)
+     */
+    public function restore(Request $request, int $id): JsonResponse
+    {
+        $restored = $this->profileService->restoreProfile($id, $request->user());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Hồ sơ đã được khôi phục thành công.',
+            'data' => new PatientProfileResource($restored),
+        ]);
+    }
+
+    /**
+     * Hỗ trợ rút đồng ý điều khoản dữ liệu (revoked_at)
+     */
+    public function revokeConsent(Request $request, PatientProfile $patientProfile): JsonResponse
+    {
+        if ($patientProfile->user_id !== $request->user()?->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $consent = $this->profileService->revokeConsent($patientProfile, $request->user());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã rút đồng ý xử lý dữ liệu cho hồ sơ này.',
+            'revoked_at' => $consent->revoked_at?->toIso8601String(),
         ]);
     }
 }

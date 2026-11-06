@@ -35,7 +35,7 @@ class UpdatePatientProfileRequest extends FormRequest
             'dob' => ['sometimes', 'required', 'date', 'before_or_equal:today'],
             'gender' => ['sometimes', 'required', Rule::in(['male', 'female', 'other'])],
             'phone' => ['nullable', 'string', 'regex:/^(0[3|5|7|8|9])[0-9]{8}$/'],
-            'relationship' => ['sometimes', 'required', 'string', 'max:50'],
+            'relationship' => ['sometimes', 'required', 'string', Rule::in(StorePatientProfileRequest::ALLOWED_RELATIONSHIPS)],
             'identity_card_number' => [
                 'nullable',
                 'string',

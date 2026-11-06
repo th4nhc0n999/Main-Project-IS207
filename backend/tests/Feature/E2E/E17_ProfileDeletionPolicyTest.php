@@ -18,7 +18,7 @@ class E17_ProfileDeletionPolicyTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_e17_profile_deletion_policy_three_scenarios(): void
+    public function test_e17_profile_deletion_policy_three_scenarios_and_restore(): void
     {
         // Setup: Patient account
         $user = User::factory()->create(['role' => 'patient']);
@@ -29,7 +29,7 @@ class E17_ProfileDeletionPolicyTest extends TestCase
         $slot1 = Slot::factory()->create(['owner_id' => $doctor->id, 'specialty_id' => $specialty->id]);
         $slot2 = Slot::factory()->create(['owner_id' => $doctor->id, 'specialty_id' => $specialty->id]);
 
-        // Profile 1: One with a pending booking
+        // Hồ sơ 1: Có lịch khám đang chờ duyệt (pending_approval)
         $pendingProfile = PatientProfile::factory()->create(['user_id' => $user->id]);
         Booking::factory()->create([
             'user_id' => $user->id,
@@ -39,7 +39,7 @@ class E17_ProfileDeletionPolicyTest extends TestCase
             'status' => BookingStatus::PendingApproval,
         ]);
 
-        // Profile 2: One with past booking history (completed)
+        // Hồ sơ 2: Có lịch sử khám cũ đã hoàn tất (completed)
         $historyProfile = PatientProfile::factory()->create(['user_id' => $user->id]);
         Booking::factory()->create([
             'user_id' => $user->id,
@@ -49,7 +49,7 @@ class E17_ProfileDeletionPolicyTest extends TestCase
             'status' => BookingStatus::Completed,
         ]);
 
-        // Profile 3: Never booked, but has consent evidence
+        // Hồ sơ 3: Chưa từng đặt lịch nào + có bản ghi consent
         $neverBookedProfile = PatientProfile::factory()->create(['user_id' => $user->id]);
         $consent = PatientConsent::factory()->create([
             'user_id' => $user->id,
@@ -58,7 +58,7 @@ class E17_ProfileDeletionPolicyTest extends TestCase
         ]);
 
         // =========================================================
-        // Action & Assertion 1: Pending booking blocks deletion with EX-PRF-06
+        // 1. Hồ sơ có lịch chờ -> Chặn xóa với mã lỗi EX-PRF-06
         // =========================================================
         $response1 = $this->deleteJson("/api/patient-profiles/{$pendingProfile->id}");
 
@@ -74,7 +74,7 @@ class E17_ProfileDeletionPolicyTest extends TestCase
         ]);
 
         // =========================================================
-        // Action & Assertion 2: Profile with history is soft-deleted
+        // 2. Hồ sơ có lịch sử cũ -> Xóa mềm (Soft Delete)
         // =========================================================
         $response2 = $this->deleteJson("/api/patient-profiles/{$historyProfile->id}");
 
@@ -84,19 +84,28 @@ class E17_ProfileDeletionPolicyTest extends TestCase
             'id' => $historyProfile->id,
         ]);
 
+        // Kiểm tra khôi phục hồ sơ đã xóa mềm (restore)
+        $restoreResp = $this->postJson("/api/patient-profiles/{$historyProfile->id}/restore");
+        $restoreResp->assertStatus(200);
+
+        $this->assertDatabaseHas('patient_profiles', [
+            'id' => $historyProfile->id,
+            'deleted_at' => null,
+        ]);
+
         // =========================================================
-        // Action & Assertion 3: Never-booked profile is hard-deleted while consent remains
+        // 3. Hồ sơ chưa từng đặt lịch -> Xóa cứng (Hard Delete), giữ nguyên consent
         // =========================================================
         $response3 = $this->deleteJson("/api/patient-profiles/{$neverBookedProfile->id}");
 
         $response3->assertStatus(200);
 
-        // Record removed from patient_profiles
+        // Bản ghi bị xóa khỏi bảng patient_profiles
         $this->assertDatabaseMissing('patient_profiles', [
             'id' => $neverBookedProfile->id,
         ]);
 
-        // Consent evidence remains intact
+        // Bằng chứng consent vẫn được bảo lưu đối soát
         $this->assertDatabaseHas('patient_consents', [
             'id' => $consent->id,
             'patient_profile_id' => $neverBookedProfile->id,

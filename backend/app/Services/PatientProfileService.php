@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 class PatientProfileService
 {
     /**
-     * Các trạng thái lịch khám đang xử lý hoặc giữ chỗ, ngăn không cho xóa hồ sơ
+     * Các trạng thái lịch khám đang xử lý hoặc giữ chỗ, ngăn không cho xóa hồ sơ (mã lỗi EX-PRF-06)
      */
     protected const BLOCKING_BOOKING_STATUSES = [
         'pending_payment',
@@ -107,7 +107,7 @@ class PatientProfileService
      * Xóa hồ sơ theo chính sách 3 kịch bản:
      * 1. Lịch khám đang chờ -> Chặn với lỗi EX-PRF-06
      * 2. Đã từng có lịch sử khám -> Xóa mềm (soft delete)
-     * 3. Chưa từng đặt lịch -> Xóa cứng (hard delete), giữ nguyên consent
+     * 3. Chưa từng đặt lịch -> Xóa cứng (hard delete), giữ nguyên consent và audit logs
      */
     public function deleteProfile(PatientProfile $profile): array
     {
@@ -132,12 +132,12 @@ class PatientProfileService
 
                 return [
                     'action' => 'soft_deleted',
-                    'message' => 'Hồ sơ đã được xóa mềm do có lịch sử đặt khám.',
+                    'message' => 'Hồ sơ đã được xóa mềm (lưu trữ) do có lịch sử đặt khám.',
                 ];
             }
 
             // 3. Chưa từng đặt lịch khám: Xóa cứng
-            // Bản ghi consent không có foreign key cứng nên vẫn được bảo lưu
+            // Bản ghi consent không có foreign key cứng nên vẫn được bảo lưu đối soát
             $profile->forceDelete();
 
             return [
@@ -148,23 +148,38 @@ class PatientProfileService
     }
 
     /**
-     * Bản chụp thông tin bệnh nhân đã che mờ phục vụ Booking
+     * Khôi phục hồ sơ đã xóa mềm (restore)
      */
-    public function buildMaskedSnapshot(PatientProfile $profile): array
+    public function restoreProfile(int $id, User $user): PatientProfile
     {
-        return [
-            'profile_id' => $profile->id,
-            'full_name' => $profile->full_name,
-            'dob' => $profile->dob?->format('Y-m-d'),
-            'gender' => $profile->gender,
-            'relationship' => $profile->relationship,
-            'phone' => DataMasker::maskPhone($profile->phone),
-            'identity_card_number' => DataMasker::maskIdentityCard($profile->identity_card_number),
-            'health_insurance_code' => $profile->health_insurance_code,
-            'guardian_name' => $profile->guardian_name,
-            'guardian_phone' => DataMasker::maskPhone($profile->guardian_phone),
-            'guardian_relationship' => $profile->guardian_relationship,
-            'captured_at' => now()->toIso8601String(),
-        ];
+        $profile = PatientProfile::onlyTrashed()
+            ->where('user_id', $user->id)
+            ->findOrFail($id);
+
+        $profile->restore();
+        return $profile;
+    }
+
+    /**
+     * Hỗ trợ rút đồng ý điều khoản dữ liệu (ghi nhận revoked_at, không xóa bản ghi)
+     */
+    public function revokeConsent(PatientProfile $profile, User $user): PatientConsent
+    {
+        $consent = PatientConsent::where('patient_profile_id', $profile->id)
+            ->where('user_id', $user->id)
+            ->whereNull('revoked_at')
+            ->latest('id')
+            ->firstOrFail();
+
+        $consent->update(['revoked_at' => now()]);
+        return $consent;
+    }
+
+    /**
+     * Hàm makePatientSnapshot(profile) trả JSON đã che cho Hoài Bảo và Tuấn Anh
+     */
+    public function makePatientSnapshot(PatientProfile $profile): array
+    {
+        return $profile->makePatientSnapshot();
     }
 }
