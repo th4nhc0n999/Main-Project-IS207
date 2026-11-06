@@ -58,3 +58,4 @@ class SpecialtyService
         $specialty->delete();
     }
 }
+

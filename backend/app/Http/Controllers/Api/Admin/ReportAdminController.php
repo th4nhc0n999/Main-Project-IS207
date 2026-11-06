@@ -83,3 +83,4 @@ class ReportAdminController extends Controller
         ]);
     }
 }
+

@@ -55,3 +55,4 @@ class ExamTypeAdminService
         $examType->delete();
     }
 }
+

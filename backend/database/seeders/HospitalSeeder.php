@@ -89,3 +89,4 @@ class HospitalSeeder extends Seeder
         }
     }
 }
+

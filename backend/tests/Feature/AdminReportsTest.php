@@ -138,3 +138,4 @@ class AdminReportsTest extends TestCase
         $this->assertNotEmpty($resTop->json('data.top_specialties'));
     }
 }
+

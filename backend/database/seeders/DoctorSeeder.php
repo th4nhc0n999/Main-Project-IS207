@@ -322,3 +322,4 @@ class DoctorSeeder extends Seeder
         }
     }
 }
+

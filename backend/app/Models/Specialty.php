@@ -34,3 +34,4 @@ class Specialty extends Model
         return $this->hasMany(Slot::class);
     }
 }
+

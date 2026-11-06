@@ -21,3 +21,4 @@ class ExamTypeRequest extends FormRequest
         ];
     }
 }
+

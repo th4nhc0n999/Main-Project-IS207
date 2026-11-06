@@ -49,3 +49,4 @@ class Payment extends Model
         return $this->hasMany(Refund::class);
     }
 }
+

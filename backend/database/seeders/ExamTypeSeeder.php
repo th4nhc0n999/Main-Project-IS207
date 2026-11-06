@@ -112,3 +112,4 @@ class ExamTypeSeeder extends Seeder
         }
     }
 }
+

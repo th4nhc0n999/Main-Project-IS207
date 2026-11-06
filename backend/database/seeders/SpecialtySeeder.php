@@ -132,3 +132,4 @@ class SpecialtySeeder extends Seeder
         }
     }
 }
+

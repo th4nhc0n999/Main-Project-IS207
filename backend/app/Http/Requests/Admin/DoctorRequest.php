@@ -32,3 +32,4 @@ class DoctorRequest extends FormRequest
         ];
     }
 }
+

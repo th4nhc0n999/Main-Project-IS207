@@ -25,3 +25,4 @@ class HospitalRequest extends FormRequest
         ];
     }
 }
+

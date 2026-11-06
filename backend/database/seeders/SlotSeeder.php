@@ -215,3 +215,4 @@ class SlotSeeder extends Seeder
         }
     }
 }
+

@@ -55,3 +55,4 @@ class Doctor extends Model
         return $this->hasMany(Booking::class);
     }
 }
+

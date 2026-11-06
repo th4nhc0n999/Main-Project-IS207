@@ -37,3 +37,4 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'checked_in_by');
     }
 }
+

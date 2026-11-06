@@ -95,3 +95,4 @@ class ExamTypeAdminController extends Controller
         }
     }
 }
+
