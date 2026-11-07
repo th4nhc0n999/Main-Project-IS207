@@ -2,6 +2,27 @@
 
 Ngày 06/11/2026. Nguồn: Plan.md; baseline v0.1 mục 1–5; medsi_schema_v1.sql; BKD_DOC.docx; BKD_STM_Bang_chuyen_trang_thai.docx; workbook BKD_SCHED_BKD_BR_BKD_CMP_BKD_OQ.xlsx và sáu hình ACT/SEQ/STM do Hoài Bảo cung cấp. Đây là sổ đối chiếu và nội dung cần đồng bộ, không giả lập phê duyệt hay phỏng vấn.
 
+Cập nhật trạng thái triển khai/kiểm thử ngày 07/11/2026. Việc nối code thật không tự đóng OQ hoặc thay thế xác nhận nghiệp vụ trong tài liệu gốc.
+
+## Trạng thái tích hợp và bằng chứng hiện tại
+
+Provider `app/Providers/BkdServiceProvider.php` đã bind bốn interface với adapter trong `app/Services/Bkd/Adapters/`, đăng ký qua bootstrap/providers.php; mặc định dùng dịch vụ thật, không có DevStubs. Chi tiết hợp đồng ở [BKD_API.md](BKD_API.md); phạm vi thay đổi và phân loại lỗi ở [BKD_PR.md](BKD_PR.md).
+
+| Phần tích hợp | Đã triển khai/kiểm chứng | Phần chưa chứng minh đầy đủ |
+|---|---|---|
+| Snapshot — Hiệu | PatientSnapshotAdapter gọi PatientProfileService::makePatientSnapshot; che bổ sung định danh/điện thoại và giám hộ. BKD truyền kết quả vào context T01, DB lưu đúng snapshot đã chuẩn bị | Cần nhóm review hợp đồng dữ liệu; không coi binding là xác nhận các OQ về hồ sơ |
+| Payment — Khôi | BookingPaymentAdapter gọi PaymentService::create; tái sử dụng dòng payment của T01. Test thật chứng minh một pending tổng 220.000đ và rollback khi service lỗi | Gateway/callback và đối soát thanh toán ngoài DB chưa được nghiệm thu E2E |
+| Ticket — Tuấn Anh | BookingTicketAdapter gọi TicketService::issue; T05 lõi đã gọi cùng service, adapter dùng tính idempotent, không chủ động cấp phiếu thứ hai | Thiếu Firebase JWT trong vendor đang chặn T05/QR/STT, hai nhánh T10 và test lỗi ký phiếu |
+| Refund — Khôi | BookingRefundAdapter gọi RefundService::forBookingEvent; test thật chứng minh một requested T06 220.000đ, T08 200.000đ/service 0 và rollback khi service lỗi | T10 cần JWT để kiểm thử đầy đủ; chưa chứng minh chuỗi approved/processing/succeeded và hoàn tiền thực tế; requested_by của service thật hiện null |
+
+An đã cho phép sửa tối thiểu BookingStateMachine T01: có context['patient_snapshot'] thì dùng nguyên kết quả đã chuẩn bị, thiếu key thì giữ hành vi fallback cũ. Không thay quy tắc/trạng thái/count/payment/audit/chữ ký public; BKD không ghi lại snapshot sau T01. Bốn test lõi mới cho doctor/hospital có hoặc không có context đều pass. Hai commit local tương ứng: `660fe87` (lõi + test lõi) và `ce177bf` (BKD). Chưa push.
+
+Lần chạy toàn bộ backend đã ghi nhận **136 test: 116 pass, 20 fail/error, 0 skip**, bật RUN_BKD_REVIEW_TESTS, RUN_BKD_MYSQL_TESTS và RUN_MYSQL_CONCURRENCY_TESTS. Trong 20 lỗi: **A = 2** (factory dùng UserStatus::Active thay vì ACTIVE, có sẵn trên main), **B = 18** (thiếu JWT/lỗi kéo theo), **C = 0 xác định**, **D = 0 xác định**. Đây chưa phải bằng chứng mọi luồng BKD đều đúng; cần chạy lại khi dependency đã sẵn sàng. Test lõi của An 33 pass, test review 3 pass; E13 lõi và BKD pass bằng hai process, nhưng race BKD còn dùng test adapter.
+
+Đối chiếu cùng 19 test bệnh viện/concurrency trên cùng DB test: local `ce177bf` đạt 9 pass/10 fail-error/0 skip; worktree main gốc `4991c25` có 19 error do routes/api.php thiếu dấu đóng nhóm tại dòng 21. Không sửa main tạm để vượt lỗi bootstrap nên chưa chứng minh cùng lỗi JWT bằng runtime trên main. Lỗi route đã được sửa ở lần merge local theo yêu cầu; các file ký QR, factory/enum, Composer và test bệnh viện/concurrency giống main. Worktree tạm đã xoá. Xem phân tích và giới hạn đối chiếu trong BKD_PR.md.
+
+Chưa cập nhật DOCX/XLSX/PNG gốc hoặc trạng thái OQ từ các kết quả kỹ thuật này. Giữ nguyên danh sách xác nhận nghiệp vụ và phỏng vấn bên dưới.
+
 ## Nội dung áp dụng cho triển khai BKD
 
 | Chủ đề | Nội dung thống nhất | Tài liệu cần đồng bộ |

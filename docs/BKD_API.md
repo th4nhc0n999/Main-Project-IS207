@@ -1,6 +1,6 @@
 # BKD API và hợp đồng tích hợp Sprint 4
 
-Ngày cập nhật: 07/11/2026. Phạm vi: S4-32, S4-40, S4-41, S4-42, S4-43, S4-44; tài liệu rà soát S4-45 nằm trong [BKD_DOCUMENT_REVIEW.md](BKD_DOCUMENT_REVIEW.md).
+Ngày cập nhật: 07/11/2026. Phạm vi: S4-32, S4-40, S4-41, S4-42, S4-43, S4-44; tài liệu rà soát S4-45 nằm trong [BKD_REVIEW.md](BKD_REVIEW.md).
 
 ## Trạng thái bàn giao
 
