@@ -6,12 +6,12 @@ export default function NotFoundPage() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
       <div className="max-w-md w-full text-center space-y-6 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/90 shadow-medical">
-        <div className="w-20 h-20 rounded-3xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto shadow-inner">
+        <div className="w-20 h-20 rounded-3xl bg-sage-50 text-sage-600 flex items-center justify-center mx-auto shadow-inner">
           <Stethoscope className="w-10 h-10" />
         </div>
 
         <div>
-          <span className="text-4xl sm:text-5xl font-black text-sky-600 tracking-tight block">404</span>
+          <span className="text-4xl sm:text-5xl font-black text-sage-600 tracking-tight block">404</span>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
             Không Tìm Thấy Trang Yêu Cầu
           </h1>
@@ -21,7 +21,7 @@ export default function NotFoundPage() {
         </div>
 
         <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
-          <Button asChild className="bg-sky-600 hover:bg-sky-700 text-white font-semibold">
+          <Button asChild className="bg-sage-600 hover:bg-sage-700 text-white font-semibold">
             <Link to="/" className="flex items-center gap-1.5">
               <Home className="w-4 h-4" />
               <span>Về Trang Chủ</span>

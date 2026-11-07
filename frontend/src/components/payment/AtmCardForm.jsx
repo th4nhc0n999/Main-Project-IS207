@@ -17,7 +17,7 @@ export const POPULAR_BANKS = [
   { id: 'BIDV', name: 'BIDV', fullName: 'Ngân hàng Đầu tư và Phát triển VN', color: 'from-blue-700 to-indigo-900' },
   { id: 'MB', name: 'MBBank', fullName: 'Ngân hàng Quân Đội', color: 'from-blue-600 to-blue-900' },
   { id: 'CTG', name: 'VietinBank', fullName: 'Ngân hàng Công Thương Việt Nam', color: 'from-cyan-700 to-blue-950' },
-  { id: 'ACB', name: 'ACB', fullName: 'Ngân hàng Á Châu', color: 'from-blue-500 to-sky-800' },
+  { id: 'ACB', name: 'ACB', fullName: 'Ngân hàng Á Châu', color: 'from-blue-500 to-sage-800' },
   { id: 'VPB', name: 'VPBank', fullName: 'Ngân hàng Việt Nam Thịnh Vượng', color: 'from-emerald-600 to-green-900' },
   { id: 'TPB', name: 'TPBank', fullName: 'Ngân hàng Tiên Phong', color: 'from-purple-600 to-violet-950' },
 ];

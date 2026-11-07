@@ -1,3 +1,4 @@
+import BookingSignIn from '@/components/BookingSignIn'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { hospitalBookingApi as api } from '@/api/hospitalBookingApi'
@@ -68,16 +69,16 @@ export default function TicketPage() {
   }
 
   if (loading) return <p className="p-8">Đang kiểm tra đăng nhập…</p>
-  if (!user) return <p className="p-8">Vui lòng <Link className="text-sky-700 underline" to="/login">đăng nhập</Link> để xem phiếu.</p>
+  if (!user) return <BookingSignIn title="Phiếu khám của tôi"/>
   if (error) return <p role="alert" className="p-8 text-rose-800">{error}</p>
   if (!data) return <p role="status" className="p-8">Đang tải phiếu khám…</p>
   const valid = ['issued', 'checked_in'].includes(data.ticket.status)
   return <main className="mx-auto max-w-2xl space-y-5 p-6">
-    <Link className="text-sky-700 underline print:hidden" to="/my-bookings">← Lịch khám</Link>
-    <article className="space-y-4 rounded-xl border bg-white p-6">
+    <Link className="text-sage-700 underline print:hidden" to="/my-bookings">← Lịch khám</Link>
+    <article className="ticket-sheet space-y-4 rounded-xl border bg-white p-6">
       <h1 className="text-2xl font-bold">Phiếu khám MedSi</h1>
       <p className="font-mono">{data.ticket.ticket_code}</p>
-      <p className="text-3xl font-bold text-sky-800">{data.ticket.queue_number}</p>
+      <p className="text-3xl font-bold text-sage-800"><small>Số thứ tự</small>{data.ticket.queue_number}</p>
       <p>{data.hospital_name || data.doctor_name}</p><p>{data.hospital_address}</p>
       <p>{data.specialty_name} · {data.exam_type_name || data.doctor_name}</p>
       <p>Người khám: <strong>{data.patient_snapshot.full_name}</strong></p>
@@ -86,8 +87,8 @@ export default function TicketPage() {
       {!valid && <p className="rounded-lg bg-amber-50 p-3">Phiếu đã đóng và không còn dùng để tiếp nhận.</p>}
       <img className="mx-auto w-72 max-w-full" src={data.ticket.qr_png_data_uri} alt={`Mã QR phiếu ${data.ticket.ticket_code}`} />
       <p>Trạng thái phiếu: {data.ticket.status}</p>
-      <div className="rounded-lg bg-sky-50 p-4"><h2 className="font-semibold">Dặn dò chuyên khoa</h2><p className="mt-2 whitespace-pre-wrap">{data.ticket.instructions || 'Vui lòng đến quầy tiếp đón trước giờ hẹn 15 phút.'}</p></div>
+      <div className="rounded-lg bg-sage-50 p-4"><h2 className="font-semibold">Dặn dò chuyên khoa</h2><p className="mt-2 whitespace-pre-wrap">{data.ticket.instructions || 'Vui lòng đến quầy tiếp đón trước giờ hẹn 15 phút.'}</p></div>
     </article>
-    <div className="flex gap-3 print:hidden"><button onClick={download} className="rounded-lg bg-sky-700 px-4 py-2 text-white">Tải phiếu PNG</button><button onClick={() => window.print()} className="rounded-lg border px-4 py-2">In phiếu</button></div>
+    <div className="flex gap-3 print:hidden"><button onClick={download} className="rounded-lg bg-sage-700 px-4 py-2 text-white">Tải phiếu PNG</button><button onClick={() => window.print()} className="rounded-lg border px-4 py-2">In phiếu</button></div>
   </main>
 }

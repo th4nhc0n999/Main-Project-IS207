@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookingHistoryController;
+use App\Http\Controllers\DirectoryController;
 use App\Http\Controllers\HospitalBookingController;
 use App\Http\Controllers\TicketController;
 use App\Http\Middleware\EnsureActiveBookingAccount;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok']));
+Route::get('/directory', [DirectoryController::class, 'index']);
+Route::get('/doctors/{doctor}', [DirectoryController::class, 'show'])->whereNumber('doctor');
 
 Route::get('/hospitals', [HospitalBookingController::class, 'hospitals']);
 Route::get('/hospitals/{hospital}/slots', [HospitalBookingController::class, 'slots'])->whereNumber('hospital');
@@ -27,8 +30,9 @@ Route::middleware(['auth:sanctum', EnsureActiveBookingAccount::class, 'throttle:
     Route::get('/bookings/{booking}/ticket', [TicketController::class, 'show'])->whereNumber('booking');
     Route::get('/bookings/{booking}/ticket/qr.png', [TicketController::class, 'download'])->whereNumber('booking');
     Route::post('/tickets/check-in', [TicketController::class, 'checkIn']);
+    Route::post('/doctors/{doctor}/bookings', [DirectoryController::class, 'book'])->whereNumber('doctor');
+    Route::get('/me/bookings/{booking}', [DirectoryController::class, 'detail'])->whereNumber('booking');
 });
-
 // Public Authentication
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -59,6 +63,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     // Doctor routes
     Route::middleware('role:doctor')->prefix('doctor')->group(function () {
+        Route::get('/appointments', [DirectoryController::class, 'appointments']);
+        Route::post('/appointments/{booking}/{action}', [DirectoryController::class, 'transition'])
+            ->whereNumber('booking')->whereIn('action', ['approve','complete']);
         Route::get('/bookings/{booking}', function (Booking $booking) {
             Gate::authorize('view', $booking);
             return response()->json(['booking' => $booking]);
