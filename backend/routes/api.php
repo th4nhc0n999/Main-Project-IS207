@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\AdminBookingOverrideController;
 use App\Http\Controllers\Api\Admin\AdminDoctorController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\PatientProfileController;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +25,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/first-login-change-password', [AuthController::class, 'firstLoginChangePassword']);
     });
+
+    // Phân hệ Hồ sơ bệnh nhân (Sprint 4: S4-20..25)
+    Route::post('patient-profiles/{id}/restore', [PatientProfileController::class, 'restore']);
+    Route::post('patient-profiles/{patient_profile}/revoke-consent', [PatientProfileController::class, 'revokeConsent']);
+    Route::apiResource('patient-profiles', PatientProfileController::class);
 
     // Patient routes
     Route::middleware('role:patient')->prefix('patient')->group(function () {
