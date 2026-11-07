@@ -21,17 +21,16 @@ class Specialty extends Model
 
     public function doctors(): HasMany
     {
-        return $this->hasMany(Doctor::class);
+        return $this->hasMany(Doctor::class, 'specialty_id');
     }
 
     public function examTypes(): HasMany
     {
-        return $this->hasMany(ExamType::class);
+        return $this->hasMany(ExamType::class, 'specialty_id');
     }
 
     public function slots(): HasMany
     {
-        return $this->hasMany(Slot::class);
+        return $this->hasMany(Slot::class, 'specialty_id');
     }
 }
-

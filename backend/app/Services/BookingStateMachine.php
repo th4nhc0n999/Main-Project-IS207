@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\Slot;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use ValueError;
@@ -62,7 +63,7 @@ class BookingStateMachine
 
         if ($event === BookingEvent::T16) {
             if (! in_array($currentValue, [
-                'expired', 'rejected', 'cancelled', 'confirmed',
+                'expired', 'rejected', 'cancelled', 'pending_approval', 'confirmed',
                 'checked_in', 'completed', 'no_show',
             ], true)) {
                 throw new InvalidBookingTransitionException('T16 chỉ áp dụng cho lịch đã đóng hoặc đã thanh toán.');
@@ -78,8 +79,8 @@ class BookingStateMachine
     }
 
     /**
-     * @param User|string $actor A persisted user, or the trusted system/gateway actor.
-     * @param array<string, mixed> $context Non-sensitive event details such as reason and transaction_code.
+     * @param  User|string  $actor  A persisted user, or the trusted system/gateway actor.
+     * @param  array<string, mixed>  $context  Non-sensitive event details such as reason and transaction_code.
      */
     public function apply(
         Booking $booking,
@@ -123,7 +124,7 @@ class BookingStateMachine
 
             $this->validateEventContext($lockedBooking, $event, $actor, $context, $slot);
             if (in_array($event, [BookingEvent::T02, BookingEvent::T02H], true)) {
-                $this->assertPaidWithinHold($lockedBooking);
+                $this->assertPaidWithinHold($lockedBooking, $context);
             }
             if ($event === BookingEvent::T03) {
                 $this->assertHoldExpired($lockedBooking);
@@ -157,16 +158,20 @@ class BookingStateMachine
             if ($event === BookingEvent::T04) {
                 DB::table('payments')
                     ->where('booking_id', $lockedBooking->getKey())
-                    ->where('status', 'pending')
+                    ->whereIn('status', ['pending', 'failed'])
                     ->update(['status' => 'cancelled', 'updated_at' => now()]);
             }
 
             $lockedBooking->save();
+            if (in_array($event, [BookingEvent::T02H, BookingEvent::T05], true)) {
+                app(TicketService::class)->issue($lockedBooking);
+            }
             $this->syncTicket($lockedBooking, $event);
+            app(RefundService::class)->forBookingEvent($lockedBooking, $event, $actor, $context);
             $this->writeAudit($lockedBooking, $event, $actor, $oldStatus, $next->value, $context);
 
             return $lockedBooking->refresh();
-        });
+        }, 5);
     }
 
     private function createBooking(Booking $booking, User|string $actor, array $context): Booking
@@ -175,98 +180,113 @@ class BookingStateMachine
             throw new InvalidBookingTransitionException('T01 cần booking mới có user, hồ sơ và slot hợp lệ.');
         }
 
-        return DB::transaction(function () use ($booking, $actor, $context): Booking {
-            $slot = Slot::query()->lockForUpdate()->findOrFail($booking->slot_id);
-            $profile = DB::table('patient_profiles')
-                ->where('id', $booking->patient_profile_id)
-                ->where('user_id', $booking->user_id)
-                ->whereNull('deleted_at')
-                ->lockForUpdate()
-                ->first();
-
-            if (! $profile) {
-                throw new InvalidBookingTransitionException('Hồ sơ bệnh nhân không tồn tại hoặc đã được lưu trữ.');
-            }
-
-            $this->authorize($booking, BookingEvent::T01, $actor, $context, $slot);
-            $this->assertEventBookingType($booking, BookingEvent::T01);
-
-            if ($booking->request_key) {
-                $existing = Booking::query()
+        $attributes = $booking->getAttributes();
+        try {
+            return DB::transaction(function () use ($attributes, $actor, $context): Booking {
+                // Rebuild the unsaved model on every deadlock retry. A rolled-back
+                // Eloquent insert otherwise retains its id and exists=true flag.
+                $booking = new Booking;
+                $booking->setRawAttributes($attributes);
+                $slot = Slot::query()->lockForUpdate()->findOrFail($booking->slot_id);
+                $profile = DB::table('patient_profiles')
+                    ->where('id', $booking->patient_profile_id)
                     ->where('user_id', $booking->user_id)
-                    ->where('request_key', $booking->request_key)
+                    ->whereNull('deleted_at')
                     ->lockForUpdate()
                     ->first();
 
-                if ($existing) {
-                    if ((int) $existing->slot_id !== (int) $booking->slot_id
-                        || (int) $existing->patient_profile_id !== (int) $booking->patient_profile_id) {
-                        throw new InvalidBookingTransitionException('request_key đã được dùng cho một booking khác.');
-                    }
-
-                    return $existing;
+                if (! $profile) {
+                    throw new InvalidBookingTransitionException('Hồ sơ bệnh nhân không tồn tại hoặc đã được lưu trữ.');
                 }
+
+                $this->authorize($booking, BookingEvent::T01, $actor, $context, $slot);
+                $this->assertEventBookingType($booking, BookingEvent::T01);
+
+                if ($booking->request_key) {
+                    $existing = Booking::query()
+                        ->where('user_id', $booking->user_id)
+                        ->where('request_key', $booking->request_key)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($existing) {
+                        if ((int) $existing->slot_id !== (int) $booking->slot_id
+                            || (int) $existing->patient_profile_id !== (int) $booking->patient_profile_id
+                            || $existing->booking_type !== $booking->booking_type
+                            || (int) $existing->hospital_id !== (int) $booking->hospital_id
+                            || (int) $existing->doctor_id !== (int) $booking->doctor_id
+                            || (int) $existing->exam_type_id !== (int) $booking->exam_type_id
+                            || $existing->symptoms !== $booking->symptoms) {
+                            throw new InvalidBookingTransitionException('request_key đã được dùng cho một booking khác.');
+                        }
+
+                        return $existing;
+                    }
+                }
+
+                if ($slot->status !== 'available' || $slot->booked_count >= $slot->capacity) {
+                    throw new SlotUnavailableException('Khung giờ đã hết chỗ.');
+                }
+
+                $this->assertSlotOwnerMatchesBooking($booking, $slot);
+                $this->assertNoActiveDuplicate($booking);
+                $this->assertBookingCreationRules($booking, $slot);
+
+                // S4-41: nhận snapshot chuẩn từ PatientSnapshot (Hiệu)
+                $booking->patient_snapshot = array_key_exists('patient_snapshot', $context) ? $context['patient_snapshot'] : [
+                    'full_name' => $profile->full_name,
+                    'dob' => $profile->dob,
+                    'gender' => $profile->gender,
+                    'relationship' => $profile->relationship,
+                    'phone' => $this->maskIdentifier($profile->phone),
+                    'identity_card_number' => $this->maskIdentifier($profile->identity_card_number),
+                    'health_insurance_code' => $this->maskIdentifier($profile->health_insurance_code),
+                ];
+
+                $oldStatus = null;
+                $booking->code = $booking->code ?: 'BK'.now()->format('ymd').Str::upper(Str::random(6));
+                $booking->status = BookingStatus::PENDING_PAYMENT;
+                $booking->hold_expires_at = now()->addMinutes((int) config('medsi.hold_minutes', 15));
+                $booking->version = 1;
+                $booking->save();
+
+                $this->createPendingPayment($booking);
+
+                $slot->booked_count++;
+                if ($slot->booked_count >= $slot->capacity) {
+                    $slot->status = 'full';
+                }
+                $slot->save();
+
+                $this->writeAudit($booking, BookingEvent::T01, $actor, $oldStatus, 'pending_payment', $context);
+
+                return $booking->refresh();
+            }, 5);
+        } catch (UniqueConstraintViolationException $exception) {
+            if (str_contains($exception->getMessage(), 'uq_booking_request')) {
+                throw new InvalidBookingTransitionException('request_key đã được dùng cho một booking khác.');
             }
 
-            if ($slot->status !== 'available' || $slot->booked_count >= $slot->capacity) {
-                throw new SlotUnavailableException('Khung giờ đã hết chỗ.');
-            }
-
-            $this->assertSlotOwnerMatchesBooking($booking, $slot);
-            $this->assertNoActiveDuplicate($booking);
-            $this->assertBookingCreationRules($booking, $slot);
-
-            $oldStatus = null;
-            $booking->code = $booking->code ?: 'BK'.now()->format('ymd').Str::upper(Str::random(6));
-            $booking->status = BookingStatus::PENDING_PAYMENT;
-            $booking->hold_expires_at = now()->addMinutes((int) config('medsi.hold_minutes', 15));
-            $booking->version = 1;
-            $booking->save();
-
-            $this->createPendingPayment($booking);
-
-            $slot->booked_count++;
-            if ($slot->booked_count >= $slot->capacity) {
-                $slot->status = 'full';
-            }
-            $slot->save();
-
-            $this->writeAudit($booking, BookingEvent::T01, $actor, $oldStatus, 'pending_payment', $context);
-
-            return $booking->refresh();
-        });
+            throw $exception;
+        }
     }
 
     private function createPendingPayment(Booking $booking): void
     {
-        $examFee = $booking->booking_type === 'doctor'
-            ? DB::table('doctors')->where('id', $booking->doctor_id)->value('consultation_fee')
-            : DB::table('exam_types')
-                ->where('id', $booking->exam_type_id)
-                ->where('hospital_id', $booking->hospital_id)
-                ->value('price');
+        app(PaymentService::class)->create($booking);
+    }
 
-        if ($examFee === null) {
-            throw new InvalidBookingTransitionException('Không xác định được phí khám cho booking.');
+    private function maskIdentifier(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
         }
 
-        $serviceFee = (int) config('medsi.service_fee_amount', 20000);
-        $examFee = (int) $examFee;
+        if (strlen($value) <= 3) {
+            return str_repeat('*', strlen($value));
+        }
 
-        DB::table('payments')->insert([
-            'booking_id' => $booking->getKey(),
-            'method' => null,
-            'exam_fee' => $examFee,
-            'discount_amount' => 0,
-            'service_fee' => $serviceFee,
-            'total_amount' => $examFee + $serviceFee,
-            'received_amount' => 0,
-            'refunded_amount' => 0,
-            'status' => 'pending',
-            'paid_at' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        return str_repeat('*', max(0, strlen($value) - 3)).substr($value, -3);
     }
 
     private function assertCurrent(?string $current, string $expected, BookingEvent $event): void
@@ -539,7 +559,7 @@ class BookingStateMachine
         }
     }
 
-    private function assertPaidWithinHold(Booking $booking): void
+    private function assertPaidWithinHold(Booking $booking, array $context): void
     {
         $payment = DB::table('payments')->where('booking_id', $booking->getKey())->first();
 
@@ -548,7 +568,16 @@ class BookingStateMachine
             throw new InvalidBookingTransitionException('Chỉ xác nhận lịch sau khi payment đã paid.');
         }
 
-        if (! $booking->hold_expires_at || now()->gt($booking->hold_expires_at)) {
+        $deadline = $booking->hold_expires_at?->copy();
+        $transaction = DB::table('payment_transactions')
+            ->where('payment_id', $payment->id)
+            ->where('transaction_code', $context['transaction_code'] ?? '')
+            ->where('status', 'success')->first();
+        if ($deadline && $payment->method !== 'store_pay' && $transaction
+            && CarbonImmutable::parse($transaction->created_at)->lt($deadline)) {
+            $deadline->addMinutes((int) config('medsi.grace_minutes'));
+        }
+        if (! $deadline || now()->gte($deadline)) {
             throw new InvalidBookingTransitionException('Thanh toán đã quá hạn giữ chỗ; xử lý theo T16.');
         }
     }
@@ -560,13 +589,14 @@ class BookingStateMachine
         }
 
         $deadline = $booking->hold_expires_at;
-        $paymentId = DB::table('payments')->where('booking_id', $booking->getKey())->value('id');
+        $payment = DB::table('payments')->where('booking_id', $booking->getKey())->first();
+        $paymentId = $payment?->id;
         $hasPendingTransaction = $paymentId && DB::table('payment_transactions')
             ->where('payment_id', $paymentId)
             ->where('status', 'pending')
             ->exists();
 
-        if ($hasPendingTransaction) {
+        if ($hasPendingTransaction && $payment->method !== 'store_pay') {
             $deadline = $deadline->copy()->addMinutes((int) config('medsi.grace_minutes', 5));
         }
 

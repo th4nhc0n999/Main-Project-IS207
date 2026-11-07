@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,29 +25,32 @@ class Payment extends Model
         'paid_at',
     ];
 
-    protected $casts = [
-        'exam_fee' => 'decimal:0',
-        'discount_amount' => 'decimal:0',
-        'service_fee' => 'decimal:0',
-        'total_amount' => 'decimal:0',
-        'received_amount' => 'decimal:0',
-        'refunded_amount' => 'decimal:0',
-        'paid_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'status' => PaymentStatus::class,
+            'exam_fee' => 'decimal:0',
+            'discount_amount' => 'decimal:0',
+            'service_fee' => 'decimal:0',
+            'total_amount' => 'decimal:0',
+            'received_amount' => 'decimal:0',
+            'refunded_amount' => 'decimal:0',
+            'paid_at' => 'datetime',
+        ];
+    }
 
     public function booking(): BelongsTo
     {
-        return $this->belongsTo(Booking::class);
+        return $this->belongsTo(Booking::class, 'booking_id');
     }
 
     public function transactions(): HasMany
     {
-        return $this->hasMany(PaymentTransaction::class);
+        return $this->hasMany(PaymentTransaction::class, 'payment_id');
     }
 
     public function refunds(): HasMany
     {
-        return $this->hasMany(Refund::class);
+        return $this->hasMany(Refund::class, 'payment_id');
     }
 }
-

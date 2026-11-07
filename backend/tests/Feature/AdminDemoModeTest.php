@@ -76,7 +76,7 @@ class AdminDemoModeTest extends TestCase
         // Kiểm tra Payment status = paid
         $payment = Payment::where('booking_id', $booking->id)->first();
         $this->assertNotNull($payment);
-        $this->assertEquals('paid', $payment->status);
+        $this->assertEquals('paid', $payment->status instanceof \App\Enums\PaymentStatus ? $payment->status->value : (string) $payment->status);
 
         // Kiểm tra Audit Log AU-17
         $auditLog = AuditLog::where('action', 'AU-17')

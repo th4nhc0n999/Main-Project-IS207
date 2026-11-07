@@ -8,7 +8,7 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-sky-600 text-white shadow hover:bg-sky-700",
+          "border-transparent bg-sage-600 text-white shadow hover:bg-sage-700",
         secondary:
           "border-transparent bg-slate-100 text-slate-800 hover:bg-slate-200",
         destructive:
@@ -21,7 +21,7 @@ const badgeVariants = cva(
         danger:
           "border-rose-200 bg-rose-50 text-rose-700 font-medium",
         info:
-          "border-sky-200 bg-sky-50 text-sky-700 font-medium",
+          "border-sage-200 bg-sage-50 text-sage-700 font-medium",
         purple:
           "border-purple-200 bg-purple-50 text-purple-700 font-medium",
       },

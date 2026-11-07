@@ -11,13 +11,10 @@ export function AuthProvider({ children }) {
   // -----------------------------------------------------------------------
   // State
   // -----------------------------------------------------------------------
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(USER_KEY)) ?? null }
-    catch { return null }
-  })
+  const [user, setUser] = useState(null)
 
-  // loading = true khi app mới boot và đang verify token với server
-  const [loading, setLoading] = useState(true)
+  // loading = true khi app mới boot và có token cần verify với server
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem(TOKEN_KEY)))
 
   // -----------------------------------------------------------------------
   // Persist helpers
@@ -40,7 +37,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
     if (!token) {
-      setLoading(false)
       return
     }
 
@@ -119,7 +115,6 @@ export function AuthProvider({ children }) {
     })
   }, [])
 
-  // -----------------------------------------------------------------------
   // Derived state
   // -----------------------------------------------------------------------
   const role            = user?.role ?? "guest"

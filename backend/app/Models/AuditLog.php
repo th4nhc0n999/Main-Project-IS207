@@ -12,6 +12,8 @@ class AuditLog extends Model
 
     public $timestamps = false;
 
+    protected $table = 'audit_logs';
+
     protected $fillable = [
         'actor_id',
         'actor_type',
@@ -24,10 +26,13 @@ class AuditLog extends Model
         'occurred_at',
     ];
 
-    protected $casts = [
-        'changes' => 'array',
-        'occurred_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'changes' => 'array',
+            'occurred_at' => 'datetime',
+        ];
+    }
 
     public function actor(): BelongsTo
     {

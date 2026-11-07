@@ -22,19 +22,28 @@ class Hospital extends Model
         'image',
     ];
 
-    protected $casts = [
-        'latitude' => 'decimal:7',
-        'longitude' => 'decimal:7',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+            'deleted_at' => 'datetime',
+        ];
+    }
 
     public function doctors(): HasMany
     {
-        return $this->hasMany(Doctor::class);
+        return $this->hasMany(Doctor::class, 'hospital_id');
     }
 
     public function examTypes(): HasMany
     {
-        return $this->hasMany(ExamType::class);
+        return $this->hasMany(ExamType::class, 'hospital_id');
+    }
+
+    public function staff(): HasMany
+    {
+        return $this->hasMany(User::class, 'hospital_id');
     }
 
     public function staffUsers(): HasMany
@@ -44,7 +53,6 @@ class Hospital extends Model
 
     public function bookings(): HasMany
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Booking::class, 'hospital_id');
     }
 }
-

@@ -101,7 +101,7 @@ class AdminNoShowConsoleTest extends TestCase
 
         // Kiểm tra ticket chuyển thành expired
         $ticket->refresh();
-        $this->assertEquals('expired', $ticket->status);
+        $this->assertEquals('expired', $ticket->status instanceof \App\Enums\TicketStatus ? $ticket->status->value : (string) $ticket->status);
 
         // Kiểm tra không có refund tự động nào được tạo (hoàn 0đ theo dòng 12)
         $this->assertEquals(0, Refund::where('booking_id', $booking->id)->count());
@@ -122,7 +122,7 @@ class AdminNoShowConsoleTest extends TestCase
         // Kiểm tra đã tạo yêu cầu hoàn tiền đặc biệt
         $complaintRefund = Refund::where('booking_id', $booking->id)->first();
         $this->assertNotNull($complaintRefund);
-        $this->assertEquals('approved', $complaintRefund->status);
+        $this->assertEquals('approved', $complaintRefund->status instanceof \App\Enums\RefundStatus ? $complaintRefund->status->value : (string) $complaintRefund->status);
         $this->assertEquals(200000, (int) $complaintRefund->amount);
     }
 }

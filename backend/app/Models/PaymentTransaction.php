@@ -20,14 +20,17 @@ class PaymentTransaction extends Model
         'raw_payload',
     ];
 
-    protected $casts = [
-        'amount' => 'decimal:0',
-        'raw_payload' => 'array',
-        'received_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:0',
+            'received_at' => 'datetime',
+            'raw_payload' => 'array',
+        ];
+    }
 
     public function payment(): BelongsTo
     {
-        return $this->belongsTo(Payment::class);
+        return $this->belongsTo(Payment::class, 'payment_id');
     }
 }

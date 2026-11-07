@@ -111,7 +111,7 @@ class AdminRefundConsoleTest extends TestCase
         // Kiểm tra Payment đã cập nhật refunded_amount = 200000 và status vẫn là paid (hoàn 1 phần)
         $payment->refresh();
         $this->assertEquals(200000, (int) $payment->refunded_amount);
-        $this->assertEquals('paid', $payment->status);
+        $this->assertEquals('paid', $payment->status instanceof \App\Enums\PaymentStatus ? $payment->status->value : (string) $payment->status);
     }
 
     public function test_full_refund_updates_payment_status_to_refunded(): void
@@ -173,6 +173,6 @@ class AdminRefundConsoleTest extends TestCase
 
         $payment->refresh();
         $this->assertEquals(220000, (int) $payment->refunded_amount);
-        $this->assertEquals('refunded', $payment->status);
+        $this->assertEquals('refunded', $payment->status instanceof \App\Enums\PaymentStatus ? $payment->status->value : (string) $payment->status);
     }
 }

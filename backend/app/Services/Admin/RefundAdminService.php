@@ -46,15 +46,16 @@ class RefundAdminService
 
         return DB::transaction(function () use ($id, $decision, $admin, $reason) {
             $refund = Refund::findOrFail($id);
+            $statusStr = $refund->status instanceof \App\Enums\RefundStatus ? $refund->status->value : (string) $refund->status;
 
             // Máy trạng thái hoàn tiền (Tài liệu thống nhất v1.0 Mục 3):
             // requested -> approved, rejected; hoặc failed -> approved (duyệt lại)
-            if (! in_array($refund->status, ['requested', 'failed'], true) && $decision === 'approve') {
-                throw new InvalidArgumentException("Chỉ có thể duyệt yêu cầu hoàn tiền khi ở trạng thái 'requested' hoặc 'failed' (hiện tại: {$refund->status}).");
+            if (! in_array($statusStr, ['requested', 'failed'], true) && $decision === 'approve') {
+                throw new InvalidArgumentException("Chỉ có thể duyệt yêu cầu hoàn tiền khi ở trạng thái 'requested' hoặc 'failed' (hiện tại: {$statusStr}).");
             }
 
-            if ($refund->status !== 'requested' && $decision === 'reject') {
-                throw new InvalidArgumentException("Chỉ có thể từ chối yêu cầu hoàn tiền khi ở trạng thái 'requested' (hiện tại: {$refund->status}).");
+            if ($statusStr !== 'requested' && $decision === 'reject') {
+                throw new InvalidArgumentException("Chỉ có thể từ chối yêu cầu hoàn tiền khi ở trạng thái 'requested' (hiện tại: {$statusStr}).");
             }
 
             $refund->status = $decision === 'approve' ? 'approved' : 'rejected';
@@ -75,7 +76,7 @@ class RefundAdminService
                 'changes' => [
                     'decision' => $decision,
                     'amount' => $refund->amount,
-                    'status' => $refund->status,
+                    'status' => $refund->status instanceof \App\Enums\RefundStatus ? $refund->status->value : (string) $refund->status,
                 ],
                 'ip_address' => request()->ip() ?? '127.0.0.1',
                 'occurred_at' => now(),
@@ -93,10 +94,11 @@ class RefundAdminService
     {
         return DB::transaction(function () use ($id, $admin) {
             $refund = Refund::with('payment')->findOrFail($id);
+            $statusStr = $refund->status instanceof \App\Enums\RefundStatus ? $refund->status->value : (string) $refund->status;
 
             // Máy trạng thái hoàn tiền: approved -> processing -> succeeded
-            if (! in_array($refund->status, ['approved', 'processing'], true)) {
-                throw new InvalidArgumentException("Yêu cầu hoàn tiền phải được duyệt (approved/processing) trước khi giải ngân (hiện tại: {$refund->status}).");
+            if (! in_array($statusStr, ['approved', 'processing'], true)) {
+                throw new InvalidArgumentException("Yêu cầu hoàn tiền phải được duyệt (approved/processing) trước khi giải ngân (hiện tại: {$statusStr}).");
             }
 
             $payment = $refund->payment;

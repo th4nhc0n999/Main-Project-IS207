@@ -85,4 +85,3 @@ Mỗi khi nhóm quyết định bổ sung thêm một bệnh viện vào hệ th
 ---
 
 *Văn bản này được lưu trữ chính thức tại kho lưu trữ dự án: `docs/THONG_BAO_TIEU_CHI_CHON_BENH_VIEN.md` để làm căn cứ đối chiếu nghiệm thu dự án và bảo vệ trước hội đồng đánh giá môn học IS207.*
-

@@ -2,6 +2,7 @@
 
 use App\Exceptions\Booking\InvalidBookingTransitionException;
 use App\Exceptions\Booking\SlotUnavailableException;
+use App\Exceptions\Booking\TicketException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,10 +17,23 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
+            'role' => \App\Http\Middleware\EnsureUserRole::class,
+            'active' => \App\Http\Middleware\EnsureUserActive::class,
+            'staff.hospital' => \App\Http\Middleware\EnsureStaffHospitalScope::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (TicketException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'code' => $exception->errorCode,
+            ], $exception->httpStatus);
+        });
         $exceptions->render(function (SlotUnavailableException $exception, Request $request) {
             if (! $request->is('api/*')) {
                 return null;

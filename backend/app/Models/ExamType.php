@@ -19,23 +19,26 @@ class ExamType extends Model
         'price',
     ];
 
-    protected $casts = [
-        'price' => 'decimal:0',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:0',
+            'deleted_at' => 'datetime',
+        ];
+    }
 
     public function hospital(): BelongsTo
     {
-        return $this->belongsTo(Hospital::class);
+        return $this->belongsTo(Hospital::class, 'hospital_id');
     }
 
     public function specialty(): BelongsTo
     {
-        return $this->belongsTo(Specialty::class);
+        return $this->belongsTo(Specialty::class, 'specialty_id');
     }
 
     public function bookings(): HasMany
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Booking::class, 'exam_type_id');
     }
 }
-
