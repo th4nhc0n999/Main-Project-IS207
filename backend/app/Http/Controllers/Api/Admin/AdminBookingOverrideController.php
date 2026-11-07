@@ -47,48 +47,13 @@ class AdminBookingOverrideController extends Controller
                 ]
             );
 
-            // Calculate refund according to PAY_POLICY row 2: 50% exam fee, 0% service fee
-            $payment = DB::table('payments')->where('booking_id', $booking->id)->first();
-            $refundAmount = 0;
-
-            if ($payment && $payment->received_amount > 0) {
-                $examFee = (int) ($payment->exam_fee - $payment->discount_amount);
-                $examFeeRefunded = (int) round($examFee * 0.5); // 50%
-                $serviceFeeRefunded = 0;
-                $refundAmount = $examFeeRefunded + $serviceFeeRefunded;
-
-                $refundId = DB::table('refunds')->insertGetId([
-                    'payment_id' => $payment->id,
-                    'booking_id' => $booking->id,
-                    'amount' => $refundAmount,
-                    'exam_fee_refunded' => $examFeeRefunded,
-                    'service_fee_refunded' => $serviceFeeRefunded,
-                    'policy_case' => 'patient_cancel_under_24h_admin',
-                    'reason' => $validated['reason'],
-                    'status' => 'requested',
-                    'refund_ref' => 'RF'.now()->format('ymd').Str::upper(Str::random(8)),
-                    'requested_by' => $admin->id,
-                    'approved_by' => null,
-                    'requested_at' => now(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-                $auditLogger->log(
-                    AuditEvent::AU_18,
-                    'refund',
-                    $refundId,
-                    $admin,
-                    [
-                        'booking_id' => $booking->id,
-                        'amount' => $refundAmount,
-                        'exam_fee_refunded' => $examFeeRefunded,
-                        'service_fee_refunded' => 0,
-                        'policy_case' => 'patient_cancel_under_24h_admin',
-                    ],
-                    'Admin huỷ hộ lịch dưới 24h, tạo yêu cầu hoàn 50% phí khám'
-                );
-            }
+            // Query the refund created by T10 via StateMachine / RefundService
+            $refundAmount = (int) (DB::table('refunds')
+                ->where('booking_id', $booking->id)
+                ->where('refund_ref', 'booking-'.$booking->id.'-T10')
+                ->value('amount')
+                ?? DB::table('refunds')->where('booking_id', $booking->id)->latest('id')->value('amount')
+                ?? 0);
 
             $auditLogger->log(
                 AuditEvent::AU_11,

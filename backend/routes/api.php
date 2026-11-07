@@ -28,6 +28,7 @@ Route::middleware(['auth:sanctum', EnsureActiveBookingAccount::class, 'throttle:
     Route::get('/bookings/{booking}/ticket/qr.png', [TicketController::class, 'download'])->whereNumber('booking');
     Route::post('/tickets/check-in', [TicketController::class, 'checkIn']);
 });
+
 // Public Authentication
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
