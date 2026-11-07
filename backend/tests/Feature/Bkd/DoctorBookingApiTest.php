@@ -147,6 +147,8 @@ class DoctorBookingApiTest extends TestCase
 
     public function test_missing_or_failed_integrations_do_not_leave_a_booking_or_hold(): void
     {
+        // Production adapters are now bound; explicitly remove one for this outage case.
+        $this->app->offsetUnset(PatientSnapshot::class);
         Sanctum::actingAs($this->patient);
         $slot = $this->slot();
         $this->postJson('/api/doctor-bookings', $this->payload($slot))->assertStatus(503)
@@ -259,6 +261,7 @@ class DoctorBookingApiTest extends TestCase
         Sanctum::actingAs($this->doctorUser);
         $url = '/api/doctor/bookings/'.$booking->id.'/approve';
         $this->postJson($url, ['version' => 1])->assertStatus(409)->assertJsonPath('code', 'STALE_VERSION');
+        $this->app->offsetUnset(BookingTicket::class);
         $this->postJson($url, ['version' => $booking->version])->assertStatus(503);
         $this->assertSame(BookingStatus::PENDING_APPROVAL, $booking->fresh()->status);
         $this->mock(BookingTicket::class)->shouldReceive('issueFor')->once()->with(Mockery::on(
@@ -378,11 +381,8 @@ class DoctorBookingApiTest extends TestCase
     private function confirmedBooking(?Slot $slot = null): Booking
     {
         $booking = app(BookingStateMachine::class)->apply($this->paidBooking($slot), BookingEvent::T05, $this->doctorUser);
-        DB::table('tickets')->insert([
-            'booking_id' => $booking->id, 'ticket_code' => 'TEST-'.$booking->id,
-            'qr_token' => 'test-only-not-a-real-qr', 'queue_scope' => 'test:'.$booking->id,
-            'queue_seq' => 1, 'queue_number' => 'TEST-001', 'status' => 'issued',
-        ]);
+        // Current main issues the real ticket inside T05; do not insert another.
+        $this->assertDatabaseHas('tickets', ['booking_id' => $booking->id, 'status' => 'issued']);
 
         return $booking;
     }

@@ -1,12 +1,12 @@
 # BKD API và hợp đồng tích hợp Sprint 4
 
-Ngày cập nhật: 06/11/2026. Phạm vi: S4-32, S4-40, S4-41, S4-42, S4-43, S4-44; tài liệu rà soát S4-45 nằm trong [BKD_DOCUMENT_REVIEW.md](BKD_DOCUMENT_REVIEW.md).
+Ngày cập nhật: 07/11/2026. Phạm vi: S4-32, S4-40, S4-41, S4-42, S4-43, S4-44; tài liệu rà soát S4-45 nằm trong [BKD_DOCUMENT_REVIEW.md](BKD_DOCUMENT_REVIEW.md).
 
 ## Trạng thái bàn giao
 
-Module BKD đã có API, Form Request, Resource, kiểm tra quyền và service điều phối qua `BookingStateMachine`. Theo lựa chọn của Hoài Bảo, bốn dịch vụ bên ngoài chỉ có interface; chưa đăng ký adapter production. Vì vậy chưa nghiệm thu đầy đủ E01/E05/E07/E09/E14. Không có dịch vụ giả được bật trong ứng dụng.
+Module BKD đã có API, Form Request, Resource, kiểm tra quyền và service điều phối qua `BookingStateMachine`. Bốn interface đã bind qua `BkdServiceProvider` với adapter gọi code thật của Hiệu/Khôi/Tuấn Anh. Chưa nghiệm thu đầy đủ E01/E05/E07/E09/E14 vì còn lỗi dependencies và các gate liên quan UI/hoàn tiền thực tế trong môi trường demo. Không có dịch vụ giả được bật trong ứng dụng.
 
-Không sửa model dùng chung `Slot`, state machine, schema, config, cơ chế auth hay giao diện dùng chung. Chỉ bổ sung route ở cuối `routes/api.php`. Frontend có client `src/api/doctorBookingApi.js` để Quốc Huy tích hợp UI; chưa bổ sung màn hình bác sĩ.
+Lõi có một thay đổi đã được An cho phép: T01 dùng `context['patient_snapshot']` nếu có, còn khi thiếu key thì giữ nguyên cách dựng snapshot từ profile đang khoá. Không thay quy tắc, trạng thái, count, payment, audit hoặc chữ ký public. BKD truyền snapshot vào context trước T01, không ghi lại snapshot sau T01. Không sửa code dịch vụ của Hiệu/Khôi/Tuấn Anh, AppServiceProvider, model Slot, schema, config/medsi.php, composer.json hoặc composer.lock. Frontend có client `src/api/doctorBookingApi.js` để Quốc Huy tích hợp UI; chưa bổ sung màn hình bác sĩ.
 
 ## Cách gọi
 
@@ -77,26 +77,32 @@ Tạo lịch trả HTTP 200 cho cả lần đầu và retry. Tạo slot trả 20
 - Bệnh nhân huỷ pending_payment qua T04 không cần adapter hoàn; pending_approval qua T08, confirmed qua T10. T08/T10 của bệnh nhân chịu hạn từ 24 giờ; đúng 24 giờ được phép. Bác sĩ chỉ dùng T10 cho nghỉ đột xuất và bắt buộc lý do.
 - Lỗi adapter phải ném exception: rollback cả booking, payment, count, phiếu và audit trong transaction. Không gọi cổng ngoài hoặc commit trong adapter. Nếu bên tích hợp cần xử lý bất đồng bộ, phải chốt cơ chế bền vững trước khi thay hợp đồng.
 
-## Bốn interface chờ tích hợp
+## Bốn interface đã nối code thật
 
-Namespace: `App\Contracts\Bkd`. Adapter production được chủ module đăng ký vào Laravel container sau review; BKD không bind mặc định. Test doubles chỉ xuất hiện trong `tests`.
+Namespace interface: `App\Contracts\Bkd`. Adapter: `App\Services\Bkd\Adapters`. Provider: `App\Providers\BkdServiceProvider`, đăng ký trong `bootstrap/providers.php`; không sửa `AppServiceProvider`. Không có DevStubs, mặc định mọi môi trường dùng code thật. Test doubles chỉ xuất hiện trong các test điều phối cũ; `RealServiceIntegrationTest` không mock bốn interface hoặc các dịch vụ thật.
 
-| Interface | Hàm | Hợp đồng |
-|---|---|---|
-| `PatientSnapshot` | `makePatientSnapshot(object $profile): array` | Hiệu trả JSON đã che; có full_name; chỉ các trường hồ sơ trong allowlist của service. Phone/CCCD/BHYT/guardian_phone phải đã che. Không lưu snapshot client gửi |
-| `BookingPayment` | `ensurePendingPayment(Booking $booking): void` | Khôi nối PaymentService; tái sử dụng và kiểm tra dòng payment hiện tại, không tạo dòng thứ hai, không gọi gateway tại đây |
-| `BookingTicket` | `issueFor(Booking $booking): void` | Tuấn Anh phát hành một phiếu issued/STT/JWT sau T05, cùng transaction; có lỗi phải ném exception |
-| `BookingRefund` | `requestFor(Booking $booking, BookingEvent $event, User $actor): void` | Khôi tạo đúng một requested theo T06/T08/T10, actor và chính sách baseline; không đánh dấu tiền đã hoàn |
+| Interface | Adapter đã bind | Dịch vụ thật được gọi | Chuyển đổi và bảo đảm |
+|---|---|---|---|
+| `PatientSnapshot` | `PatientSnapshotAdapter` | `PatientProfileService::makePatientSnapshot(PatientProfile): array` | Hydrate row đang khoá thành Eloquent; gọi Hiệu, bỏ profile_id/captured_at và che bổ sung phone/CCCD/BHYT/guardian_phone. Giữ full_name, dob và thông tin giám hộ; không khôi phục chữ số đã che |
+| `BookingPayment` | `BookingPaymentAdapter` | `PaymentService::create(Booking): object` | Bỏ giá trị trả về để khớp void. Tái sử dụng payment đã được T01 tạo; không gọi gateway |
+| `BookingTicket` | `BookingTicketAdapter` | `TicketService::issue(Booking): Ticket` | Bỏ giá trị trả về để khớp void; issue() trả lại phiếu mà T05 đã phát hành, không cấp STT mới; exception được truyền ra |
+| `BookingRefund` | `BookingRefundAdapter` | `RefundService::forBookingEvent(Booking, BookingEvent, User|string, array): void` | Context lấy từ reject_reason/cancel_reason/cancel_reason_code của booking; dùng actor và cùng ref booking-event của dịch vụ thật để không tạo trùng |
 
-**Điểm cần review với An/Khôi:** lõi đang tự insert payment trong `createPendingPayment`. Vì Hoài Bảo chọn không sửa phần dùng chung, interface sử dụng cách handoff/adopt dòng đã tạo. Muốn PaymentService là nơi duy nhất tạo payment phải phối hợp đổi điểm gọi trong lõi; không gọi hai nơi cùng insert. Phí 200.000đ + 20.000đ = 220.000đ hiện do lõi tính từ DB/config.
+**Điểm gọi đã có trong main:** T01 gọi PaymentService; T05 gọi TicketService; T06/T08/T10 gọi RefundService ngay trong transaction của lõi. Adapter vẫn chuyển tiếp vào đúng các hàm idempotent đó, giữ nguyên khoá/ref nên không tạo thêm payment/ticket/refund. Các DB::transaction lồng dùng cùng kết nối; adapter không commit hoặc gọi gateway bên ngoài. Số tiền do dịch vụ Khôi tính từ DB/config.
 
-**Trách nhiệm adapter chưa được chứng minh:** số tiền/chính sách refund; sáu trạng thái hoàn; giao dịch cổng; chữ ký/STT/QR thực; mapping AU; consent CRUD/masking của Hiệu. Adapter no-op sẽ không đáp ứng hợp đồng và không được coi là tích hợp thành công.
+**Luồng snapshot:** row hồ sơ đang khoá → model PatientProfile → hàm Hiệu → adapter chuẩn hoá → kiểm tra BKD → context T01 → DB lưu nguyên snapshot đã chuẩn bị. Format gốc của Hiệu còn nhiều chữ số hiện hơn BKD cho phép; adapter chỉ che thêm, giữ tối đa 3 chữ số ở đuôi còn hiện và loại metadata ngoài allowlist. Không nới lỏng kiểm tra chống chuỗi số đầy đủ kèm ký tự lạ. Người gọi không truyền context vẫn nhận đúng snapshot fallback cũ, bao gồm các luồng bệnh viện.
+
+**Còn cần chứng minh:** T05/STT/QR và huỷ confirmed qua T10 đang bị chặn bởi JWT chưa cài; sáu trạng thái hoàn, UI và mapping AU chưa được nghiệm thu đầy đủ. RefundService thật hiện ghi requested_by = null; BKD không tự sửa trường này hoặc chính sách của Khôi.
 
 ## Kiểm thử đã chạy
 
-Ngày 06/11/2026: PHP 8.3.33, MySQL 8.4.3/InnoDB trên instance test riêng, DB `medsi_bkd_test`. Migrations nguyên bản chạy thành công. Không dùng database ứng dụng hay SQLite để chứng minh cạnh tranh.
+Ngày 07/11/2026: PHP 8.3.33, MySQL 8.4.3/InnoDB trên instance test riêng, DB `medsi_snapshot_20261107_test`. Migrations nguyên bản chạy thành công. Không dùng database ứng dụng hay SQLite để chứng minh cạnh tranh.
 
-Kết quả toàn bộ backend: **55 tests, 237 assertions, không skip**, khi bật hai cờ test. Trong đó 18 test API BKD dùng test doubles cho các dependency và một test cạnh tranh BKD dùng hai process/kết nối DB độc lập. Test E13 của lõi cũng chạy.
+Kết quả toàn bộ backend: **136 test: 116 pass, 20 fail/error, 0 skip** khi bật RUN_BKD_REVIEW_TESTS=1, RUN_BKD_MYSQL_TESTS=1 và RUN_MYSQL_CONCURRENCY_TESTS=1. Test chuyển trạng thái của An: 33 pass. Test lõi snapshot mới: 4 pass (doctor/hospital, có/không context). E13 lõi và BKD đều pass bằng hai process riêng. Test review: 3 pass.
+
+`RealServiceIntegrationTest`: **6 pass, 4 fail**. Đã chứng minh binding thật, snapshot Hiệu có giám hộ được chuẩn hoá và lưu đúng, một payment pending tổng 220.000đ không gọi gateway, T06 requested đúng 220.000đ không trùng, T08 huỷ sớm requested đúng 200.000đ/service 0, lỗi PaymentService và RefundService thật rollback dữ liệu. Bốn test cần JWT (T05, hai nhánh T10, lỗi ký phiếu) fail rõ tại dependency, không dùng phiếu giả để báo pass.
+
+Các lỗi còn lại từ lần merge vẫn gồm thiếu Firebase JWT và UserFactory dùng UserStatus::Active không tồn tại. Composer install không chạy được với manifest hiện tại vì bacon/bacon-qr-code yêu cầu 3.0 nhưng lock chứa 3.1.1. Không chạy composer update hoặc sửa manifest/lock để né lỗi này. Cần người phụ trách sửa mismatch rồi cài dependencies, sau đó chạy lại toàn bộ test.
 
 Kiểm tra đã có: slot quá giờ/đầy/quyền tạo/khoá/sửa, server price, snapshot, retry/key khác nội dung, consent/hồ sơ người khác, 2 giờ/30 ngày, giao giờ khác khoa, cùng khoa cùng ngày, tối đa 3 lịch, owner doctor, version/deadline, rollback payment/refund/ticket, huỷ đúng 24 giờ/dưới 24 giờ, nghỉ bác sĩ, huỷ chưa trả và huỷ rồi đặt mới. **Không suy từ kết quả này rằng các E2E thanh toán/hoàn/QR thực đã đạt.**
 
@@ -110,6 +116,7 @@ $env:DB_DATABASE = '<database kết thúc _test>'
 # DB_USERNAME/DB_PASSWORD và APP_KEY lấy từ môi trường test của bạn; không đưa lên Git.
 $env:RUN_BKD_MYSQL_TESTS = '1'
 $env:RUN_MYSQL_CONCURRENCY_TESTS = '1'
+$env:RUN_BKD_REVIEW_TESTS = '1'
 php vendor/bin/phpunit
 ```
 
@@ -119,11 +126,11 @@ APP_KEY cần hợp lệ để test trang web mặc định hiện có chạy. C
 
 | Kịch bản | Phần đã kiểm thử BKD | Còn cần để nghiệm thu E2E |
 |---|---|---|
-| E01 đến duyệt | T01, scoped list/detail, T05, rollback khi phiếu lỗi | Adapter snapshot/payment/phiếu, QR payment thật của môi trường demo và UI |
-| E05 | T06, lý do, trả chỗ, gọi adapter, rollback và chống gọi lặp | Refund requested → approved → processing → succeeded, đúng 220.000đ và AU |
-| E07 | Huỷ đúng mốc 24 giờ, phiếu cancelled, trả chỗ | Refund 200.000đ, service 0đ, payment vẫn paid và AU |
-| E09 | Bác sĩ huỷ đúng lịch, slot blocked và phiếu cancelled | Refund 220.000đ và audit theo AU catalog |
-| E13 | Lõi và BKD service: hai process, một thắng, một SE001 | Adapter production và xác nhận nhóm cho kết quả tích hợp cuối |
-| E14 | Huỷ cũ/tạo mới độc lập, payment mới 220.000đ trong test module | UI, payment mới và refund cũ qua dịch vụ production |
+| E01 đến duyệt | T01 snapshot/payment thật, callback QR giả lập nội bộ của Khôi đưa sang pending_approval, scoped list/detail | Cài được JWT, chạy T05/phiếu thật và UI; không đánh dấu đạt bước duyệt khi JWT còn thiếu |
+| E05 | T06 + RefundService thật: một requested 220.000đ, trả chỗ, payment chưa được đánh dấu đã hoàn; lỗi refund rollback | Admin approved → processing → succeeded và đối chiếu AU |
+| E07 | T08 đã kiểm tra requested 200.000đ/service 0; test điều phối mốc 24 giờ đã có | Nhánh confirmed T10/phiếu cancelled cần JWT; xác minh vòng đời hoàn và AU |
+| E09 | Đã bind RefundService/TicketService; có test điều phối bác sĩ nghỉ | Test tích hợp T10/phiếu thật/blocked/220.000đ cần JWT, sau đó đối chiếu AU |
+| E13 | Lõi và BKD: hai process, một thắng, một SE001 | Race test BKD hiện dùng test adapter cho snapshot/payment; cần thêm bằng chứng cạnh tranh toàn luồng với adapter production và nhóm xác nhận |
+| E14 | Huỷ cũ/tạo mới độc lập có test điều phối, payment thật đã được kiểm tra riêng | UI, phiếu, thanh toán mới và hoàn tiền cũ đầy đủ sau khi xử lý dependencies |
 
-Auth/login, job T03/T07, demo Admin, UI bác sĩ, callback, ticket và refund console vẫn thuộc các thành viên đã phân công trong Plan. Chốt hợp đồng AU với Công: lõi hiện ghi action Txx; slot service ghi `bkd.slot.created/updated/blocked`, chưa tự nhận là các mã AU đã nghiệm thu.
+Auth/login, job T03/T07, demo Admin, UI bác sĩ, callback, ticket và refund console vẫn thuộc các thành viên đã phân công trong Plan. Code thật đã được merge và BKD nối qua adapter; các gate chưa pass ở trên vẫn phải được kiểm chứng trước khi nghiệm thu. Đối chiếu audit lõi và bkd.slot.* với AU catalog của Công.

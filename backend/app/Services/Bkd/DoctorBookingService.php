@@ -66,7 +66,9 @@ class DoctorBookingService
                 'symptoms' => $data['symptoms'] ?? null, 'patient_snapshot' => $snapshot,
                 'request_key' => $data['request_key'],
             ]);
-            $booking = $this->machine->apply($booking, BookingEvent::T01, $actor);
+            $booking = $this->machine->apply($booking, BookingEvent::T01, $actor, [
+                'patient_snapshot' => $snapshot,
+            ]);
             $payment->ensurePendingPayment($booking);
 
             return $booking;
