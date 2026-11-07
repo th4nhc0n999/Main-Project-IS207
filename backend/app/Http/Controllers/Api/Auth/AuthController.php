@@ -184,23 +184,25 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
+        $statusValue = $user->status instanceof UserStatus ? $user->status->value : (string) $user->status;
+
         $auditLogger->log(
             AuditEvent::AU_02,
             'user',
             $user->id,
             $user,
-            ['role' => $user->role, 'status' => (string) $user->status->value],
+            ['role' => $user->role, 'status' => $statusValue],
             'Đăng nhập thành công'
         );
 
-        $isPending = ($user->status === UserStatus::PENDING || (string) $user->status === 'pending');
+        $isPending = $user->status === UserStatus::PENDING;
 
         $userData = [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role,
-            'status' => $user->status instanceof UserStatus ? $user->status->value : $user->status,
+            'status' => $statusValue,
             'hospital_id' => $user->hospital_id,
             'require_password_change' => $isPending,
         ];

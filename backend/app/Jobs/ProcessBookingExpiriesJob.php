@@ -67,7 +67,8 @@ class ProcessBookingExpiriesJob implements ShouldQueue
                         ->where('status', 'pending')
                         ->exists();
 
-                    if ($hasPendingTxn) {
+                    // 5-minute grace applies only to online gateway pending transactions, not store_pay (CF-42)
+                    if ($hasPendingTxn && $payment->method !== 'store_pay') {
                         $graceDeadline = CarbonImmutable::parse($candidate->hold_expires_at)->addMinutes($graceMinutes);
                         if ($now->lt($graceDeadline)) {
                             // Still within grace period, skip expiring now
