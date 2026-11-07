@@ -232,8 +232,8 @@ class BookingStateMachine
                 $this->assertNoActiveDuplicate($booking);
                 $this->assertBookingCreationRules($booking, $slot);
 
-                // Build snapshots from the locked profile, never from client input.
-                $booking->patient_snapshot = [
+                // S4-41: nhận snapshot chuẩn từ PatientSnapshot (Hiệu)
+                $booking->patient_snapshot = array_key_exists('patient_snapshot', $context) ? $context['patient_snapshot'] : [
                     'full_name' => $profile->full_name,
                     'dob' => $profile->dob,
                     'gender' => $profile->gender,
