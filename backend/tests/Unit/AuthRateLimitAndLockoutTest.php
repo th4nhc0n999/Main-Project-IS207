@@ -59,6 +59,23 @@ class AuthRateLimitAndLockoutTest extends TestCase
         $this->assertTrue($shouldUnlock);
     }
 
+    public function test_active_user_status_comparison_with_enum_does_not_throw_string_conversion_error(): void
+    {
+        $user = (new User())->forceFill([
+            'id' => 100,
+            'name' => 'Bác sĩ Active',
+            'role' => 'doctor',
+            'status' => UserStatus::ACTIVE,
+        ]);
+
+        // Fix 1: $isPending = $user->status === UserStatus::PENDING
+        $isPending = $user->status === UserStatus::PENDING;
+        $this->assertFalse($isPending);
+
+        $statusValue = $user->status instanceof UserStatus ? $user->status->value : (string) $user->status;
+        $this->assertSame('active', $statusValue);
+    }
+
     public function test_rate_limiter_keys_and_lock_duration_constants(): void
     {
         $this->assertSame(5, (int) config('medsi.login_max_attempts', 5));

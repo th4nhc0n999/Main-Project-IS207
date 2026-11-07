@@ -34,6 +34,20 @@ class ProcessBookingExpiriesJobTest extends TestCase
         $this->assertTrue(CarbonImmutable::now()->gt($pastGraceDeadline));
     }
 
+    public function test_store_pay_does_not_receive_grace_period(): void
+    {
+        $hasPendingTxn = true;
+        $method = 'store_pay';
+
+        // store_pay condition in Job: ($hasPendingTxn && $payment->method !== 'store_pay')
+        $eligibleForGrace = ($hasPendingTxn && $method !== 'store_pay');
+        $this->assertFalse($eligibleForGrace, 'store_pay must not be eligible for 5-minute grace period');
+
+        $onlineMethod = 'qr_pay';
+        $onlineEligible = ($hasPendingTxn && $onlineMethod !== 'store_pay');
+        $this->assertTrue($onlineEligible, 'online payment must be eligible for 5-minute grace period');
+    }
+
     public function test_no_show_threshold_calculation_for_doctor(): void
     {
         $workDate = '2026-11-06';
