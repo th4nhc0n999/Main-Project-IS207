@@ -2,30 +2,32 @@
 
 namespace Database\Factories;
 
+use App\Enums\PaymentStatus;
 use App\Models\Booking;
 use App\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Payment>
- */
 class PaymentFactory extends Factory
 {
     protected $model = Payment::class;
 
     public function definition(): array
     {
-        $examFee = fake()->numberBetween(100000, 1500000);
-        $serviceFee = fake()->numberBetween(10000, 50000);
+        $examFee = 200000;
+        $serviceFee = 20000;
+        $discountAmount = 0;
+        $totalAmount = $examFee - $discountAmount + $serviceFee;
 
         return [
-            'booking_id' => Booking::factory()->forHospitalBooking(),
-            'method' => fake()->randomElement(['atm', 'credit_card', 'qr_pay', 'store_pay', 'momo']),
+            'booking_id' => Booking::factory(),
+            'method' => 'qr_pay',
             'exam_fee' => $examFee,
+            'discount_amount' => $discountAmount,
             'service_fee' => $serviceFee,
-            'total_amount' => $examFee + $serviceFee,
-            'status' => 'pending',
-            'transaction_code' => null,
+            'total_amount' => $totalAmount,
+            'received_amount' => 0,
+            'refunded_amount' => 0,
+            'status' => PaymentStatus::Pending,
             'paid_at' => null,
         ];
     }
@@ -33,30 +35,9 @@ class PaymentFactory extends Factory
     public function paid(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'paid',
+            'status' => PaymentStatus::Paid,
+            'received_amount' => $attributes['total_amount'],
             'paid_at' => now(),
-            'transaction_code' => 'TXN'.fake()->unique()->numerify('##########'),
-        ]);
-    }
-
-    public function failed(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'failed',
-        ]);
-    }
-
-    public function expired(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'expired',
-        ]);
-    }
-
-    public function cancelled(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'cancelled',
         ]);
     }
 }

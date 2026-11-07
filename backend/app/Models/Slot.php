@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Slot extends Model
 {
@@ -12,6 +14,7 @@ class Slot extends Model
     protected $fillable = [
         'owner_type',
         'owner_id',
+        'specialty_id',
         'work_date',
         'start_time',
         'end_time',
@@ -29,13 +32,13 @@ class Slot extends Model
         ];
     }
 
-    public function owner()
+    public function specialty(): BelongsTo
     {
-        return $this->morphTo();
+        return $this->belongsTo(Specialty::class, 'specialty_id');
     }
 
-    public function bookings()
+    public function bookings(): HasMany
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Booking::class, 'slot_id');
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-use App\Models\Doctor;
-use App\Models\Hospital;
-use Illuminate\Database\Eloquent\Relations\Relation;
+use App\Models\Booking;
+use App\Policies\BookingPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,9 +22,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Relation::morphMap([
-            'doctor' => Doctor::class,
-            'hospital' => Hospital::class,
-        ]);
+        Gate::policy(Booking::class, BookingPolicy::class);
     }
 }

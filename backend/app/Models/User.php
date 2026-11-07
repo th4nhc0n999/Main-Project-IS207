@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
+use App\Enums\UserStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -25,6 +25,10 @@ class User extends Authenticatable
         'password',
         'phone',
         'role',
+        'status',
+        'hospital_id',
+        'failed_login_count',
+        'locked_until',
     ];
 
     /**
@@ -34,7 +38,6 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'remember_token',
     ];
 
     /**
@@ -45,18 +48,29 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => UserStatus::class,
+            'locked_until' => 'datetime',
         ];
     }
 
-    public function patientProfiles()
+    public function patientProfiles(): HasMany
     {
-        return $this->hasMany(PatientProfile::class);
+        return $this->hasMany(PatientProfile::class, 'user_id');
     }
 
-    public function bookings()
+    public function patientConsents(): HasMany
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(PatientConsent::class, 'user_id');
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'user_id');
+    }
+
+    public function hospital(): BelongsTo
+    {
+        return $this->belongsTo(Hospital::class, 'hospital_id');
     }
 }

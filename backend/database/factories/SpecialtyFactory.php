@@ -4,30 +4,21 @@ namespace Database\Factories;
 
 use App\Models\Specialty;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
-/**
- * @extends Factory<Specialty>
- */
 class SpecialtyFactory extends Factory
 {
     protected $model = Specialty::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $name = fake()->unique()->word() . ' Khoa';
         return [
-            'name' => fake()->unique()->randomElement([
-                'Noi tong quat',
-                'Nhi khoa',
-                'Tim mach',
-                'Da lieu',
-                'Than kinh',
-                'Mat',
-            ]),
+            'code' => 'CK' . fake()->unique()->numerify('##'),
+            'name' => $name,
+            'slug' => Str::slug($name) . '-' . fake()->unique()->numerify('###'),
+            'description' => fake()->sentence(),
+            'default_instructions' => 'Nhịn ăn sáng trước khi xét nghiệm máu.',
             'image' => null,
         ];
     }

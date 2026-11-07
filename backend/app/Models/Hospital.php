@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Hospital extends Model
@@ -18,44 +16,33 @@ class Hospital extends Model
         'description',
         'address',
         'city',
+        'latitude',
+        'longitude',
         'hotline',
         'image',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+            'deleted_at' => 'datetime',
+        ];
+    }
+
+    public function doctors(): HasMany
+    {
+        return $this->hasMany(Doctor::class, 'hospital_id');
+    }
+
     public function examTypes(): HasMany
     {
-        return $this->hasMany(ExamType::class);
+        return $this->hasMany(ExamType::class, 'hospital_id');
     }
 
-    public function slots(): MorphMany
+    public function staff(): HasMany
     {
-        return $this->morphMany(Slot::class, 'owner');
-    }
-
-    public function bookings(): HasMany
-    {
-        return $this->hasMany(Booking::class);
-    }
-
-    public function scopeSearch(Builder $query, ?string $keyword): Builder
-    {
-        if (!empty($keyword)) {
-            $query->where(function (Builder $q) use ($keyword) {
-                $q->where('name', 'like', "%{$keyword}%")
-                  ->orWhere('address', 'like', "%{$keyword}%")
-                  ->orWhere('description', 'like', "%{$keyword}%");
-            });
-        }
-
-        return $query;
-    }
-
-    public function scopeInCity(Builder $query, ?string $city): Builder
-    {
-        if (!empty($city)) {
-            $query->where('city', $city);
-        }
-
-        return $query;
+        return $this->hasMany(User::class, 'hospital_id');
     }
 }

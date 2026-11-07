@@ -3,133 +3,115 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\PatientProfile\PatientProfileRequest;
+use App\Http\Requests\Profile\StorePatientProfileRequest;
+use App\Http\Requests\Profile\UpdatePatientProfileRequest;
+use App\Http\Resources\PatientProfileResource;
 use App\Models\PatientProfile;
+use App\Services\PatientProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PatientProfileController extends Controller
 {
+    public function __construct(
+        protected PatientProfileService $profileService
+    ) {}
+
     /**
-     * Lấy danh sách hồ sơ bệnh nhân của người dùng đang đăng nhập.
-     *
-     * GET /api/patient-profiles
+     * Danh sách hồ sơ của người dùng đang đăng nhập
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $profiles = PatientProfile::where('user_id', $request->user()->id)
-            ->orderByDesc('id')
-            ->get();
+        $profiles = $this->profileService->listProfiles($request->user());
+        return PatientProfileResource::collection($profiles);
+    }
+
+    /**
+     * Chi tiết một hồ sơ (che CCCD, BHYT, SĐT trừ khi chủ sở hữu xem để sửa với mode=edit)
+     */
+    public function show(Request $request, PatientProfile $patientProfile): JsonResponse|PatientProfileResource
+    {
+        if ($patientProfile->user_id !== $request->user()?->id && $request->user()?->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return new PatientProfileResource($patientProfile);
+    }
+
+    /**
+     * Tạo hồ sơ mới (bắt buộc đồng thuận điều khoản)
+     */
+    public function store(StorePatientProfileRequest $request): JsonResponse
+    {
+        $profile = $this->profileService->createProfile(
+            $request->user(),
+            $request->validated(),
+            $request->ip() ?? '127.0.0.1',
+            $request->userAgent()
+        );
+
+        return (new PatientProfileResource($profile))
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    /**
+     * Cập nhật thông tin hồ sơ
+     */
+    public function update(UpdatePatientProfileRequest $request, PatientProfile $patientProfile): PatientProfileResource
+    {
+        $updated = $this->profileService->updateProfile($patientProfile, $request->validated());
+        return new PatientProfileResource($updated);
+    }
+
+    /**
+     * Xóa hồ sơ (xử lý theo 3 kịch bản: chặn EX-PRF-06, xóa mềm, xóa cứng)
+     */
+    public function destroy(Request $request, PatientProfile $patientProfile): JsonResponse
+    {
+        if ($patientProfile->user_id !== $request->user()?->id && $request->user()?->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $result = $this->profileService->deleteProfile($patientProfile);
 
         return response()->json([
             'success' => true,
-            'message' => 'Lấy danh sách hồ sơ bệnh nhân thành công',
-            'data'    => $profiles,
+            'action' => $result['action'],
+            'message' => $result['message'],
         ]);
     }
 
     /**
-     * Tạo mới một hồ sơ bệnh nhân thuộc tài khoản người dùng hiện tại.
-     *
-     * POST /api/patient-profiles
+     * Khôi phục hồ sơ đã xóa mềm (restore)
      */
-    public function store(PatientProfileRequest $request): JsonResponse
+    public function restore(Request $request, int $id): JsonResponse
     {
-        $data = $request->validated();
-        $data['user_id'] = $request->user()->id;
-
-        $profile = PatientProfile::create($data);
+        $restored = $this->profileService->restoreProfile($id, $request->user());
 
         return response()->json([
             'success' => true,
-            'message' => 'Tạo hồ sơ bệnh nhân thành công',
-            'data'    => $profile,
-        ], 201);
-    }
-
-    /**
-     * Xem chi tiết một hồ sơ bệnh nhân.
-     *
-     * GET /api/patient-profiles/{id}
-     */
-    public function show(Request $request, int $id): JsonResponse
-    {
-        $profile = PatientProfile::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->first();
-
-        if (! $profile) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không tìm thấy hồ sơ bệnh nhân hoặc bạn không có quyền truy cập',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Lấy chi tiết hồ sơ bệnh nhân thành công',
-            'data'    => $profile,
+            'message' => 'Hồ sơ đã được khôi phục thành công.',
+            'data' => new PatientProfileResource($restored),
         ]);
     }
 
     /**
-     * Cập nhật thông tin hồ sơ bệnh nhân.
-     *
-     * PUT/PATCH /api/patient-profiles/{id}
+     * Hỗ trợ rút đồng ý điều khoản dữ liệu (revoked_at)
      */
-    public function update(PatientProfileRequest $request, int $id): JsonResponse
+    public function revokeConsent(Request $request, PatientProfile $patientProfile): JsonResponse
     {
-        $profile = PatientProfile::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->first();
-
-        if (! $profile) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không tìm thấy hồ sơ bệnh nhân hoặc bạn không có quyền chỉnh sửa',
-            ], 404);
+        if ($patientProfile->user_id !== $request->user()?->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $profile->update($request->validated());
+        $consent = $this->profileService->revokeConsent($patientProfile, $request->user());
 
         return response()->json([
             'success' => true,
-            'message' => 'Cập nhật hồ sơ bệnh nhân thành công',
-            'data'    => $profile->fresh(),
-        ]);
-    }
-
-    /**
-     * Xóa hồ sơ bệnh nhân.
-     *
-     * DELETE /api/patient-profiles/{id}
-     */
-    public function destroy(Request $request, int $id): JsonResponse
-    {
-        $profile = PatientProfile::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->first();
-
-        if (! $profile) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không tìm thấy hồ sơ bệnh nhân hoặc bạn không có quyền xóa',
-            ], 404);
-        }
-
-        // Kiểm tra nếu hồ sơ đã gắn liền với lịch khám nào đó (khóa ngoại restrictOnDelete)
-        if ($profile->bookings()->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không thể xóa hồ sơ bệnh nhân này do đã có lịch khám trong hệ thống.',
-            ], 422);
-        }
-
-        $profile->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Xóa hồ sơ bệnh nhân thành công',
+            'message' => 'Đã rút đồng ý xử lý dữ liệu cho hồ sơ này.',
+            'revoked_at' => $consent->revoked_at?->toIso8601String(),
         ]);
     }
 }

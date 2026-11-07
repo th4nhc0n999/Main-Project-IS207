@@ -16,8 +16,8 @@ export function AuthProvider({ children }) {
     catch { return null }
   })
 
-  // loading = true khi app mới boot và đang verify token với server
-  const [loading, setLoading] = useState(true)
+  // loading = true khi app mới boot và có token cần verify với server
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem(TOKEN_KEY)))
 
   // -----------------------------------------------------------------------
   // Persist helpers
@@ -40,7 +40,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
     if (!token) {
-      setLoading(false)
       return
     }
 
@@ -119,6 +118,49 @@ export function AuthProvider({ children }) {
     })
   }, [])
 
+  // Chuyển role nhanh khi demo/testing
+  const switchRole = useCallback((newRole) => {
+    if (newRole === "guest") {
+      clearSession()
+      return
+    }
+    const demoAccounts = {
+      patient: {
+        id: 1,
+        name: "Nguyễn Văn An",
+        email: "patient@medsi.vn",
+        phone: "0901234567",
+        role: "patient",
+        is_active: true,
+      },
+      staff: {
+        id: 2,
+        name: "Nguyễn Văn Staff",
+        email: "staff@hospital.vn",
+        phone: "0901234568",
+        role: "staff",
+        hospital_id: 1,
+        is_active: true,
+      },
+      admin: {
+        id: 99,
+        name: "Quản Trị Viên MedSi",
+        email: "admin@medsi.vn",
+        phone: "19002805",
+        role: "admin",
+        is_active: true,
+      },
+    }
+    const demoUser = demoAccounts[newRole] || {
+      id: 999,
+      name: newRole,
+      email: `${newRole}@medsi.vn`,
+      role: newRole,
+      is_active: true,
+    }
+    persistSession(demoUser, `demo-token-${newRole}`)
+  }, [clearSession, persistSession])
+
   // -----------------------------------------------------------------------
   // Derived state
   // -----------------------------------------------------------------------
@@ -141,6 +183,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        switchRole,
         updateUserProfile,
       }}
     >

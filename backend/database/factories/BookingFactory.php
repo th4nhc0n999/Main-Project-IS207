@@ -2,107 +2,67 @@
 
 namespace Database\Factories;
 
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Doctor;
-use App\Models\ExamType;
-use App\Models\Hospital;
 use App\Models\PatientProfile;
 use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
-/**
- * @extends Factory<Booking>
- */
 class BookingFactory extends Factory
 {
     protected $model = Booking::class;
 
     public function definition(): array
     {
-        $doctor = Doctor::factory()->create();
-
         return [
+            'code' => 'BK' . strtoupper(Str::random(10)),
             'user_id' => User::factory(),
             'patient_profile_id' => PatientProfile::factory(),
             'booking_type' => 'doctor',
-            'doctor_id' => $doctor->id,
+            'doctor_id' => Doctor::factory(),
             'hospital_id' => null,
             'exam_type_id' => null,
-            'slot_id' => Slot::factory()->forDoctor($doctor),
-            'symptoms' => fake()->randomElement([
-                'Dau dau, met moi.',
-                'Ho va sot nhe.',
-                'Can tu van suc khoe dinh ky.',
-            ]),
-            'status' => 'pending',
-            'slot_hold_expires_at' => null,
-            'note' => fake()->optional()->randomElement([
-                'Vui long goi truoc khi den.',
-                'Can ho tro cho tre em.',
-            ]),
+            'slot_id' => Slot::factory(),
+            'symptoms' => fake()->sentence(),
+            'patient_snapshot' => [
+                'full_name' => fake()->name(),
+                'dob' => '1995-05-15',
+                'gender' => 'male',
+                'phone' => '090*****89',
+                'identity_card_number' => '001099****12',
+                'relationship' => 'Bản thân',
+            ],
+            'status' => BookingStatus::PendingPayment,
+            'hold_expires_at' => now()->addMinutes(15),
+            'approval_expires_at' => null,
+            'decided_by' => null,
+            'decided_at' => null,
+            'reject_reason' => null,
+            'cancelled_at' => null,
+            'cancelled_by' => null,
+            'cancel_reason_code' => null,
+            'cancel_reason' => null,
+            'request_key' => Str::random(32),
+            'version' => 1,
         ];
-    }
-
-    public function configure(): static
-    {
-        return $this->afterMaking(function (Booking $booking) {
-            if (! $booking->code) {
-                $booking->code = 'BK'.now()->format('Ymd').fake()->numerify('#####');
-            }
-        });
-    }
-
-    public function forDoctorBooking(): static
-    {
-        $doctor = Doctor::factory()->create();
-
-        return $this->state(fn (array $attributes) => [
-            'booking_type' => 'doctor',
-            'doctor_id' => $doctor->id,
-            'hospital_id' => null,
-            'exam_type_id' => null,
-            'slot_id' => Slot::factory()->forDoctor($doctor),
-        ]);
-    }
-
-    public function forHospitalBooking(): static
-    {
-        $hospital = Hospital::factory()->create();
-        $examType = ExamType::factory()->for($hospital)->create();
-
-        return $this->state(fn (array $attributes) => [
-            'booking_type' => 'hospital',
-            'doctor_id' => null,
-            'hospital_id' => $hospital->id,
-            'exam_type_id' => $examType->id,
-            'slot_id' => Slot::factory()->forHospital($hospital),
-        ]);
-    }
-
-    public function pendingPayment(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'pending_payment',
-            'slot_hold_expires_at' => now()->addMinutes(15),
-        ]);
-    }
-
-    public function expiredHold(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'pending_payment',
-            'slot_hold_expires_at' => now()->subMinutes(5),
-        ]);
-    }
-
-    public function cancelled(): static
-    {
-        return $this->state(fn (array $attributes) => ['status' => 'cancelled']);
     }
 
     public function confirmed(): static
     {
-        return $this->state(fn (array $attributes) => ['status' => 'confirmed']);
+        return $this->state(fn () => [
+            'status' => BookingStatus::Confirmed,
+            'hold_expires_at' => null,
+        ]);
+    }
+
+    public function completed(): static
+    {
+        return $this->state(fn () => [
+            'status' => BookingStatus::Completed,
+            'hold_expires_at' => null,
+        ]);
     }
 }

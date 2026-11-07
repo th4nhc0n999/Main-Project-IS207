@@ -1,8 +1,12 @@
 <?php
 
+use App\Exceptions\Booking\InvalidBookingTransitionException;
+use App\Exceptions\Booking\SlotUnavailableException;
+use App\Exceptions\Booking\TicketException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,8 +16,45 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'role' => \App\Http\Middleware\EnsureUserRole::class,
+            'active' => \App\Http\Middleware\EnsureUserActive::class,
+            'staff.hospital' => \App\Http\Middleware\EnsureStaffHospitalScope::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (TicketException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'code' => $exception->errorCode,
+            ], $exception->httpStatus);
+        });
+        $exceptions->render(function (SlotUnavailableException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'code' => $exception->errorCode(),
+            ], 409);
+        });
+
+        $exceptions->render(function (InvalidBookingTransitionException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'code' => 'INVALID_BOOKING_TRANSITION',
+            ], 422);
+        });
     })->create();

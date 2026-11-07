@@ -2,59 +2,52 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserStatus;
+use App\Models\Hospital;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
-/**
- * @extends Factory<User>
- */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
+    protected $model = User::class;
+
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'name' => fake()->randomElement([
-                'Nguyen Van An',
-                'Tran Thi Binh',
-                'Le Minh Chau',
-                'Pham Quoc Dung',
-                'Vo Thi Hoa',
-            ]),
+            'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'phone' => fake()->optional()->numerify('09########'),
+            'password' => static::$password ??= Hash::make('password123'),
+            'phone' => '09' . fake()->numerify('########'),
             'role' => 'patient',
-            'remember_token' => Str::random(10),
+            'status' => UserStatus::Active,
+            'hospital_id' => null,
+            'failed_login_count' => 0,
+            'locked_until' => null,
         ];
+    }
+
+    public function doctor(): static
+    {
+        return $this->state(fn () => [
+            'role' => 'doctor',
+        ]);
+    }
+
+    public function staff(?Hospital $hospital = null): static
+    {
+        return $this->state(fn () => [
+            'role' => 'staff',
+            'hospital_id' => $hospital?->id ?? Hospital::factory(),
+        ]);
     }
 
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn () => [
             'role' => 'admin',
-        ]);
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
         ]);
     }
 }
