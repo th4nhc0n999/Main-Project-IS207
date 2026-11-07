@@ -36,7 +36,7 @@ class E17_ProfileDeletionPolicyTest extends TestCase
             'patient_profile_id' => $pendingProfile->id,
             'slot_id' => $slot1->id,
             'doctor_id' => $doctor->id,
-            'status' => BookingStatus::PendingApproval,
+            'status' => BookingStatus::PENDING_APPROVAL,
         ]);
 
         // Hồ sơ 2: Có lịch sử khám cũ đã hoàn tất (completed)
@@ -46,7 +46,7 @@ class E17_ProfileDeletionPolicyTest extends TestCase
             'patient_profile_id' => $historyProfile->id,
             'slot_id' => $slot2->id,
             'doctor_id' => $doctor->id,
-            'status' => BookingStatus::Completed,
+            'status' => BookingStatus::COMPLETED,
         ]);
 
         // Hồ sơ 3: Chưa từng đặt lịch nào + có bản ghi consent

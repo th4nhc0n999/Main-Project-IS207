@@ -22,7 +22,7 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password123'),
             'phone' => '09' . fake()->numerify('########'),
             'role' => 'patient',
-            'status' => UserStatus::Active,
+            'status' => UserStatus::ACTIVE,
             'hospital_id' => null,
             'failed_login_count' => 0,
             'locked_until' => null,
