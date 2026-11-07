@@ -10,11 +10,11 @@ class HospitalSeeder extends Seeder
     public function run(): void
     {
         $hospitals = [
-            // Khu vực TP. Hồ Chí Minh (3 bệnh viện)
+            // Khu vực TP. Hồ Chí Minh (3 bệnh viện đa khoa mở, nhận khám đại trà)
             [
                 'id' => 1,
                 'name' => 'Bệnh viện Chợ Rẫy',
-                'description' => 'Bệnh viện đa khoa tuyến cuối đặc biệt khu vực phía Nam với đầy đủ các chuyên khoa sâu.',
+                'description' => 'Bệnh viện đa khoa tuyến cuối đặc biệt khu vực phía Nam. Tiếp nhận khám bệnh nhân mới và tái khám qua phiếu khám điện tử MedSi.',
                 'address' => '201B Nguyễn Chí Thanh, Phường 12, Quận 5',
                 'city' => 'Hồ Chí Minh',
                 'latitude' => 10.7578234,
@@ -25,7 +25,7 @@ class HospitalSeeder extends Seeder
             [
                 'id' => 2,
                 'name' => 'Bệnh viện Đại học Y Dược TP.HCM',
-                'description' => 'Mô hình kết hợp Viện - Trường hiện đại chuẩn quốc tế, thế mạnh Tim mạch và Tiêu hóa.',
+                'description' => 'Mô hình kết hợp Viện - Trường hiện đại chuẩn quốc tế. Tiếp nhận khám bệnh nhân mới và tái khám qua phiếu khám điện tử MedSi.',
                 'address' => '215 Hồng Bàng, Phường 11, Quận 5',
                 'city' => 'Hồ Chí Minh',
                 'latitude' => 10.7554120,
@@ -35,21 +35,21 @@ class HospitalSeeder extends Seeder
             ],
             [
                 'id' => 3,
-                'name' => 'Bệnh viện Nhi Đồng 1',
-                'description' => 'Bệnh viện chuyên khoa Nhi hàng đầu miền Nam chuyên sâu hồi sức, phẫu thuật và tim bẩm sinh.',
-                'address' => '341 Sư Vạn Hạnh, Phường 10, Quận 10',
+                'name' => 'Bệnh viện Nhân dân Gia Định',
+                'description' => 'Bệnh viện đa khoa loại I hàng đầu TP.HCM, tiếp nhận mọi đối tượng bệnh nhân. Tiếp nhận khám bệnh nhân mới và tái khám qua phiếu khám điện tử MedSi.',
+                'address' => '01 Nơ Trang Long, Phường 7, Quận Bình Thạnh',
                 'city' => 'Hồ Chí Minh',
-                'latitude' => 10.7712345,
-                'longitude' => 106.6705678,
-                'hotline' => '02839271119',
-                'image' => 'hospitals/nhi-dong-1.png',
+                'latitude' => 10.8032145,
+                'longitude' => 106.6945678,
+                'hotline' => '02838412692',
+                'image' => 'hospitals/gia-dinh.png',
             ],
 
-            // Khu vực Hà Nội (3 bệnh viện)
+            // Khu vực Hà Nội (3 bệnh viện đa khoa mở, nhận khám đại trà)
             [
                 'id' => 4,
                 'name' => 'Bệnh viện Bạch Mai',
-                'description' => 'Bệnh viện đa khoa hạng đặc biệt đầu ngành miền Bắc với viện Tim mạch quốc gia hàng đầu.',
+                'description' => 'Bệnh viện đa khoa hạng đặc biệt đầu ngành miền Bắc với viện Tim mạch quốc gia. Tiếp nhận khám bệnh nhân mới và tái khám qua phiếu khám điện tử MedSi.',
                 'address' => '78 Giải Phóng, Phương Mai, Đống Đa',
                 'city' => 'Hà Nội',
                 'latitude' => 20.9997890,
@@ -60,7 +60,7 @@ class HospitalSeeder extends Seeder
             [
                 'id' => 5,
                 'name' => 'Bệnh viện Hữu nghị Việt Đức',
-                'description' => 'Trung tâm phẫu thuật ngoại khoa và cơ xương khớp lớn nhất cả nước.',
+                'description' => 'Trung tâm phẫu thuật ngoại khoa và đa khoa lớn nhất cả nước. Tiếp nhận khám bệnh nhân mới và tái khám qua phiếu khám điện tử MedSi.',
                 'address' => '40 Tràng Thi, Hàng Bông, Hoàn Kiếm',
                 'city' => 'Hà Nội',
                 'latitude' => 21.0289123,
@@ -70,14 +70,14 @@ class HospitalSeeder extends Seeder
             ],
             [
                 'id' => 6,
-                'name' => 'Bệnh viện Nhi Trung ương',
-                'description' => 'Bệnh viện chuyên khoa Nhi tuyến cuối của cả nước về điều trị và nghiên cứu nhi khoa.',
-                'address' => '18/879 La Thành, Láng Thượng, Đống Đa',
+                'name' => 'Bệnh viện Đa khoa Xanh Pôn',
+                'description' => 'Bệnh viện đa khoa hạng I tuyến đầu của thủ đô Hà Nội. Tiếp nhận khám bệnh nhân mới và tái khám qua phiếu khám điện tử MedSi.',
+                'address' => '12 Chu Văn An, Điện Bàn, Ba Đình',
                 'city' => 'Hà Nội',
-                'latitude' => 21.0245678,
-                'longitude' => 105.8123456,
-                'hotline' => '02462738500',
-                'image' => 'hospitals/nhi-tw.png',
+                'latitude' => 21.0312456,
+                'longitude' => 105.8354678,
+                'hotline' => '02438233075',
+                'image' => 'hospitals/xanh-pon.png',
             ],
         ];
 
@@ -89,4 +89,3 @@ class HospitalSeeder extends Seeder
         }
     }
 }
-

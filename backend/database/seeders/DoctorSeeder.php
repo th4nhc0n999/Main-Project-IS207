@@ -42,15 +42,15 @@ class DoctorSeeder extends Seeder
                 'id' => 2,
                 'user_id' => $userDoc2 ? $userDoc2->id : null,
                 'specialty_id' => $specialties['CK01']->id, // Nhi khoa
-                'hospital_id' => 3, // BV Nhi Đồng 1
+                'hospital_id' => 3, // BV Nhân dân Gia Định
                 'name' => 'ThS.BS Trần Thị Mai',
                 'title' => 'Thạc sĩ Bác sĩ',
                 'years_experience' => 12,
-                'bio' => 'Chuyên khoa Nhi sơ sinh, bệnh lý đường hô hấp và dinh dưỡng trẻ nhỏ.',
+                'bio' => 'Khoa Nhi BV Nhân dân Gia Định, chuyên sâu hô hấp, nhiễm và dinh dưỡng trẻ nhỏ.',
                 'city' => 'Hồ Chí Minh',
-                'address' => '341 Sư Vạn Hạnh, Quận 10',
-                'latitude' => 10.7712345,
-                'longitude' => 106.6705678,
+                'address' => '01 Nơ Trang Long, Phường 7, Quận Bình Thạnh',
+                'latitude' => 10.8032145,
+                'longitude' => 106.6945678,
                 'consultation_fee' => 250000,
                 'avatar' => 'doctors/tran-thi-mai.png',
             ],
@@ -268,15 +268,15 @@ class DoctorSeeder extends Seeder
                 'id' => 16,
                 'user_id' => null,
                 'specialty_id' => $specialties['CK01']->id, // Nhi khoa (Hà Nội)
-                'hospital_id' => 6, // BV Nhi Trung ương
+                'hospital_id' => 6, // BV Đa khoa Xanh Pôn
                 'name' => 'ThS.BS Nguyễn Phương Thảo',
                 'title' => 'Thạc sĩ Bác sĩ',
                 'years_experience' => 10,
-                'bio' => 'Khám chữa các bệnh lý nhiễm trùng, dị ứng và miễn dịch lâm sàng trẻ em.',
+                'bio' => 'Khoa Nhi BV Đa khoa Xanh Pôn, khám chữa các bệnh lý nhiễm trùng, tiêu hóa và hô hấp trẻ em.',
                 'city' => 'Hà Nội',
-                'address' => '18/879 La Thành, Đống Đa',
-                'latitude' => 21.0245678,
-                'longitude' => 105.8123456,
+                'address' => '12 Chu Văn An, Điện Bàn, Ba Đình',
+                'latitude' => 21.0312456,
+                'longitude' => 105.8354678,
                 'consultation_fee' => 220000,
                 'avatar' => 'doctors/nguyen-phuong-thao.png',
             ],

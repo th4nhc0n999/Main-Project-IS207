@@ -2,21 +2,21 @@
 
 > **Người thực hiện:** Hoàng Huy (Phân hệ Administration Domain - ADM)  
 > **Dự án:** MedSi — Hệ thống đặt lịch khám bệnh trực tuyến (Đồ án IS207)  
-> **Nhánh làm việc (Git Branch):** `s4/admin-hoanghuy`  
-> **Thời điểm hoàn thành:** 06/11/2026  
+> **Nhánh làm việc (Git Branch):** `feature/admin-dashboard`  
+> **Thời điểm hoàn thành:** 07/11/2026 (Cập nhật tiêu chí BR-ADM-11)  
 > **Mức độ hoàn thành:** **100% tất cả các task được giao (Code, Test, Migration, Deliverables Documentation)**
 
 ---
 
 ## 1. TỔNG QUAN KẾT QUẢ ĐÃ LÀM
 
-Toàn bộ 6 task kỹ thuật Backend (`S4-30`, `S4-31`, `S4-33`, `S4-34`, `S4-36`, `S4-37`) và toàn bộ phần chuẩn hóa tài liệu nghiệp vụ miền (`ADM_DOC`) đã được triển khai hoàn chỉnh, tuân thủ nghiêm ngặt theo **Tài liệu thống nhất v1.0**, lược đồ cơ sở dữ liệu `medsi_schema_v1.sql`, và các quy tắc kiểm thử chấp nhận E2E (`SPR4-requirement.md`).
+Toàn bộ 6 task kỹ thuật Backend (`S4-30`, `S4-31`, `S4-33`, `S4-34`, `S4-36`, `S4-37`) và toàn bộ phần chuẩn hóa tài liệu nghiệp vụ miền (`ADM_DOC`) đã được triển khai hoàn chỉnh, tuân thủ nghiêm ngặt theo **Tài liệu thống nhất v1.0**, lược đồ cơ sở dữ liệu `medsi_schema_v1.sql`, các quy tắc kiểm thử chấp nhận E2E (`SPR4-requirement.md`), và thông báo quy định **Tiêu chí sàng lọc bệnh viện hợp tác (Open Access - BR-ADM-11)**.
 
 ### Bảng đối chiếu tiến độ chi tiết theo Backlog Sprint 4:
 
 | Mã Task | Hạng mục công việc | Mức độ hoàn thành | Kết quả đầu ra (Outputs & Artifacts) |
 | :---: | :--- | :---: | :--- |
-| **S4-30** | **Database Seeders chuẩn hóa** | **100%** | - 14 Chuyên khoa (`CK03` = Tim mạch), 6 Bệnh viện (có tọa độ GPS Hà Nội & TP.HCM).<br>- 18 Bác sĩ (phủ kín 14 chuyên khoa, biểu phí 150k - 500k).<br>- Slots 7 ngày tới (đủ 5 trạng thái: available, full, blocked, past, và slot còn 1 chỗ phục vụ race condition E13).<br>- Users mẫu: 1 admin, 3 bác sĩ (liên kết `doctors.user_id`), 3 bệnh nhân, nhân viên cơ sở (`staff` gắn `hospital_id`).<br>- Test: `AdminSeedersTest` (65 assertions PASS). |
+| **S4-30** | **Database Seeders chuẩn hóa** | **100%** | - 14 Chuyên khoa (`CK03` = Tim mạch), 6 Bệnh viện đa khoa mở (có tọa độ GPS Hà Nội & TP.HCM, tuân thủ tiêu chí Open Access BR-ADM-11: BV Chợ Rẫy, BV ĐHYD TP.HCM, BV Nhân dân Gia Định, BV Bạch Mai, BV Việt Đức, BV ĐK Xanh Pôn).<br>- 18 Bác sĩ (phủ kín 14 chuyên khoa, biểu phí 150k - 500k).<br>- Slots 7 ngày tới (đủ 5 trạng thái: available, full, blocked, past, và slot còn 1 chỗ phục vụ race condition E13).<br>- Users mẫu: 1 admin, 3 bác sĩ (liên kết `doctors.user_id`), 3 bệnh nhân, nhân viên cơ sở (`staff` gắn `hospital_id`).<br>- Test: `AdminSeedersTest` (65 assertions PASS). |
 | **S4-31** | **Master Catalog CRUD API** | **100%** | - CRUD API cho Chuyên khoa, Bệnh viện, Bác sĩ, Loại khám (`exam_types`).<br>- Hỗ trợ Xóa mềm (`SoftDeletes`) qua cột `deleted_at`.<br>- Thực thi quy tắc **BR-ADM-01**: Chặn xóa bác sĩ/bệnh viện/chuyên khoa khi còn lịch hẹn chưa hoàn tất (HTTP 422).<br>- Test: `AdminMasterCatalogTest` (17 assertions PASS). |
 | **S4-33** | **Admin Demo Sandbox** | **100%** | - API giả lập thanh toán: `payment_transactions.source = demo_admin`, kích hoạt T02/T02H.<br>- API Admin duyệt/từ chối thay bác sĩ (T05/T06).<br>- Ghi nhận kiểm toán sự kiện **`AU-17`** vào bảng `audit_logs`.<br>- Test: `AdminDemoModeTest` (19 assertions PASS). |
 | **S4-34** | **Refund Console (Quản trị Hoàn tiền)** | **100%** | - Tra cứu danh sách yêu cầu hoàn tiền (`requested`, `approved`, `processing`, `succeeded`, `rejected`, `failed`).<br>- API Phê duyệt (`approved`) hoặc Từ chối (`rejected`) theo chính sách 14 dòng hoàn tiền.<br>- API Giải ngân mô phỏng: chuyển sang `succeeded`, cập nhật `payments.refunded_amount`, kiểm tra CHECK `refunded_amount <= received_amount`, ghi log **`AU-16`**.<br>- Test: `AdminRefundConsoleTest` (15 assertions PASS). |

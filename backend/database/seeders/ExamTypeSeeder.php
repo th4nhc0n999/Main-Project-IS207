@@ -49,11 +49,11 @@ class ExamTypeSeeder extends Seeder
                 'price' => 200000,
             ],
 
-            // Bệnh viện Nhi Đồng 1 (ID 3)
+            // Bệnh viện Nhân dân Gia Định (ID 3)
             [
                 'hospital_id' => 3,
                 'specialty_id' => $specialties['CK01']->id, // Nhi khoa
-                'name' => 'Khám Nhi theo hẹn giờ ưu tiên',
+                'name' => 'Khám Nhi khoa theo hẹn giờ ưu tiên',
                 'price' => 150000,
             ],
 
@@ -91,11 +91,11 @@ class ExamTypeSeeder extends Seeder
                 'price' => 200000,
             ],
 
-            // Bệnh viện Nhi Trung ương (ID 6)
+            // Bệnh viện Đa khoa Xanh Pôn (ID 6)
             [
                 'hospital_id' => 6,
                 'specialty_id' => $specialties['CK01']->id, // Nhi khoa
-                'name' => 'Khám Nhi khoa đa khoa chuyên sâu',
+                'name' => 'Khám Nhi khoa tổng quát kỹ thuật cao',
                 'price' => 180000,
             ],
         ];

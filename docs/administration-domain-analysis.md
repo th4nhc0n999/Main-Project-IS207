@@ -232,6 +232,7 @@ Dữ liệu quản trị được thiết kế chuẩn hóa theo ERD v1.1 gồm 
 | **BR-ADM-08** | Tính duy nhất của Slot Bác sĩ | Một bác sĩ không thể có 2 ca khám trùng lặp thời gian trong cùng một ngày (`uq_slot`). | High |
 | **BR-ADM-09** | Toàn vẹn tài chính Hoàn tiền | Tiền hoàn không vượt quá tiền thực thu: `refunded_amount <= received_amount` và `amount = exam_fee_refunded + service_fee_refunded`. | Critical |
 | **BR-ADM-10** | Thời hạn giữ chỗ 15 phút (CF-38) | Phiếu hẹn chờ thanh toán giữ chỗ đúng **15 phút** (cộng 5 phút grace time khi giao dịch chưa rõ) trước khi job hết hạn tự giải phóng. | High |
+| **BR-ADM-11** | Tiêu chí sàng lọc cơ sở y tế hợp tác (Open Access) | Admin chỉ kích hoạt (`is_active = 1`) và tích hợp các bệnh viện đạt 100% 5 tiêu chí mở (không ràng buộc mã bệnh án cũ, không giới hạn độ tuổi toàn viện, không bắt nộp giấy chuyển viện trước, nhận vé QR MedSi, biểu phí minh bạch). Tuyệt đối loại trừ bệnh viện chuyên khoa thuần biệt lập (như Bệnh viện Nhi Đồng) khỏi luồng đặt khám đại trà khi chưa có bộ lọc chuyên sâu. | Critical |
 
 ---
 
