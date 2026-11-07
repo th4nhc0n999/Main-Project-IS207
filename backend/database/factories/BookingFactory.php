@@ -35,7 +35,7 @@ class BookingFactory extends Factory
                 'identity_card_number' => '001099****12',
                 'relationship' => 'Bản thân',
             ],
-            'status' => BookingStatus::PendingPayment,
+            'status' => BookingStatus::PENDING_PAYMENT,
             'hold_expires_at' => now()->addMinutes(15),
             'approval_expires_at' => null,
             'decided_by' => null,
@@ -53,7 +53,7 @@ class BookingFactory extends Factory
     public function confirmed(): static
     {
         return $this->state(fn () => [
-            'status' => BookingStatus::Confirmed,
+            'status' => BookingStatus::CONFIRMED,
             'hold_expires_at' => null,
         ]);
     }
@@ -61,7 +61,7 @@ class BookingFactory extends Factory
     public function completed(): static
     {
         return $this->state(fn () => [
-            'status' => BookingStatus::Completed,
+            'status' => BookingStatus::COMPLETED,
             'hold_expires_at' => null,
         ]);
     }
