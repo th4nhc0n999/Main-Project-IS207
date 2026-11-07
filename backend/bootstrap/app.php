@@ -16,7 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'role' => \App\Http\Middleware\EnsureUserRole::class,
+            'active' => \App\Http\Middleware\EnsureUserActive::class,
+            'staff.hospital' => \App\Http\Middleware\EnsureStaffHospitalScope::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (TicketException $exception, Request $request) {
