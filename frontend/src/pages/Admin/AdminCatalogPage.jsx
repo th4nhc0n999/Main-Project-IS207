@@ -1,3 +1,4 @@
+import DoctorAvatar from '@/components/DoctorAvatar'
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { 
@@ -145,9 +146,9 @@ export default function AdminCatalogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/60 pb-16">
+    <div className="min-h-screen bg-background pb-16">
       {/* Top Banner */}
-      <div className="bg-slate-900 text-white py-8 px-4 sm:px-6 lg:px-8 shadow-inner">
+      <div className="bg-sage-900 text-white py-8 px-4 sm:px-6 lg:px-8 shadow-inner">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">
@@ -182,7 +183,7 @@ export default function AdminCatalogPage() {
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <Layers className="w-4 h-4 text-sky-400" />
+            <Layers className="w-4 h-4 text-sage-400" />
             <span>Chuyên Khoa ({specialties.length})</span>
           </button>
 
@@ -194,7 +195,7 @@ export default function AdminCatalogPage() {
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <Stethoscope className="w-4 h-4 text-sky-400" />
+            <Stethoscope className="w-4 h-4 text-sage-400" />
             <span>Hồ Sơ Bác Sĩ ({doctors.length})</span>
           </button>
 
@@ -206,7 +207,7 @@ export default function AdminCatalogPage() {
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <Building2 className="w-4 h-4 text-sky-400" />
+            <Building2 className="w-4 h-4 text-sage-400" />
             <span>Bệnh Viện & Gói Khám ({hospitals.length})</span>
           </button>
 
@@ -218,7 +219,7 @@ export default function AdminCatalogPage() {
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <Clock className="w-4 h-4 text-sky-400" />
+            <Clock className="w-4 h-4 text-sage-400" />
             <span>Khởi Tạo Khung Giờ (Slots)</span>
           </button>
         </div>
@@ -231,7 +232,7 @@ export default function AdminCatalogPage() {
               <Button
                 onClick={() => setShowSpecialtyModal(true)}
                 size="sm"
-                className="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold"
+                className="bg-sage-600 hover:bg-sage-700 text-white text-xs font-semibold"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Thêm Chuyên Khoa Mới
@@ -246,7 +247,7 @@ export default function AdminCatalogPage() {
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold">
+                      <div className="w-10 h-10 rounded-xl bg-sage-100 text-sage-600 flex items-center justify-center font-bold">
                         {s.name.substring(0, 2).toUpperCase()}
                       </div>
                       <Badge variant="info" className="text-[10px]">
@@ -282,14 +283,14 @@ export default function AdminCatalogPage() {
               <Button
                 onClick={() => setShowDoctorModal(true)}
                 size="sm"
-                className="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold"
+                className="bg-sage-600 hover:bg-sage-700 text-white text-xs font-semibold"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Thêm Hồ Sơ Bác Sĩ Mới
               </Button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px]">
@@ -306,7 +307,7 @@ export default function AdminCatalogPage() {
                     <tr key={d.id} className="hover:bg-slate-50">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <img src={d.avatar} alt={d.name} className="w-9 h-9 rounded-xl object-cover" />
+                          <DoctorAvatar src={d.avatar} name={d.name}/>
                           <div>
                             <p className="font-bold text-slate-900">{d.name}</p>
                             <p className="text-[11px] text-slate-500">{d.title}</p>
@@ -317,7 +318,7 @@ export default function AdminCatalogPage() {
                         <Badge variant="info">{d.specialty_name}</Badge>
                       </td>
                       <td className="p-4 text-slate-600">{d.city}</td>
-                      <td className="p-4 font-bold text-sky-600">{formatCurrency(d.fee)}</td>
+                      <td className="p-4 font-bold text-sage-600">{formatCurrency(d.fee)}</td>
                       <td className="p-4 text-slate-600">{d.experience_years} năm</td>
                       <td className="p-4 text-right">
                         <Button
@@ -349,7 +350,7 @@ export default function AdminCatalogPage() {
                     <div>
                       <h3 className="font-bold text-slate-900 text-sm">{hosp.name}</h3>
                       <p className="text-xs text-slate-500 mt-0.5">{hosp.address}</p>
-                      <p className="text-xs text-sky-600 font-semibold mt-1">Hotline: {hosp.hotline}</p>
+                      <p className="text-xs text-sage-600 font-semibold mt-1">Hotline: {hosp.hotline}</p>
                     </div>
                   </div>
 
@@ -359,7 +360,7 @@ export default function AdminCatalogPage() {
                       {hosp.exam_types.map((e) => (
                         <div key={e.id} className="flex justify-between items-center text-xs p-2 rounded-lg bg-slate-50">
                           <span className="text-slate-700 font-medium">{e.name}</span>
-                          <strong className="text-sky-600 font-bold">{formatCurrency(e.price)}</strong>
+                          <strong className="text-sage-600 font-bold">{formatCurrency(e.price)}</strong>
                         </div>
                       ))}
                     </div>
@@ -377,7 +378,7 @@ export default function AdminCatalogPage() {
             <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
               <div className="pb-3 border-b border-slate-100">
                 <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-sky-600" />
+                  <Clock className="w-5 h-5 text-sage-600" />
                   <span>Tạo Khung Giờ Khám Mới (Slot Generator)</span>
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -456,7 +457,7 @@ export default function AdminCatalogPage() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full h-11 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs mt-2">
+                <Button type="submit" className="w-full h-11 bg-sage-600 hover:bg-sage-700 text-white font-bold text-xs mt-2">
                   <Plus className="w-4 h-4 mr-1" />
                   Khởi Tạo Khung Giờ Ngay
                 </Button>
@@ -490,7 +491,7 @@ export default function AdminCatalogPage() {
 
       {/* MODAL: ADD SPECIALTY */}
       {showSpecialtyModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="med-dialog-overlay fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <h3 className="font-bold text-slate-900 text-base">Thêm Chuyên Khoa Mới</h3>
             <form onSubmit={handleAddSpecialty} className="space-y-3 text-xs">
@@ -517,7 +518,7 @@ export default function AdminCatalogPage() {
                 <Button type="button" variant="outline" size="sm" onClick={() => setShowSpecialtyModal(false)}>
                   Hủy
                 </Button>
-                <Button type="submit" size="sm" className="bg-sky-600 text-white">
+                <Button type="submit" size="sm" className="bg-sage-600 text-white">
                   Thêm Chuyên Khoa
                 </Button>
               </div>
@@ -528,7 +529,7 @@ export default function AdminCatalogPage() {
 
       {/* MODAL: ADD DOCTOR */}
       {showDoctorModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="med-dialog-overlay fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <h3 className="font-bold text-slate-900 text-base">Thêm Hồ Sơ Bác Sĩ Mới</h3>
             <form onSubmit={handleAddDoctor} className="space-y-3 text-xs">
@@ -611,7 +612,7 @@ export default function AdminCatalogPage() {
                 <Button type="button" variant="outline" size="sm" onClick={() => setShowDoctorModal(false)}>
                   Hủy
                 </Button>
-                <Button type="submit" size="sm" className="bg-sky-600 text-white">
+                <Button type="submit" size="sm" className="bg-sage-600 text-white">
                   Lưu Bác Sĩ
                 </Button>
               </div>

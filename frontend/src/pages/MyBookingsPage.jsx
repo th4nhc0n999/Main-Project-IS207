@@ -29,6 +29,7 @@ import {
   formatDateVN 
 } from "@/lib/mockData"
 import { 
+  fetchEditableProfile,
   fetchUserBookings, 
   cancelUserBooking, 
   fetchPatientProfiles, 
@@ -44,10 +45,6 @@ import { Badge } from "@/components/ui/badge"
 export default function MyBookingsPage() {
   const { 
     user, 
-    patientProfiles: contextProfiles, 
-    addPatientProfile, 
-    updatePatientProfile: contextUpdateProfile, 
-    deletePatientProfile: contextDeleteProfile,
     updateUserProfile,
     logout 
   } = useAuth()
@@ -142,7 +139,7 @@ export default function MyBookingsPage() {
   // ==========================================
   // STATE: PATIENT PROFILES (CRUD)
   // ==========================================
-  const [profiles, setProfiles] = useState(contextProfiles || [])
+  const [profiles, setProfiles] = useState([])
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [editingProfile, setEditingProfile] = useState(null)
   const [deletingProfile, setDeletingProfile] = useState(null)
@@ -177,7 +174,7 @@ export default function MyBookingsPage() {
     setEditingProfile(null)
     setProfileForm({
       full_name: "",
-      dob: "1995-01-01",
+      dob: "",
       gender: "male",
       phone: user?.phone || "",
       relationship: "Bản thân",
@@ -187,9 +184,13 @@ export default function MyBookingsPage() {
   }
 
   // Open modal edit
-  const handleOpenEditProfile = (profile) => {
+  const handleOpenEditProfile = async (item) => {
+    let profile
+    try { profile = (await fetchEditableProfile(item.id)).data }
+    catch(err) { setProfileActionMsg(err.message); return }
     setEditingProfile(profile)
     setProfileForm({
+      guardian_name: profile.guardian_name, guardian_phone: profile.guardian_phone, guardian_relationship: profile.guardian_relationship,
       full_name: profile.full_name || "",
       dob: profile.dob ? profile.dob.split("T")[0] : "1995-01-01",
       gender: profile.gender || "male",
@@ -217,13 +218,11 @@ export default function MyBookingsPage() {
     try {
       if (editingProfile) {
         // Update
-        const res = await apiUpdatePatientProfile(editingProfile.id, profileForm)
-        contextUpdateProfile(editingProfile.id, res.data || profileForm)
+        await apiUpdatePatientProfile(editingProfile.id, profileForm)
         setProfileActionMsg("Cập nhật hồ sơ bệnh nhân thành công!")
       } else {
         // Create
-        const res = await createPatientProfile(profileForm)
-        addPatientProfile(res.data || profileForm)
+        await createPatientProfile(profileForm)
         setProfileActionMsg("Thêm hồ sơ bệnh nhân mới thành công!")
       }
       setProfileModalOpen(false)
@@ -239,7 +238,6 @@ export default function MyBookingsPage() {
     if (!deletingProfile) return
     try {
       await apiDeletePatientProfile(deletingProfile.id)
-      contextDeleteProfile(deletingProfile.id)
       setProfileActionMsg(`Đã xóa hồ sơ "${deletingProfile.full_name}" thành công!`)
       setDeletingProfile(null)
       loadProfiles()
@@ -325,7 +323,7 @@ export default function MyBookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/60 pb-16">
+    <div className="min-h-screen bg-background pb-16">
       {/* Top Banner & User Summary */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -335,7 +333,7 @@ export default function MyBookingsPage() {
                 <img
                   src={user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80"}
                   alt={user?.name || "User"}
-                  className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md ring-2 ring-sky-100"
+                  className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md ring-2 ring-sage-100"
                 />
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full" />
               </div>
@@ -355,7 +353,7 @@ export default function MyBookingsPage() {
             </div>
 
             <div className="flex items-center gap-2.5">
-              <Button asChild className="bg-sky-600 hover:bg-sky-700 text-white shadow-sm font-semibold text-xs sm:text-sm">
+              <Button asChild className="bg-sage-800 hover:bg-sage-700 text-white shadow-sm font-semibold text-xs sm:text-sm">
                 <Link to="/doctors" className="flex items-center gap-1.5">
                   <Stethoscope className="w-4 h-4" />
                   <span>Đặt Lịch Khám Mới</span>
@@ -380,14 +378,14 @@ export default function MyBookingsPage() {
               onClick={() => setMainTab("bookings")}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
                 activeMainTab === "bookings"
-                  ? "bg-sky-600 text-white shadow-md shadow-sky-600/20"
+                  ? "bg-sage-800 text-white shadow-md shadow-sage-600/20"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
               }`}
             >
               <Calendar className="w-4 h-4" />
               <span>Lịch Khám Của Tôi</span>
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                activeMainTab === "bookings" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+                activeMainTab === "bookings" ? "bg-sage-900 text-white" : "bg-slate-200 text-slate-700"
               }`}>
                 {bookings.length}
               </span>
@@ -397,14 +395,14 @@ export default function MyBookingsPage() {
               onClick={() => setMainTab("profiles")}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
                 activeMainTab === "profiles"
-                  ? "bg-sky-600 text-white shadow-md shadow-sky-600/20"
+                  ? "bg-sage-800 text-white shadow-md shadow-sage-600/20"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
               }`}
             >
               <UserCheck className="w-4 h-4" />
               <span>Hồ Sơ Bệnh Nhân</span>
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                activeMainTab === "profiles" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+                activeMainTab === "profiles" ? "bg-sage-900 text-white" : "bg-slate-200 text-slate-700"
               }`}>
                 {profiles.length}
               </span>
@@ -414,7 +412,7 @@ export default function MyBookingsPage() {
               onClick={() => setMainTab("account")}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
                 activeMainTab === "account"
-                  ? "bg-sky-600 text-white shadow-md shadow-sky-600/20"
+                  ? "bg-sage-800 text-white shadow-md shadow-sage-600/20"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
               }`}
             >
@@ -442,18 +440,18 @@ export default function MyBookingsPage() {
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               {/* Search Bar */}
               <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Tìm kiếm theo tên bác sĩ, bệnh viện, mã phiếu hoặc tên người khám..."
-                  className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition-all"
+                  className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-all"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-600 p-0.5"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -518,12 +516,12 @@ export default function MyBookingsPage() {
             {/* Bookings List */}
             {loadingBookings ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                <Loader2 className="w-8 h-8 text-sky-600 animate-spin mx-auto mb-2" />
+                <Loader2 className="w-8 h-8 text-sage-600 animate-spin mx-auto mb-2" />
                 <p className="text-xs text-slate-500">Đang tải danh sách lịch khám...</p>
               </div>
             ) : displayedBookings.length === 0 ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-4 shadow-sm">
-                <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-2xl bg-sage-50 text-sage-600 flex items-center justify-center mx-auto">
                   <Calendar className="w-8 h-8" />
                 </div>
                 <div>
@@ -534,7 +532,7 @@ export default function MyBookingsPage() {
                       : "Bạn chưa có lịch khám nào trong danh mục này."}
                   </p>
                 </div>
-                <Button asChild className="bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs">
+                <Button asChild className="bg-sage-800 hover:bg-sage-700 text-white font-semibold text-xs">
                   <Link to="/doctors">
                     <Search className="w-4 h-4 mr-1.5" />
                     Khám phá Bác sĩ & Đặt lịch
@@ -569,7 +567,7 @@ export default function MyBookingsPage() {
                         </div>
 
                         <div className="text-xs text-slate-500 flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          <Clock className="w-3.5 h-3.5 text-slate-600" />
                           <span>Ngày tạo: {formatDateVN(b.created_at?.split("T")[0])}</span>
                         </div>
                       </div>
@@ -578,45 +576,45 @@ export default function MyBookingsPage() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                         {/* Col 1: Doctor / Hospital */}
                         <div className="space-y-1.5">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                             Bác sĩ / Cơ sở khám
                           </span>
                           <p className="font-bold text-slate-900 text-sm">
                             {doctorName}
                           </p>
-                          <p className="text-sky-700 font-medium flex items-center gap-1">
+                          <p className="text-sage-700 font-medium flex items-center gap-1">
                             <Stethoscope className="w-3.5 h-3.5" />
                             <span>Chuyên khoa: {b.specialty_name || b.doctor?.specialty?.name || b.exam_type_name || "Đa khoa"}</span>
                           </p>
                           <p className="text-slate-500 text-[11px] flex items-center gap-1 truncate">
-                            <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                            <Building2 className="w-3 h-3 text-slate-600 shrink-0" />
                             <span>{hospitalName}</span>
                           </p>
                         </div>
 
                         {/* Col 2: Appointment Time & Patient */}
                         <div className="space-y-1.5">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                             Thời gian & Người đi khám
                           </span>
-                          <div className="flex items-center gap-1.5 text-sky-700 font-bold">
+                          <div className="flex items-center gap-1.5 text-sage-700 font-bold">
                             <Calendar className="w-3.5 h-3.5" />
                             <span>{startTime} - {endTime}, ngày {formatDateVN(workDate)}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-slate-700">
-                            <User className="w-3.5 h-3.5 text-slate-400" />
+                            <User className="w-3.5 h-3.5 text-slate-600" />
                             <span className="font-semibold">{patientName}</span>
-                            <span className="text-slate-400">({relationship})</span>
+                            <span className="text-slate-600">({relationship})</span>
                           </div>
                           <p className="text-slate-500 text-[11px]">SĐT: {patientPhone}</p>
                         </div>
 
                         {/* Col 3: Fee & Payment */}
                         <div className="space-y-1.5 md:text-right">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                             Tổng tiền & Thanh toán
                           </span>
-                          <p className="text-base font-black text-sky-600">
+                          <p className="text-base font-black text-sage-600">
                             {formatCurrency(b.payment?.total_amount || 420000)}
                           </p>
                           <div className="flex items-center md:justify-end gap-1.5">
@@ -644,7 +642,7 @@ export default function MyBookingsPage() {
 
                       {/* Footer Actions */}
                       <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100">
-                        <div className="text-[11px] text-slate-400">
+                        <div className="text-[11px] text-slate-600">
                           {b.status === "confirmed" && "✅ Vui lòng có mặt trước 15 phút tại quầy tiếp đón"}
                           {b.status === "pending" && "⏳ Đang chờ nhân viên y tế kiểm tra và xác nhận"}
                           {b.status === "completed" && "🎉 Ca khám đã hoàn tất thành công"}
@@ -675,7 +673,7 @@ export default function MyBookingsPage() {
                           </Button>
 
                           {b.status === "completed" && (
-                            <Button asChild size="sm" className="bg-sky-600 text-white text-xs h-8">
+                            <Button asChild size="sm" className="bg-sage-800 text-white text-xs h-8">
                               <Link to={`/doctors/${b.doctor_id || 1}`}>
                                 <RotateCcw className="w-3.5 h-3.5 mr-1" />
                                 Đặt tái khám
@@ -714,7 +712,7 @@ export default function MyBookingsPage() {
 
               <Button
                 onClick={handleOpenCreateProfile}
-                className="bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs gap-1.5 shrink-0"
+                className="bg-sage-800 hover:bg-sage-700 text-white font-semibold text-xs gap-1.5 shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>Thêm Hồ Sơ Mới</span>
@@ -723,7 +721,7 @@ export default function MyBookingsPage() {
 
             {profiles.length === 0 ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-4 shadow-sm">
-                <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-2xl bg-sage-50 text-sage-600 flex items-center justify-center mx-auto">
                   <UserCheck className="w-8 h-8" />
                 </div>
                 <div>
@@ -732,7 +730,7 @@ export default function MyBookingsPage() {
                     Hãy tạo hồ sơ đầu tiên để sẵn sàng cho các lần đặt lịch khám bệnh.
                   </p>
                 </div>
-                <Button onClick={handleOpenCreateProfile} className="bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs">
+                <Button onClick={handleOpenCreateProfile} className="bg-sage-800 hover:bg-sage-700 text-white font-semibold text-xs">
                   <Plus className="w-4 h-4 mr-1.5" />
                   Thêm hồ sơ ngay
                 </Button>
@@ -757,12 +755,12 @@ export default function MyBookingsPage() {
                       <div className="space-y-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-500 to-sky-600 text-white font-black flex items-center justify-center text-sm shadow-md shadow-sky-500/20">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sage-500 to-sage-600 text-white font-black flex items-center justify-center text-sm shadow-md shadow-sage-500/20">
                               {initials}
                             </div>
                             <div>
                               <h3 className="font-bold text-slate-900 text-sm">{p.full_name}</h3>
-                              <span className="text-[11px] font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100">
+                              <span className="text-[11px] font-semibold text-sage-600 bg-sage-50 px-2 py-0.5 rounded-md border border-sage-100">
                                 {p.relationship || "Người thân"}
                               </span>
                             </div>
@@ -777,17 +775,17 @@ export default function MyBookingsPage() {
 
                         <div className="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
                           <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Ngày sinh:</span>
+                            <span className="text-slate-600">Ngày sinh:</span>
                             <span className="font-medium text-slate-800">{formatDateVN(p.dob?.split("T")[0])}</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Giới tính:</span>
+                            <span className="text-slate-600">Giới tính:</span>
                             <span className="font-medium text-slate-800">
                               {p.gender === "male" ? "Nam" : p.gender === "female" ? "Nữ" : "Khác"}
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Số điện thoại:</span>
+                            <span className="text-slate-600">Số điện thoại:</span>
                             <span className="font-medium text-slate-800">{p.phone || "Chưa cập nhật"}</span>
                           </div>
                         </div>
@@ -799,7 +797,7 @@ export default function MyBookingsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleOpenEditProfile(p)}
-                          className="text-sky-600 hover:text-sky-700 hover:bg-sky-50 border-sky-200 text-xs h-8"
+                          className="text-sage-600 hover:text-sage-700 hover:bg-sage-50 border-sage-200 text-xs h-8"
                         >
                           <Pencil className="w-3.5 h-3.5 mr-1" />
                           Sửa
@@ -860,7 +858,7 @@ export default function MyBookingsPage() {
                     required
                     value={accountForm.name}
                     onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-all"
                   />
                 </div>
 
@@ -874,7 +872,7 @@ export default function MyBookingsPage() {
                     value={accountForm.email}
                     className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-100/80 border border-slate-200 text-slate-500 rounded-xl cursor-not-allowed"
                   />
-                  <p className="text-[11px] text-slate-400">Email được bảo mật và liên kết với tài khoản hệ thống.</p>
+                  <p className="text-[11px] text-slate-600">Email được bảo mật và liên kết với tài khoản hệ thống.</p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -887,19 +885,19 @@ export default function MyBookingsPage() {
                     value={accountForm.phone}
                     onChange={(e) => setAccountForm({ ...accountForm, phone: e.target.value })}
                     placeholder="Ví dụ: 0901234567"
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-all"
                   />
                 </div>
 
                 <div className="pt-4 flex items-center justify-between border-t border-slate-100">
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-slate-600">
                     Vai trò: <strong className="text-slate-700">{user?.role === "admin" ? "Quản trị viên" : "Bệnh nhân"}</strong>
                   </span>
 
                   <Button
                     type="submit"
                     disabled={savingAccount}
-                    className="bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs sm:text-sm"
+                    className="bg-sage-800 hover:bg-sage-700 text-white font-semibold text-xs sm:text-sm"
                   >
                     {savingAccount ? (
                       <>
@@ -924,7 +922,7 @@ export default function MyBookingsPage() {
       {/* MODAL: THÊM / SỬA HỒ SƠ BỆNH NHÂN (CRUD)                 */}
       {/* ======================================================== */}
       {profileModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
+        <div className="med-dialog-overlay fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-base">
@@ -932,7 +930,7 @@ export default function MyBookingsPage() {
               </h3>
               <button
                 onClick={() => setProfileModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="text-slate-600 hover:text-slate-600 p-1 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -956,7 +954,7 @@ export default function MyBookingsPage() {
                   value={profileForm.full_name}
                   onChange={(e) => setProfileForm({ ...profileForm, full_name: e.target.value })}
                   placeholder="Ví dụ: Nguyễn Văn An"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500"
                 />
               </div>
 
@@ -970,7 +968,7 @@ export default function MyBookingsPage() {
                     required
                     value={profileForm.dob}
                     onChange={(e) => setProfileForm({ ...profileForm, dob: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500"
                   />
                 </div>
 
@@ -981,7 +979,7 @@ export default function MyBookingsPage() {
                   <select
                     value={profileForm.gender}
                     onChange={(e) => setProfileForm({ ...profileForm, gender: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500"
                   >
                     <option value="male">Nam</option>
                     <option value="female">Nữ</option>
@@ -998,7 +996,7 @@ export default function MyBookingsPage() {
                     value={profileForm.phone}
                     onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                     placeholder="0901234567"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500"
                   />
                 </div>
 
@@ -1009,19 +1007,18 @@ export default function MyBookingsPage() {
                   <select
                     value={profileForm.relationship}
                     onChange={(e) => setProfileForm({ ...profileForm, relationship: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500"
                   >
                     <option value="Bản thân">Bản thân</option>
-                    <option value="Con trai">Con trai</option>
-                    <option value="Con gái">Con gái</option>
-                    <option value="Cha ruột">Cha ruột</option>
-                    <option value="Mẹ ruột">Mẹ ruột</option>
-                    <option value="Vợ chồng">Vợ chồng</option>
-                    <option value="Người thân khác">Người thân khác</option>
+                    {['Con','Cha','Mẹ','Vợ','Chồng','Khác'].map(r=><option key={r}>{r}</option>)}
                   </select>
                 </div>
               </div>
 
+              <details><summary>Người giám hộ cho trẻ dưới 16 tuổi</summary>
+                {[['guardian_name','Tên người giám hộ'],['guardian_phone','Điện thoại người giám hộ'],['guardian_relationship','Quan hệ với trẻ']].map(([key,label])=><label key={key}>{label}<input value={profileForm[key] || ''} onChange={e=>setProfileForm({...profileForm,[key]:e.target.value})}/></label>)}
+              </details>
+              {!editingProfile && <label><input type="checkbox" required checked={Boolean(profileForm.consent_agreed)} onChange={e=>setProfileForm({...profileForm,consent_agreed:e.target.checked})}/> Tôi đồng ý xử lý dữ liệu hồ sơ để đặt và quản lý lịch khám.</label>}
               <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                 <Button
                   type="button"
@@ -1034,7 +1031,7 @@ export default function MyBookingsPage() {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-sky-600 hover:bg-sky-700 text-white font-semibold"
+                  className="bg-sage-800 hover:bg-sage-700 text-white font-semibold"
                 >
                   {editingProfile ? "Cập Nhật Hồ Sơ" : "Tạo Hồ Sơ Mới"}
                 </Button>
@@ -1048,7 +1045,7 @@ export default function MyBookingsPage() {
       {/* MODAL: XÁC NHẬN XÓA HỒ SƠ BỆNH NHÂN                     */}
       {/* ======================================================== */}
       {deletingProfile && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
+        <div className="med-dialog-overlay fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center gap-3 text-rose-600">
               <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
@@ -1089,7 +1086,7 @@ export default function MyBookingsPage() {
       {/* MODAL: XÁC NHẬN HỦY LỊCH HẸN (CANCEL BOOKING)            */}
       {/* ======================================================== */}
       {cancellingBooking && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
+        <div className="med-dialog-overlay fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center gap-3 text-rose-600">
               <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
@@ -1140,7 +1137,7 @@ export default function MyBookingsPage() {
       {/* MODAL: XÁC NHẬN ĐĂNG XUẤT                                */}
       {/* ======================================================== */}
       {logoutModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
+        <div className="med-dialog-overlay fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center gap-3 text-rose-600">
               <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">

@@ -4,17 +4,17 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --background: 100 27% 98%;
+    --foreground: 215 28% 17%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 215 28% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 215 28% 17%;
 
-    /* YouMed Medical Blue #0284c7 (Sky-600) */
-    --primary: 199 89% 48%;
+    /* MedSi sage */
+    --primary: 113 40% 25%;
     --primary-foreground: 0 0% 100%;
 
     /* Health Emerald #10b981 */
@@ -24,15 +24,15 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 199 89% 95%;
-    --accent-foreground: 199 89% 35%;
+    --accent: 98 27% 92%;
+    --accent-foreground: 113 40% 25%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 100 27% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 199 89% 48%;
+    --border: 104 15% 85%;
+    --input: 104 15% 85%;
+    --ring: 113 40% 25%;
 
     --radius: 0.625rem;
   }

@@ -1,10 +1,15 @@
 /** @type {import('tailwindcss').Config} */
+const sage = {
+  50: '#f3f7f0', 100: '#eaf0e5', 200: '#d7dfd4', 300: '#b3c4ae',
+  400: '#859e7d', 500: '#56764d', 600: '#2d5a27', 700: '#274d23',
+  800: '#234831', 900: '#193723', 950: '#10271a',
+}
 export default {
   darkMode: ["class"],
-  content: [
+  content: { relative: true, files: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  ] },
   theme: {
     container: {
       center: true,
@@ -15,25 +20,17 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        sans: ['Arial', 'sans-serif'],
       },
       colors: {
+        sage,
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0088cc', // YouMed signature blue
-          600: '#0284c7', // Main CTA button
-          700: '#0369a1', // Main CTA hover
-          800: '#075985',
-          900: '#0c4a6e', // Deep medical header
+          ...sage,
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
@@ -75,8 +72,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        'medical': '0 4px 20px -2px rgba(2, 132, 199, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04)',
-        'card-hover': '0 10px 25px -3px rgba(2, 132, 199, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'medical': '0 4px 20px -2px rgba(45, 90, 39, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04)',
+        'card-hover': '0 10px 25px -3px rgba(45, 90, 39, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       },
     },
   },

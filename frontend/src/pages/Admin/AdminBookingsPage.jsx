@@ -119,9 +119,9 @@ export default function AdminBookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/60 pb-16">
+    <div className="min-h-screen bg-background pb-16">
       {/* Admin Top Header */}
-      <div className="bg-slate-900 text-white py-8 px-4 sm:px-6 lg:px-8 shadow-inner">
+      <div className="bg-sage-900 text-white py-8 px-4 sm:px-6 lg:px-8 shadow-inner">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">
@@ -174,10 +174,10 @@ export default function AdminBookingsPage() {
             <span className="text-[10px] text-purple-600">Hoàn tất quy trình</span>
           </div>
 
-          <div className="col-span-2 lg:col-span-1 bg-white p-4 rounded-2xl border border-sky-200 bg-sky-50/30 shadow-sm">
-            <span className="text-[11px] font-bold text-sky-700 uppercase tracking-wider block">Doanh thu dự kiến</span>
-            <div className="text-xl font-black text-sky-600 mt-1">{formatCurrency(metrics.totalRevenue)}</div>
-            <span className="text-[10px] text-sky-600">Bao gồm phí dịch vụ</span>
+          <div className="col-span-2 lg:col-span-1 bg-white p-4 rounded-2xl border border-sage-200 bg-sage-50/30 shadow-sm">
+            <span className="text-[11px] font-bold text-sage-700 uppercase tracking-wider block">Doanh thu dự kiến</span>
+            <div className="text-xl font-black text-sage-600 mt-1">{formatCurrency(metrics.totalRevenue)}</div>
+            <span className="text-[10px] text-sage-600">Bao gồm phí dịch vụ</span>
           </div>
         </div>
 
@@ -255,7 +255,7 @@ export default function AdminBookingsPage() {
                       {/* Doctor / Specialty */}
                       <td className="p-4">
                         <p className="font-bold text-slate-800">{b.doctor_name || b.hospital_name}</p>
-                        <p className="text-sky-600 font-medium text-[11px]">{b.specialty_name || b.exam_type_name}</p>
+                        <p className="text-sage-600 font-medium text-[11px]">{b.specialty_name || b.exam_type_name}</p>
                       </td>
 
                       {/* Date & Slot */}
@@ -287,7 +287,7 @@ export default function AdminBookingsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setSelectedDetailBooking(b)}
-                            className="h-8 w-8 p-0 text-slate-600 hover:text-sky-600"
+                            className="h-8 w-8 p-0 text-slate-600 hover:text-sage-600"
                             title="Xem chi tiết"
                           >
                             <Eye className="w-4 h-4" />
@@ -343,7 +343,7 @@ export default function AdminBookingsPage() {
 
       {/* BOOKING DETAIL MODAL */}
       {selectedDetailBooking && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
+        <div className="med-dialog-overlay fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -370,7 +370,7 @@ export default function AdminBookingsPage() {
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Bác sĩ / Khung giờ</span>
                 <p className="font-bold text-slate-900">{selectedDetailBooking.doctor_name || selectedDetailBooking.hospital_name}</p>
-                <p className="text-sky-700 font-semibold">{selectedDetailBooking.start_time} - {selectedDetailBooking.end_time}, ngày {formatDateVN(selectedDetailBooking.work_date)}</p>
+                <p className="text-sage-700 font-semibold">{selectedDetailBooking.start_time} - {selectedDetailBooking.end_time}, ngày {formatDateVN(selectedDetailBooking.work_date)}</p>
                 <p className="text-slate-500">{selectedDetailBooking.hospital_name}</p>
               </div>
 
@@ -382,10 +382,10 @@ export default function AdminBookingsPage() {
                 </div>
               )}
 
-              <div className="p-3.5 rounded-xl bg-sky-50/70 border border-sky-100 flex justify-between items-center">
+              <div className="p-3.5 rounded-xl bg-sage-50/70 border border-sage-100 flex justify-between items-center">
                 <div>
-                  <span className="text-[10px] font-bold text-sky-800 uppercase">Tổng tiền thanh toán</span>
-                  <p className="text-sm font-bold text-sky-900">{formatCurrency(selectedDetailBooking.payment?.total_amount)}</p>
+                  <span className="text-[10px] font-bold text-sage-800 uppercase">Tổng tiền thanh toán</span>
+                  <p className="text-sm font-bold text-sage-900">{formatCurrency(selectedDetailBooking.payment?.total_amount)}</p>
                 </div>
                 <Badge variant={selectedDetailBooking.payment?.status === "paid" ? "success" : "warning"}>
                   {selectedDetailBooking.payment?.method?.toUpperCase()} ({selectedDetailBooking.payment?.status === "paid" ? "Đã trả" : "Chưa trả"})

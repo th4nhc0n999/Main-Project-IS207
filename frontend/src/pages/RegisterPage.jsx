@@ -79,18 +79,18 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-sky-50/60 via-slate-50 to-white">
+    <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="w-full max-w-lg space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-sky-400 text-white shadow-lg shadow-sky-500/25 mb-1">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-sage-600 text-white shadow-lg shadow-sage-500/25 mb-1">
             <Stethoscope className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Tạo tài khoản Med<span className="text-sky-600">Si</span>
+          <h1 className="text-2xl sm:text-3xl font-semibold leading-snug tracking-normal text-slate-900">
+            Tạo tài khoản <span className="text-sage-600">MedSi</span>
           </h1>
-          <p className="text-sm text-slate-500 max-w-sm mx-auto">
-            Đăng ký tài khoản bệnh nhân để dễ dàng đặt khám và theo dõi lịch sử điều trị
+          <p className="text-base leading-relaxed text-slate-600 mx-auto">
+            Đặt lịch khám và quản lý hồ sơ của bạn.
           </p>
         </div>
 
@@ -141,7 +141,7 @@ export default function RegisterPage() {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="vd: Nguyễn Văn A (như trên CCCD/BHYT)"
-                    className="pl-10 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sky-500"
+                    className="pl-10 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sage-500"
                   />
                 </div>
               </div>
@@ -165,7 +165,7 @@ export default function RegisterPage() {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="0912345678"
-                      className="pl-10 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sky-500"
+                      className="pl-10 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sage-500"
                     />
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function RegisterPage() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="email@example.com"
-                      className="pl-10 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sky-500"
+                      className="pl-10 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sage-500"
                     />
                   </div>
                 </div>
@@ -213,7 +213,7 @@ export default function RegisterPage() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Tối thiểu 6 ký tự"
-                      className="pl-10 pr-9 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sky-500"
+                      className="pl-10 pr-9 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sage-500"
                     />
                     <button
                       type="button"
@@ -244,7 +244,7 @@ export default function RegisterPage() {
                       value={formData.passwordConfirmation}
                       onChange={handleChange}
                       placeholder="Nhập lại mật khẩu"
-                      className="pl-10 pr-9 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sky-500"
+                      className="pl-10 pr-9 h-11 text-sm bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-sage-500"
                     />
                     <button
                       type="button"
@@ -266,12 +266,12 @@ export default function RegisterPage() {
                   type="checkbox"
                   checked={formData.agreeTerms}
                   onChange={handleChange}
-                  className="w-4 h-4 mt-0.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                  className="w-4 h-4 mt-0.5 rounded border-slate-300 text-sage-600 focus:ring-sage-500 cursor-pointer"
                 />
                 <label htmlFor="agreeTerms" className="ml-2.5 block text-xs text-slate-600 leading-snug cursor-pointer select-none">
                   Tôi đồng ý với{" "}
-                  <span className="text-sky-600 hover:underline font-medium">Điều khoản sử dụng</span> và{" "}
-                  <span className="text-sky-600 hover:underline font-medium">Chính sách bảo mật y tế</span> của MedSi.
+                  <span className="text-sage-600 hover:underline font-medium">Điều khoản sử dụng</span> và{" "}
+                  <span className="text-sage-600 hover:underline font-medium">Chính sách bảo mật y tế</span> của MedSi.
                 </label>
               </div>
 
@@ -279,7 +279,7 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-11 bg-sky-600 hover:bg-sky-700 text-white font-semibold shadow-md shadow-sky-600/20 text-sm mt-2 transition-all"
+                className="w-full h-11 bg-sage-600 hover:bg-sage-700 text-white font-semibold shadow-md shadow-sage-600/20 text-sm mt-2 transition-all"
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
@@ -299,7 +299,7 @@ export default function RegisterPage() {
           <CardFooter className="flex flex-col space-y-3 pt-0 border-t border-slate-100 mt-2">
             <div className="text-center text-xs text-slate-600 pt-3">
               Bạn đã có tài khoản MedSi?{" "}
-              <Link to="/login" className="font-semibold text-sky-600 hover:text-sky-700 hover:underline inline-flex items-center gap-0.5">
+              <Link to="/login" className="font-semibold text-sage-600 hover:text-sage-700 hover:underline inline-flex items-center gap-0.5">
                 Đăng nhập ngay
                 <ArrowRight className="w-3 h-3" />
               </Link>

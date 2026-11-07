@@ -1,0 +1,20 @@
+.med-header {position:relative;z-index:20;background:white;border-bottom:1px solid var(--med-line);color:var(--med-ink)}
+.med-header nav {width:min(calc(100% - 40px),1180px);min-height:72px;margin:auto;padding:12px 0;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.med-brand,.header-actions,.header-actions a,.booking-switch button,.med-header form {display:flex;align-items:center;gap:8px}
+.med-brand {font-size:27px;font-weight:750;letter-spacing:-1.4px;color:var(--med-sage)}
+.med-header form {flex:1 1 180px;max-width:300px;padding:0 12px;border:1px solid var(--med-line);border-radius:8px;background:var(--med-paper);color:var(--med-muted)}
+.med-header input {width:100%;min-width:0;height:42px;background:transparent;font-size:14px}
+.header-actions {margin-left:auto;flex-wrap:wrap;gap:8px;font-size:14px}
+.header-actions>a,.header-actions>button,.booking-switch button,.booking-links a {min-height:44px;padding:8px 12px;border-radius:8px;font-weight:600}
+.header-actions>a:hover,.booking-links a:hover {background:var(--med-tint)}
+.header-actions .header-account {border:1px solid var(--med-line);color:var(--med-sage)}
+.booking-switch {position:relative}
+.booking-switch button {color:white;background:var(--med-sage);gap:7px}
+.booking-switch button:hover,.booking-switch button[aria-expanded=true] {background:#274d23}
+.booking-switch button[aria-expanded=true] svg:last-child {transform:rotate(180deg)}
+.booking-links {position:absolute;top:calc(100% + 6px);right:0;width:220px;padding:5px;border:1px solid var(--med-line);border-radius:12px;background:white;box-shadow:0 8px 24px #19372318}
+.booking-links a {color:var(--med-muted)}
+.booking-links a[aria-current] {background:var(--med-tint);color:var(--med-sage)}
+.booking-links a svg:nth-child(2) {margin-left:auto}
+@media(max-width:800px){.med-header nav{gap:8px}.med-header form{display:none}.header-actions{gap:4px}}
+@media(max-width:620px){.med-header nav{width:calc(100% - 24px)}.header-actions{width:100%;margin:0;gap:4px}.header-actions a,.booking-switch button{padding-inline:9px}.header-actions .browse-link{order:1}.booking-links{left:0;right:auto}.med-brand{font-size:24px}}
