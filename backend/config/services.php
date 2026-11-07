@@ -2,6 +2,10 @@
 
 return [
 
+    'medsi_gateway' => [
+        'secret' => env('MEDSI_GATEWAY_SECRET'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services
