@@ -45,4 +45,14 @@ class Hospital extends Model
     {
         return $this->hasMany(User::class, 'hospital_id');
     }
+
+    public function staffUsers(): HasMany
+    {
+        return $this->hasMany(User::class, 'hospital_id');
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'hospital_id');
+    }
 }
