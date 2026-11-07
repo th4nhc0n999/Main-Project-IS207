@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\Slot;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use ValueError;
@@ -78,8 +79,8 @@ class BookingStateMachine
     }
 
     /**
-     * @param User|string $actor A persisted user, or the trusted system/gateway actor.
-     * @param array<string, mixed> $context Non-sensitive event details such as reason and transaction_code.
+     * @param  User|string  $actor  A persisted user, or the trusted system/gateway actor.
+     * @param  array<string, mixed>  $context  Non-sensitive event details such as reason and transaction_code.
      */
     public function apply(
         Booking $booking,
@@ -162,12 +163,15 @@ class BookingStateMachine
             }
 
             $lockedBooking->save();
+            if (in_array($event, [BookingEvent::T02H, BookingEvent::T05], true)) {
+                app(TicketService::class)->issue($lockedBooking);
+            }
             $this->syncTicket($lockedBooking, $event);
             app(RefundService::class)->forBookingEvent($lockedBooking, $event, $actor, $context);
             $this->writeAudit($lockedBooking, $event, $actor, $oldStatus, $next->value, $context);
 
             return $lockedBooking->refresh();
-        });
+        }, 5);
     }
 
     private function createBooking(Booking $booking, User|string $actor, array $context): Booking
@@ -176,71 +180,113 @@ class BookingStateMachine
             throw new InvalidBookingTransitionException('T01 cần booking mới có user, hồ sơ và slot hợp lệ.');
         }
 
-        return DB::transaction(function () use ($booking, $actor, $context): Booking {
-            $slot = Slot::query()->lockForUpdate()->findOrFail($booking->slot_id);
-            $profile = DB::table('patient_profiles')
-                ->where('id', $booking->patient_profile_id)
-                ->where('user_id', $booking->user_id)
-                ->whereNull('deleted_at')
-                ->lockForUpdate()
-                ->first();
-
-            if (! $profile) {
-                throw new InvalidBookingTransitionException('Hồ sơ bệnh nhân không tồn tại hoặc đã được lưu trữ.');
-            }
-
-            $this->authorize($booking, BookingEvent::T01, $actor, $context, $slot);
-            $this->assertEventBookingType($booking, BookingEvent::T01);
-
-            if ($booking->request_key) {
-                $existing = Booking::query()
+        $attributes = $booking->getAttributes();
+        try {
+            return DB::transaction(function () use ($attributes, $actor, $context): Booking {
+                // Rebuild the unsaved model on every deadlock retry. A rolled-back
+                // Eloquent insert otherwise retains its id and exists=true flag.
+                $booking = new Booking;
+                $booking->setRawAttributes($attributes);
+                $slot = Slot::query()->lockForUpdate()->findOrFail($booking->slot_id);
+                $profile = DB::table('patient_profiles')
+                    ->where('id', $booking->patient_profile_id)
                     ->where('user_id', $booking->user_id)
-                    ->where('request_key', $booking->request_key)
+                    ->whereNull('deleted_at')
                     ->lockForUpdate()
                     ->first();
 
-                if ($existing) {
-                    if ((int) $existing->slot_id !== (int) $booking->slot_id
-                        || (int) $existing->patient_profile_id !== (int) $booking->patient_profile_id) {
-                        throw new InvalidBookingTransitionException('request_key đã được dùng cho một booking khác.');
-                    }
-
-                    return $existing;
+                if (! $profile) {
+                    throw new InvalidBookingTransitionException('Hồ sơ bệnh nhân không tồn tại hoặc đã được lưu trữ.');
                 }
+
+                $this->authorize($booking, BookingEvent::T01, $actor, $context, $slot);
+                $this->assertEventBookingType($booking, BookingEvent::T01);
+
+                if ($booking->request_key) {
+                    $existing = Booking::query()
+                        ->where('user_id', $booking->user_id)
+                        ->where('request_key', $booking->request_key)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($existing) {
+                        if ((int) $existing->slot_id !== (int) $booking->slot_id
+                            || (int) $existing->patient_profile_id !== (int) $booking->patient_profile_id
+                            || $existing->booking_type !== $booking->booking_type
+                            || (int) $existing->hospital_id !== (int) $booking->hospital_id
+                            || (int) $existing->doctor_id !== (int) $booking->doctor_id
+                            || (int) $existing->exam_type_id !== (int) $booking->exam_type_id
+                            || $existing->symptoms !== $booking->symptoms) {
+                            throw new InvalidBookingTransitionException('request_key đã được dùng cho một booking khác.');
+                        }
+
+                        return $existing;
+                    }
+                }
+
+                if ($slot->status !== 'available' || $slot->booked_count >= $slot->capacity) {
+                    throw new SlotUnavailableException('Khung giờ đã hết chỗ.');
+                }
+
+                $this->assertSlotOwnerMatchesBooking($booking, $slot);
+                $this->assertNoActiveDuplicate($booking);
+                $this->assertBookingCreationRules($booking, $slot);
+
+                // Build snapshots from the locked profile, never from client input.
+                $booking->patient_snapshot = [
+                    'full_name' => $profile->full_name,
+                    'dob' => $profile->dob,
+                    'gender' => $profile->gender,
+                    'relationship' => $profile->relationship,
+                    'phone' => $this->maskIdentifier($profile->phone),
+                    'identity_card_number' => $this->maskIdentifier($profile->identity_card_number),
+                    'health_insurance_code' => $this->maskIdentifier($profile->health_insurance_code),
+                ];
+
+                $oldStatus = null;
+                $booking->code = $booking->code ?: 'BK'.now()->format('ymd').Str::upper(Str::random(6));
+                $booking->status = BookingStatus::PENDING_PAYMENT;
+                $booking->hold_expires_at = now()->addMinutes((int) config('medsi.hold_minutes', 15));
+                $booking->version = 1;
+                $booking->save();
+
+                $this->createPendingPayment($booking);
+
+                $slot->booked_count++;
+                if ($slot->booked_count >= $slot->capacity) {
+                    $slot->status = 'full';
+                }
+                $slot->save();
+
+                $this->writeAudit($booking, BookingEvent::T01, $actor, $oldStatus, 'pending_payment', $context);
+
+                return $booking->refresh();
+            }, 5);
+        } catch (UniqueConstraintViolationException $exception) {
+            if (str_contains($exception->getMessage(), 'uq_booking_request')) {
+                throw new InvalidBookingTransitionException('request_key đã được dùng cho một booking khác.');
             }
 
-            if ($slot->status !== 'available' || $slot->booked_count >= $slot->capacity) {
-                throw new SlotUnavailableException('Khung giờ đã hết chỗ.');
-            }
-
-            $this->assertSlotOwnerMatchesBooking($booking, $slot);
-            $this->assertNoActiveDuplicate($booking);
-            $this->assertBookingCreationRules($booking, $slot);
-
-            $oldStatus = null;
-            $booking->code = $booking->code ?: 'BK'.now()->format('ymd').Str::upper(Str::random(6));
-            $booking->status = BookingStatus::PENDING_PAYMENT;
-            $booking->hold_expires_at = now()->addMinutes((int) config('medsi.hold_minutes', 15));
-            $booking->version = 1;
-            $booking->save();
-
-            $this->createPendingPayment($booking);
-
-            $slot->booked_count++;
-            if ($slot->booked_count >= $slot->capacity) {
-                $slot->status = 'full';
-            }
-            $slot->save();
-
-            $this->writeAudit($booking, BookingEvent::T01, $actor, $oldStatus, 'pending_payment', $context);
-
-            return $booking->refresh();
-        });
+            throw $exception;
+        }
     }
 
     private function createPendingPayment(Booking $booking): void
     {
         app(PaymentService::class)->create($booking);
+    }
+
+    private function maskIdentifier(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (strlen($value) <= 3) {
+            return str_repeat('*', strlen($value));
+        }
+
+        return str_repeat('*', max(0, strlen($value) - 3)).substr($value, -3);
     }
 
     private function assertCurrent(?string $current, string $expected, BookingEvent $event): void

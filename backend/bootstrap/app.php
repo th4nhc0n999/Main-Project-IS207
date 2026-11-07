@@ -2,6 +2,7 @@
 
 use App\Exceptions\Booking\InvalidBookingTransitionException;
 use App\Exceptions\Booking\SlotUnavailableException;
+use App\Exceptions\Booking\TicketException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +23,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (TicketException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'code' => $exception->errorCode,
+            ], $exception->httpStatus);
+        });
         $exceptions->render(function (SlotUnavailableException $exception, Request $request) {
             if (! $request->is('api/*')) {
                 return null;

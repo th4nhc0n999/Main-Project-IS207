@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ShieldCheck,
-  CreditCard,
-  Building2,
   ChevronLeft,
   AlertCircle,
-  CheckCircle,
   HelpCircle,
-  RotateCcw,
-  Sparkles,
 } from 'lucide-react';
 import paymentApi from '../api/paymentApi';
 import { PaymentBookingSummary } from '../components/payment/PaymentBookingSummary';
@@ -21,11 +17,14 @@ import { MomoPayView } from '../components/payment/MomoPayView';
 import { PaymentConfirmationModal } from '../components/payment/PaymentConfirmationModal';
 import { PaymentProcessingModal } from '../components/payment/PaymentProcessingModal';
 import { PaymentResultView } from '../components/payment/PaymentResultView';
-import { Card, CardContent } from '../components/ui/card';
+import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 
 
 export function PaymentPage() {
+  const [searchParams] = useSearchParams();
+  const realBookingId = Number(searchParams.get('booking_id'));
+  const strictBooking = searchParams.has('booking_id');
   // Step state: 1 (Select method), 2 (Card info/QR/Store/MoMo), 3 (Confirm review), 4 (Processing/OTP), 5 (Result)
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedMethod, setSelectedMethod] = useState('atm');
@@ -43,21 +42,27 @@ export function PaymentPage() {
   const [resultStatus, setResultStatus] = useState('success'); // 'success' | 'failed' | 'pending'
   const [failureReason, setFailureReason] = useState('Thẻ không đủ số dư');
 
-  // Load invoice on mount
-  useEffect(() => {
-    fetchInvoice();
-  }, []);
-
-  const fetchInvoice = async () => {
+  const fetchInvoice = useCallback(async () => {
     setLoading(true);
     setApiError(null);
     try {
       // Thử gọi API thật tới Laravel backend (booking_id = 1 đã được seed sẵn)
-      const res = await paymentApi.calculateInvoice(1);
+      if (strictBooking && (!Number.isSafeInteger(realBookingId) || realBookingId < 1)) {
+        throw new Error('Mã đặt khám không hợp lệ.');
+      }
+      const res = await paymentApi.calculateInvoice(strictBooking ? realBookingId : 1);
+      if (strictBooking && Number(res?.data?.booking_id) !== realBookingId) {
+        throw new Error('Thông tin thanh toán không khớp lịch khám.');
+      }
       if (res && res.data) {
         setInvoice(res.data);
       }
     } catch (err) {
+      if (strictBooking) {
+        setApiError(err.message || 'Chưa thể tải thông tin thanh toán. Vui lòng thử lại sau.');
+        setInvoice(null);
+        return;
+      }
       console.warn('API error or backend offline, falling back to mock booking:', err);
       // Hiển thị thông báo lỗi lấy từ response.data.message theo quy tắc 3
       if (err.message && !err.message.includes('Network Error')) {
@@ -110,7 +115,12 @@ export function PaymentPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [strictBooking, realBookingId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { fetchInvoice(); }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchInvoice]);
 
   // Step 1 -> Next (confirm method)
   const handleProceedFromMethodSelect = () => {
@@ -124,7 +134,7 @@ export function PaymentPage() {
   };
 
   // Step 2 Direct confirmation for QR / Store / MoMo
-  const handleDirectPaymentConfirm = async (meta = {}) => {
+  const handleDirectPaymentConfirm = async () => {
     setActionLoading(true);
     try {
       // Gọi API create & confirm qua backend nếu có
@@ -135,12 +145,21 @@ export function PaymentPage() {
           method: selectedMethod,
         });
       } catch (e) {
+        if (strictBooking) throw e;
         console.warn('Backend payment create fallback:', e);
+      }
+
+      if (strictBooking) {
+        if (!paymentRes?.data) throw new Error('Chưa nhận được kết quả thanh toán.');
+        setPaymentResult(paymentRes.data);
+        setResultStatus(paymentRes.data.status === 'paid' ? 'success' : 'pending');
+        setCurrentStep(5);
+        return;
       }
 
       setPaymentResult({
         booking_code: invoice?.booking_code || 'BK20260918001',
-        transaction_code: 'TXN' + Date.now().toString().slice(-10),
+        transaction_code: 'TXN-' + crypto.randomUUID(),
         paid_at: new Date().toLocaleString('vi-VN'),
         method: { name: getMethodName(selectedMethod) },
         total_amount: invoice?.fees?.total_amount || 160000,
@@ -178,6 +197,7 @@ export function PaymentPage() {
         });
         createdPayment = createRes?.data;
       } catch (e) {
+        if (strictBooking) throw e;
         console.warn('Fallback payment creation:', e);
       }
 
@@ -187,18 +207,28 @@ export function PaymentPage() {
           const confirmRes = await paymentApi.confirmPayment({
             payment_id: createdPayment.id,
             otp: otpCode,
-            transaction_code: 'TXN' + Date.now().toString().slice(-10),
+            transaction_code: 'TXN-' + crypto.randomUUID(),
           });
           confirmedPayment = confirmRes?.data;
         } catch (e) {
+          if (strictBooking) throw e;
           console.warn('Confirm API error:', e);
         }
+      }
+
+      if (strictBooking) {
+        if (!confirmedPayment) throw new Error('Chưa nhận được xác nhận thanh toán.');
+        setPaymentResult(confirmedPayment);
+        setOtpModalOpen(false);
+        setResultStatus(confirmedPayment.status === 'paid' ? 'success' : 'pending');
+        setCurrentStep(5);
+        return;
       }
 
       setPaymentResult(
         confirmedPayment || {
           booking_code: invoice?.booking_code || 'BK20260918001',
-          transaction_code: 'TXN' + Date.now().toString().slice(-10),
+          transaction_code: 'TXN-' + crypto.randomUUID(),
           paid_at: new Date().toLocaleString('vi-VN'),
           method: { name: getMethodName(selectedMethod) },
           total_amount: invoice?.fees?.total_amount || 160000,
@@ -231,6 +261,16 @@ export function PaymentPage() {
     };
     return map[m] || 'Thanh toán trực tuyến';
   };
+
+  if (strictBooking && !loading && !invoice) {
+    return <main className="mx-auto max-w-2xl space-y-4 p-6">
+      <h1 className="text-2xl font-bold">Thanh toán lịch khám</h1>
+      <p role="alert" className="rounded-lg bg-rose-50 p-4 text-rose-800">{apiError || 'Chưa thể tải thông tin thanh toán.'}</p>
+      <p>Lịch khám vẫn cần được xác nhận thanh toán trước khi cấp phiếu.</p>
+      <button className="rounded-lg bg-sky-700 px-4 py-2 text-white" onClick={fetchInvoice}>Thử lại</button>
+      <p><Link className="text-sky-700 underline" to="/my-bookings">Kiểm tra trạng thái lịch khám</Link></p>
+    </main>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900 pb-16">
@@ -292,7 +332,7 @@ export function PaymentPage() {
           </div>
 
           {/* Test Switcher toolbar cho người dùng trải nghiệm nhanh các trạng thái */}
-          <div className="hidden md:flex items-center gap-1.5 text-[11px] bg-slate-100 p-1 rounded-lg border border-slate-200">
+          {!strictBooking && <div className="hidden md:flex items-center gap-1.5 text-[11px] bg-slate-100 p-1 rounded-lg border border-slate-200">
             <span className="text-slate-400 font-medium px-1">Mô phỏng:</span>
             <button
               type="button"
@@ -325,7 +365,7 @@ export function PaymentPage() {
             >
               Chờ xác nhận
             </button>
-          </div>
+          </div>}
         </div>
       </div>
 
