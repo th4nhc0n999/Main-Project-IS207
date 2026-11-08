@@ -19,6 +19,11 @@ class DoctorSlotController extends Controller
         return new ApiResource(SlotResource::collection($this->slots->list($doctor, $request->validated('date'))));
     }
 
+    public function own(SlotListRequest $request): ApiResource
+    {
+        return new ApiResource(SlotResource::collection($this->slots->listOwn($request->user(), $request->validated('date'))));
+    }
+
     public function store(SaveSlotRequest $request)
     {
         return (new ApiResource(new SlotResource($this->slots->create($request->user(), $request->validated())),

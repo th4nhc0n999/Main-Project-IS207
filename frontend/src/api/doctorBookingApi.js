@@ -2,6 +2,8 @@ import axiosClient from './axiosClient'
 
 // BKD contract only. UI integration belongs to S4-71/S4-73 (Quốc Huy).
 const doctorBookingApi = {
+  me: () => axiosClient.get('/doctor/me'),
+  ownSlots: (date) => axiosClient.get('/doctor/slots', { params: { date } }),
   slots: (doctorId, date) => axiosClient.get(`/doctors/${doctorId}/slots`, { params: { date } }),
   createSlot: (data) => axiosClient.post('/doctor/slots', data),
   updateSlot: (slotId, data) => axiosClient.put(`/doctor/slots/${slotId}`, data),

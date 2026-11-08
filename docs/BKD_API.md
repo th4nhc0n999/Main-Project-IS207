@@ -1,6 +1,6 @@
 # BKD API và hợp đồng tích hợp Sprint 4
 
-Ngày cập nhật: 07/11/2026. Phạm vi: S4-32, S4-40, S4-41, S4-42, S4-43, S4-44; tài liệu rà soát S4-45 nằm trong [BKD_REVIEW.md](BKD_REVIEW.md).
+Ngày cập nhật: 08/11/2026. Phạm vi: S4-32, S4-40, S4-41, S4-42, S4-43, S4-44; tài liệu rà soát S4-45 nằm trong [BKD_REVIEW.md](BKD_REVIEW.md).
 
 ## Trạng thái bàn giao
 
@@ -17,6 +17,8 @@ Các API có quyền dùng guard Sanctum hiện có (Bearer token hoặc phiên 
 | Method | Đường dẫn | Quyền | Dữ liệu |
 |---|---|---|---|
 | GET | `/doctors/{doctor}/slots?date=2030-01-02` | Công khai | Bắt buộc ngày; chỉ trả slot chưa qua giờ bắt đầu |
+| GET | `/doctor/me` | Bác sĩ | Hồ sơ gắn với tài khoản đăng nhập: doctor_id, name, specialty (id/name) |
+| GET | `/doctor/slots?date=2030-01-02` | Bác sĩ | Toàn bộ slot của chính bác sĩ trong ngày; gồm cả đã qua/full/blocked |
 | POST | `/doctor/slots` | Bác sĩ | `work_date`, `start_time` |
 | PUT | `/doctor/slots/{slot}` | Bác sĩ sở hữu | `work_date`, `start_time` |
 | PUT | `/admin/doctor-slots/{slot}` | Admin | `work_date`, `start_time` |
@@ -30,6 +32,10 @@ Các API có quyền dùng guard Sanctum hiện có (Bearer token hoặc phiên 
 | POST | `/doctor-bookings/{booking}/cancel` | Chủ lịch/bác sĩ của lịch | `version`, `reason`, `reason_code` tuỳ chọn |
 
 Admin override duyệt thuộc module demo; route BKD này chỉ cho bác sĩ duyệt. Staff không có quyền huỷ.
+
+Hai endpoint tự phục vụ trên nằm trong middleware BKD Authenticate + RequireRole doctor; server tra doctors.user_id từ tài khoản đăng nhập, không nhận doctor_id/user_id để chọn người khác. Không có hồ sơ bác sĩ (hoặc đã lưu trữ) trả HTTP 404, code NOT_FOUND, message "Tài khoản chưa có hồ sơ bác sĩ.". Patient nhận 403 FORBIDDEN. Không đổi AuthController.
+
+`GET /doctor/me` trả `{success:true,message:"Thành công.",data:{doctor_id:123,name:"Tên bác sĩ",specialty:{id:1,name:"Tên chuyên khoa"}}}`. `GET /doctor/slots` trả data là mảng SlotResource giống API công khai, nhưng không ẩn ca đã bắt đầu để bác sĩ quản lý cả ngày. `can_book` là quyền đặt lịch của bệnh nhân, không phải quyền sửa ca; server tiếp tục chặn sửa ca đã bắt đầu/có lịch giữ. UI gọi me()/ownSlots(date) qua doctorBookingApi, không dùng user.id thay doctor_id.
 
 Slot tạo dài 30 phút, capacity 1, specialty lấy từ bác sĩ đăng nhập. Client không được gửi owner/specialty/capacity/count/status. Không nhận slot qua nửa đêm vì schema dùng giờ bắt đầu < giờ kết thúc cùng ngày. Slot giao giờ bị chặn, kể cả start_time khác nhau; hai khoảng sát nhau được phép.
 

@@ -14,6 +14,29 @@ use Illuminate\Validation\ValidationException;
 
 class DoctorSlotService
 {
+    public function profileFor(User $actor): array
+    {
+        $doctor = DB::table('doctors as d')
+            ->leftJoin('specialties as s', 's.id', '=', 'd.specialty_id')
+            ->where('d.user_id', $actor->id)->whereNull('d.deleted_at')
+            ->first(['d.id', 'd.name', 'd.specialty_id', 's.name as specialty_name']);
+        if (! $doctor) {
+            throw new BkdException('Tài khoản chưa có hồ sơ bác sĩ.', 404, 'NOT_FOUND');
+        }
+
+        return ['doctor_id' => (int) $doctor->id, 'name' => $doctor->name,
+            'specialty' => ['id' => (int) $doctor->specialty_id, 'name' => $doctor->specialty_name]];
+    }
+
+    public function listOwn(User $actor, string $date)
+    {
+        $profile = $this->profileFor($actor);
+
+        // Management view includes all slots of the day, even past/full/blocked slots.
+        return Slot::query()->where('owner_type', 'doctor')->where('owner_id', $profile['doctor_id'])
+            ->whereDate('work_date', $date)->orderBy('start_time')->get();
+    }
+
     public function list(int $doctorId, string $date)
     {
         $this->doctor($doctorId);

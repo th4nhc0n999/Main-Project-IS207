@@ -176,6 +176,8 @@ Route::middleware(\App\Http\Middleware\Bkd\ApiBoundary::class)->group(function (
 
     Route::middleware(\App\Http\Middleware\Bkd\Authenticate::class.':sanctum')->group(function () {
         Route::middleware(\App\Http\Middleware\Bkd\RequireRole::class.':doctor')->group(function () {
+            Route::get('/doctor/me', [\App\Http\Controllers\Api\Bkd\DoctorSelfController::class, 'show']);
+            Route::get('/doctor/slots', [\App\Http\Controllers\Api\Bkd\DoctorSlotController::class, 'own']);
             Route::post('/doctor/slots', [\App\Http\Controllers\Api\Bkd\DoctorSlotController::class, 'store'])->name('bkd.slots.store');
             Route::put('/doctor/slots/{slot}', [\App\Http\Controllers\Api\Bkd\DoctorSlotController::class, 'update'])->whereNumber('slot');
             Route::get('/doctor/bookings', [\App\Http\Controllers\Api\Bkd\DoctorBookingController::class, 'index'])->name('bkd.doctor.index');
