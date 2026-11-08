@@ -20,9 +20,44 @@ Dùng tài liệu này khi thêm trang vào ứng dụng React trong thư mục 
 
 Biến CSS và bố cục nghiệp vụ nằm ở `src/clinic.css`. Bảng sắc độ Tailwind nằm ở `tailwind.config.js`; biến cho các primitive Button, Card, Input ở `src/index.css`. Khi đổi màu thương hiệu, cập nhật cả các khai báo tương ứng trong `src/pages/home.css`.
 
-## Kiểu chữ và bố cục
+## Kiểu chữ và Quy chuẩn Typography Tiếng Việt (Typography Guidelines)
 
-Dùng Arial, sau đó sans-serif. Viết nhãn tiếng Việt theo kiểu câu, ưu tiên động từ cụ thể như “Chọn ca khám”, “Đổi ca khám”. Tiêu đề trang nghiệp vụ 28–44px, đậm 700; tiêu đề nhóm 22px, đậm 650; nhãn 14px, đậm 600. Dùng số có độ rộng cố định cho giờ khám.
+Hệ thống giao diện MedSi áp dụng bộ font chuẩn hỗ trợ 100% tiếng Việt, tối ưu hiển thị trên mọi hệ điều hành (đặc biệt là Windows):
+
+### 1. Bộ font chuẩn (Font Stack)
+- **Primary Fonts:** `Inter` (Google Fonts, weights 300..800) kết hợp `Be Vietnam Pro` (chuyên biệt cho tiếng Việt).
+- **CSS Font Family Stack:**
+  ```css
+  font-family: 'Inter', 'Be Vietnam Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  ```
+- **Khai báo Tailwind (`tailwind.config.js`):**
+  ```javascript
+  fontFamily: {
+    sans: ['Inter', 'Be Vietnam Pro', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+  }
+  ```
+- **Khử răng cưa & hiển thị sắc nét toàn cục (`src/index.css`):**
+  ```css
+  html, body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  ```
+
+### 2. Các quy tắc cấm kỵ (Anti-patterns & Rules to Prevent Regressions)
+- ❌ **TUYỆT ĐỐI KHÔNG dùng font Arial riêng lẻ hoặc hardcode `font-family: Arial, sans-serif`**: Arial trên Windows gặp lỗi nghiêm trọng với các dấu tiếng Việt phức tạp (`ạ`, `ấ`, `ộ`, `ệ`, `ặ`), gây nhảy font fallback và lệch chân chữ.
+- ❌ **TUYỆT ĐỐI KHÔNG dùng `font-black` (font-weight: 900) trên văn bản tiếng Việt**: Font weights quá lớn kích hoạt thuật toán nét giả (faux bold), làm dấu nặng (dot below) và dấu mũ/móc bị phình to hoặc méo mó. Chỉ sử dụng tối đa `font-bold` (700) hoặc `font-extrabold` (800).
+- ❌ **TUYỆT ĐỐI KHÔNG dùng negative letter-spacing quá chặt (`letter-spacing: -0.03em` trở lên)**: Khoảng cách âm làm các dấu tiếng Việt ở các ký tự liền kề đè và va chạm vào nhau. Luôn giữ `letter-spacing: normal` hoặc tối đa `-0.01em`.
+
+### 3. Phân cấp cỡ chữ (Hierarchy)
+- Viết nhãn tiếng Việt theo kiểu câu, ưu tiên động từ cụ thể như “Chọn ca khám”, “Đổi ca khám”.
+- **Tiêu đề trang nghiệp vụ (H1):** `clamp(28px, 3.2vw, 40px)`, đậm `font-bold` (700), line-height `1.2`.
+- **Tiêu đề nhóm/phần (H2):** `20px - 24px`, đậm `font-bold` (700) hoặc `font-semibold` (600).
+- **Tiêu đề thẻ/mục nhỏ (H3):** `16px - 18px`, đậm `font-semibold` (600).
+- **Văn bản thân / Mô tả:** `14px - 15px`, thường `font-normal` (400), line-height `1.6`.
+- **Nhãn trường nhập / Nút:** `13px - 14px`, đậm `font-semibold` (600).
+- **Giờ khám & Giá tiền:** Sử dụng font số độ rộng cố định `font-variant-numeric: tabular-nums` kèm `font-bold` để tránh nhảy khung.
 
 Khung chính tối đa 1180px. Khoảng cách giữa hai cột đặt lịch 24px, giữa thẻ 16px. Thẻ nghiệp vụ bo 14px, nền trắng, viền 1px; ô nhập và nút bo 8px, cao tối thiểu 44px. Màn hình tối đa 720px xếp tóm tắt và biểu mẫu thành một cột. Trang chủ dùng các mốc riêng 800px và 590px cho lưới thẻ và ảnh đầu trang.
 
