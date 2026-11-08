@@ -330,7 +330,7 @@ export default function MyBookingsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
           {/* Hero Banner Card matching MedSi Design System */}
           <div className="relative overflow-hidden rounded-2xl bg-[#eaf0e5] border border-[#d7dfd4] shadow-sm mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-12 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-12 items-stretch">
               {/* Copy column */}
               <div className="md:col-span-7 p-6 sm:p-8 lg:p-10 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -396,11 +396,11 @@ export default function MyBookingsPage() {
               </div>
 
               {/* Image column */}
-              <div className="hidden md:block md:col-span-5 h-full min-h-[240px] relative">
+              <div className="hidden md:block md:col-span-5 relative self-stretch overflow-hidden rounded-r-2xl">
                 <img
                   src={photo}
                   alt="MedSi Bác sĩ tư vấn"
-                  className="w-full h-full max-h-[300px] object-cover object-center"
+                  className="absolute inset-0 w-full h-full object-cover object-center rounded-r-2xl"
                 />
               </div>
             </div>

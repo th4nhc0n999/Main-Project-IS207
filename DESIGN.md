@@ -81,3 +81,4 @@ Tài liệu quy chuẩn thiết kế, bảng màu, nhận diện thương hiệu
   import photo from '@/assets/consultation.jpg'
   <img src={photo} alt="MedSi Banner" className="w-full h-full object-cover object-center" />
   ```
+
