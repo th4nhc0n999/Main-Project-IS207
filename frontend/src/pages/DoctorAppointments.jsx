@@ -30,7 +30,7 @@ function DoctorWorkspace() {
         }} className={`min-h-11 border-b-[3px] px-4 font-semibold ${tab === value ? 'border-[var(--med-coral)] text-sage-600' : 'border-transparent text-[var(--med-muted)]'}`}>{label}</button>)}
     </div>
     <div id={`doctor-${tab}-panel`} role="tabpanel" aria-labelledby={`doctor-${tab}-tab`}>
-      {tab === 'pending' ? <PendingDoctorApprovals onDecision={() => refresh(value => value + 1)}/> : <DoctorBookingList revision={revision}/>}
+      {tab === 'pending' ? <PendingDoctorApprovals onDecision={() => refresh(value => value + 1)}/> : <DoctorBookingList revision={revision} onChanged={() => refresh(value => value + 1)}/>}
     </div>
     <ExistingAppointments revision={revision}/>
   </section>
