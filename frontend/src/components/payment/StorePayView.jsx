@@ -106,7 +106,7 @@ export function StorePayView({ invoice, onConfirm, onCancel, onBack }) {
 
             {/* Mã vạch mô phỏng & Mã thanh toán */}
             <div className="bg-white p-4 rounded-xl border border-amber-100 shadow-xs inline-block w-full max-w-sm">
-              <div className="font-mono text-3xl tracking-widest font-black text-slate-900 flex items-center justify-center gap-2">
+              <div className="font-mono text-3xl tracking-widest font-bold text-slate-900 flex items-center justify-center gap-2">
                 {payCode}
                 <button
                   type="button"

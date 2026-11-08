@@ -33,7 +33,7 @@ export function MomoPayView({ invoice, onConfirm, onCancel, onBack }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between pb-3 border-b border-slate-200">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-pink-600 text-white flex items-center justify-center font-black text-xs shadow-xs">
+          <div className="w-8 h-8 rounded-lg bg-pink-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
             M
           </div>
           <div>
@@ -54,7 +54,7 @@ export function MomoPayView({ invoice, onConfirm, onCancel, onBack }) {
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-100 text-pink-900 text-xs font-bold mb-4">
           <Clock className="w-3.5 h-3.5" />
           <span>Thời gian giao dịch còn lại: </span>
-          <span className="font-mono font-black">{formatTime(timeLeft)}</span>
+          <span className="font-mono font-bold">{formatTime(timeLeft)}</span>
         </div>
 
         {/* QR Frame */}
@@ -65,7 +65,7 @@ export function MomoPayView({ invoice, onConfirm, onCancel, onBack }) {
             className="w-52 h-52 object-contain rounded-lg"
           />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-10 h-10 rounded-full bg-pink-600 text-white shadow-md flex items-center justify-center font-black text-xs border-2 border-white">
+            <div className="w-10 h-10 rounded-full bg-pink-600 text-white shadow-md flex items-center justify-center font-bold text-xs border-2 border-white">
               MoMo
             </div>
           </div>
@@ -73,7 +73,7 @@ export function MomoPayView({ invoice, onConfirm, onCancel, onBack }) {
 
         <div className="mt-4 space-y-1">
           <div className="text-xs text-slate-500">Số tiền thanh toán:</div>
-          <div className="text-2xl font-black text-pink-600">{totalAmount}</div>
+          <div className="text-2xl font-bold text-pink-600">{totalAmount}</div>
           <div className="text-xs text-slate-600 mt-2 font-medium">
             Đơn hàng: <span className="font-semibold">{bookingCode}</span>
           </div>

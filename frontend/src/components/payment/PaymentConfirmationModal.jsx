@@ -114,7 +114,7 @@ export function PaymentConfirmationModal({
 
         <div className="flex justify-between items-baseline pt-2">
           <span className="font-bold text-slate-900 text-sm">Tổng tiền thanh toán:</span>
-          <span className="font-black text-2xl text-sage-700">{fees.formatted.total_amount}</span>
+          <span className="font-bold text-2xl text-sage-700">{fees.formatted.total_amount}</span>
         </div>
       </div>
 

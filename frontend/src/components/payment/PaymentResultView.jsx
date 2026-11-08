@@ -60,7 +60,7 @@ export function PaymentResultView({
           <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
             <CheckCircle2 className="w-10 h-10 animate-in spin-in-180 duration-500" />
           </div>
-          <h3 className="text-2xl font-black text-emerald-800 tracking-tight">
+          <h3 className="text-2xl font-bold text-emerald-800">
             Thanh toán thành công!
           </h3>
           <p className="text-xs text-emerald-700 max-w-sm mx-auto">
@@ -101,7 +101,7 @@ export function PaymentResultView({
             <div className="text-slate-500 font-semibold pt-1 border-t border-slate-100">
               Số tiền đã thanh toán:
             </div>
-            <div className="font-black text-emerald-600 text-base text-right pt-1 border-t border-slate-100">
+            <div className="font-bold text-emerald-600 text-base text-right pt-1 border-t border-slate-100">
               {totalAmount}
             </div>
           </div>
@@ -224,7 +224,7 @@ export function PaymentResultView({
           <div className="w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
             <XCircle className="w-10 h-10" />
           </div>
-          <h3 className="text-2xl font-black text-rose-800 tracking-tight">
+          <h3 className="text-2xl font-bold text-rose-800">
             Thanh toán thất bại
           </h3>
           <p className="text-xs text-rose-700 max-w-sm mx-auto leading-relaxed">
@@ -287,7 +287,7 @@ export function PaymentResultView({
         <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto shadow-sm">
           <Clock className="w-10 h-10 animate-pulse" />
         </div>
-        <h3 className="text-2xl font-black text-amber-900 tracking-tight">
+        <h3 className="text-2xl font-bold text-amber-900">
           Giao dịch đang được xác nhận
         </h3>
         <p className="text-xs text-amber-800 max-w-sm mx-auto leading-relaxed">

@@ -13,9 +13,8 @@
 
 .search-header-title {
   font-size: clamp(26px, 3vw, 36px);
-  font-weight: 750;
+  font-weight: 700;
   color: #193723;
-  letter-spacing: -0.03em;
   margin: 0 0 8px;
 }
 

@@ -12,8 +12,8 @@
 .med-content {background:var(--med-paper);color:var(--med-ink)}
 .med-content > main {width:100%}
 .clinic {width:min(calc(100% - 40px),1180px);margin-inline:auto;padding:40px 0 64px;color:var(--med-ink)}
-.clinic h1 {font-size:clamp(28px,3.2vw,44px);line-height:1.18;font-weight:700;letter-spacing:-.04em;margin:12px 0 18px}
-.clinic h2 {font-size:22px;font-weight:650;line-height:1.3;letter-spacing:-.025em;margin-bottom:14px}
+.clinic h1 {font-size:clamp(28px,3.2vw,44px);line-height:1.2;font-weight:700;margin:12px 0 18px}
+.clinic h2 {font-size:22px;font-weight:600;line-height:1.3;margin-bottom:14px}
 .clinic h2 svg,.booking-summary p svg {display:inline;vertical-align:middle}
 .clinic p {margin:10px 0;line-height:1.6}
 .clinic label {display:block;font-weight:600;font-size:14px}
@@ -53,7 +53,7 @@
 .payment-sheet button {margin-right:12px}
 .payment-sheet img {margin:18px auto}
 .ticket-sheet {border-top:4px solid var(--med-sage)}
-.ticket-sheet small {display:block;font:600 13px Arial;color:var(--med-muted);margin-bottom:5px}
+.ticket-sheet small {display:block;font-size:13px;font-weight:600;color:var(--med-muted);margin-bottom:5px}
 .clinic.access-panel {margin:48px auto;max-width:610px;padding:36px;background:white;border:1px solid var(--med-line);border-radius:14px}
 .access-panel svg {color:var(--med-sage)}
 .access-panel .action-link {margin-top:12px}

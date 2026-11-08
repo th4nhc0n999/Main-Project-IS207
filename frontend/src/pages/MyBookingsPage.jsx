@@ -339,7 +339,7 @@ export default function MyBookingsPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900">
+                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                     {user?.name || "Người dùng MedSi"}
                   </h1>
                   <Badge variant="info" className="text-[10px] py-0.5">
@@ -564,7 +564,7 @@ export default function MyBookingsPage() {
                       {/* Top Bar: Code, Status & Date */}
                       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs sm:text-sm font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                          <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
                             {b.code}
                           </span>
                           {getStatusBadge(b.status)}
@@ -618,7 +618,7 @@ export default function MyBookingsPage() {
                           <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                             Tổng tiền & Thanh toán
                           </span>
-                          <p className="text-base font-black text-sage-600">
+                          <p className="text-base font-bold text-sage-600">
                             {formatCurrency(b.payment?.total_amount || 420000)}
                           </p>
                           <div className="flex items-center md:justify-end gap-1.5">
@@ -759,7 +759,7 @@ export default function MyBookingsPage() {
                       <div className="space-y-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sage-500 to-sage-600 text-white font-black flex items-center justify-center text-sm shadow-md shadow-sage-500/20">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sage-500 to-sage-600 text-white font-bold flex items-center justify-center text-sm shadow-md shadow-sage-500/20">
                               {initials}
                             </div>
                             <div>

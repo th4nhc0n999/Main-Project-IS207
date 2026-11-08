@@ -130,7 +130,7 @@ export function CreditCardForm({ bookingCode, onContinue, onBack }) {
             </span>
             <div className="flex items-center gap-2">
               <Wifi className="w-5 h-5 rotate-90 text-white/80" />
-              <span className="font-black text-sm uppercase px-2 py-0.5 rounded bg-white/15">
+              <span className="font-bold text-sm uppercase px-2 py-0.5 rounded bg-white/15">
                 {cardBrand}
               </span>
             </div>

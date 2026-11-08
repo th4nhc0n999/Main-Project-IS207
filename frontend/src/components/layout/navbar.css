@@ -1,7 +1,7 @@
 .med-header {position:relative;z-index:20;background:white;border-bottom:1px solid var(--med-line);color:var(--med-ink)}
 .med-header nav {width:min(calc(100% - 40px),1180px);min-height:72px;margin:auto;padding:12px 0;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .med-brand,.header-actions,.header-actions a,.booking-switch button,.med-header form {display:flex;align-items:center;gap:8px}
-.med-brand {font-size:27px;font-weight:750;letter-spacing:-1.4px;color:var(--med-sage);text-decoration:none}
+.med-brand {font-size:27px;font-weight:700;color:var(--med-sage);text-decoration:none}
 .med-brand-logo {height:40px;max-width:180px;width:auto;object-fit:contain;display:block}
 .med-header form {
   flex: 1 1 200px;

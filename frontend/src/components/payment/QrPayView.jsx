@@ -114,7 +114,7 @@ export function QrPayView({ invoice, onConfirm, onCancel, onBack }) {
         {/* Số tiền cần chuyển */}
         <div className="mt-3 flex items-baseline gap-2">
           <span className="text-xs text-slate-500">Số tiền:</span>
-          <span className="text-2xl font-black text-emerald-600">{totalAmount}</span>
+          <span className="text-2xl font-bold text-emerald-600">{totalAmount}</span>
         </div>
       </div>
 
