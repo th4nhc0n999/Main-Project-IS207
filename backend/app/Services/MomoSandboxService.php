@@ -17,8 +17,11 @@ class MomoSandboxService
     public function assertConfigured(): void
     {
         abort_unless(app()->environment(['local', 'testing']), 403, 'MoMo sandbox chỉ dùng trong môi trường thử nghiệm.');
-        foreach (['partner_code', 'access_key', 'secret_key', 'ipn_url', 'redirect_url'] as $key) {
-            abort_if(blank(config('payment.momo.'.$key)), 503, 'Chưa cấu hình MoMo sandbox. Cần thông tin đối tác và URL callback/redirect.');
+        foreach (['partner_code', 'access_key', 'secret_key'] as $key) {
+            abort_if(blank(config('payment.momo.'.$key)), 503, 'Laravel chưa nhận đủ thông tin đối tác MoMo Sandbox.');
+        }
+        if ($this->localCheckout()) {
+            return;
         }
         foreach (['ipn_url', 'redirect_url'] as $key) {
             $url = config('payment.momo.'.$key);
@@ -27,7 +30,13 @@ class MomoSandboxService
         }
     }
 
-    public function checkout(object $transaction, string $method, string $email): array
+    private function localCheckout(): bool
+    {
+        return app()->environment('local') && blank(config('payment.momo.ipn_url'))
+            && blank(config('payment.momo.redirect_url'));
+    }
+
+    public function checkout(object $transaction, string $method, string $email, string $description): array
     {
         $this->assertConfigured();
         $max = $method === 'credit_card' ? 10000000 : 50000000;
@@ -59,8 +68,11 @@ class MomoSandboxService
         $body = [
             'partnerCode' => config('payment.momo.partner_code'), 'requestId' => $code,
             'orderId' => $code, 'amount' => (int) $transaction->amount,
-            'orderInfo' => 'MedSi booking payment', 'redirectUrl' => config('payment.momo.redirect_url'),
-            'ipnUrl' => config('payment.momo.ipn_url'), 'requestType' => self::METHODS[$method],
+            'orderInfo' => $description,
+            'redirectUrl' => $this->localCheckout() ? 'http://localhost:5173/my-bookings' : config('payment.momo.redirect_url'),
+            // Sandbox create requires this field. Local checkout retrieves results via query.
+            'ipnUrl' => $this->localCheckout() ? 'https://localhost/api/payments/momo/ipn' : config('payment.momo.ipn_url'),
+            'requestType' => self::METHODS[$method],
             'extraData' => '', 'autoCapture' => true, 'lang' => 'vi',
         ];
         $body['signature'] = $this->sign($body, ['amount', 'extraData', 'ipnUrl', 'orderId',
@@ -99,6 +111,7 @@ class MomoSandboxService
     public function ipn(array $data, PaymentGatewayService $gateway): void
     {
         $this->assertConfigured();
+        abort_if($this->localCheckout(), 403, 'Khi chạy local, dùng chức năng kiểm tra kết quả từ MoMo.');
         $expected = $this->sign($data, ['amount', 'extraData', 'message', 'orderId', 'orderInfo',
             'orderType', 'partnerCode', 'payType', 'requestId', 'responseTime', 'resultCode', 'transId']);
         abort_unless(hash_equals($expected, $data['signature']), 403, 'Chữ ký MoMo không hợp lệ.');
