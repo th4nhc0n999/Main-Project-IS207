@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { ChevronRight, ChevronLeft, Sun, Sunset, MapPin, Check, ShieldCheck, ArrowRight } from 'lucide-react'
 import useApi, { money } from '@/api/useApi'
@@ -10,6 +10,10 @@ export default function DoctorDetailPage() {
   const { data, error } = useApi('/doctors/' + id)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedSlot, setSelectedSlot] = useState(null)
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [id])
 
   const doctor = data?.data
   const slots = data?.slots || []

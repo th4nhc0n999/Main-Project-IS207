@@ -58,6 +58,7 @@ export default function HospitalBookingPage() {
   const requestKey = useRef(null)
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     if (queryHospitalId && String(hospital) !== String(queryHospitalId)) {
       setHospital(String(queryHospitalId))
     }

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from "react-router-dom"
 import { AuthProvider } from "@/context/AuthContext"
 import PageLayout from "@/components/layout/PageLayout"
+import ScrollToTop from "@/components/layout/ScrollToTop"
 
 // Core screens according to project specifications
 import DoctorAppointments from "@/pages/DoctorAppointments"
@@ -31,6 +32,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* All main screens use PageLayout (Navbar + Outlet + Footer) */}
           <Route element={<PageLayout />}>

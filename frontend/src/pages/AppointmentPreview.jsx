@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import {
   ChevronRight,
@@ -51,6 +51,10 @@ export default function AppointmentPreview({ hospital = false }) {
   const providers = hospital ? initialHospitals.filter(h => !/phòng khám/i.test(h.name)) : initialDoctors
   const [providerId, setProviderId] = useState(Number(params.get('id')) || providers[0].id)
   const provider = providers.find(p => p.id === providerId) || providers[0]
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [providerId])
 
   const [examId, setExamId] = useState(null)
   const exam = provider.exam_types?.find(item => item.id === examId) || provider.exam_types?.[0]
