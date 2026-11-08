@@ -17,9 +17,9 @@
 .clinic h2 svg,.booking-summary p svg {display:inline;vertical-align:middle}
 .clinic p {margin:10px 0;line-height:1.6}
 .clinic label {display:block;font-weight:600;font-size:14px}
-.clinic input:not([type=checkbox]),.clinic select,.clinic textarea {width:100%;display:block;min-height:44px;border:1px solid #a4b3a1;border-radius:8px;padding:9px 12px;margin:6px 0 14px;background:white;color:var(--med-ink);font-weight:400}
+.clinic input:not([type=checkbox]):not([type=radio]),.clinic select,.clinic textarea {width:100%;display:block;min-height:44px;border:1px solid #a4b3a1;border-radius:8px;padding:9px 12px;margin:6px 0 14px;background:white;color:var(--med-ink);font-weight:400}
 .clinic :is(select,input,textarea):disabled {background:#f2f4f1;color:#697469}
-.clinic input[type=checkbox] {accent-color:var(--med-sage)}
+.clinic input[type=checkbox],.clinic input[type=radio] {accent-color:var(--med-sage);width:auto;min-height:auto;margin:0;display:inline-block}
 .clinic button,.clinic .action-link {display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 18px;border-radius:8px;background:var(--med-sage);color:white;font-weight:600;text-decoration:none}
 .clinic button:hover:not(:disabled),.clinic .action-link:hover {background:#274d23}
 .clinic button:disabled {background:#d7dfd4;color:#485246;cursor:not-allowed}

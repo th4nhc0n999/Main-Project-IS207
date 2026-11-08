@@ -334,37 +334,37 @@ export default function ProfileModal({
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 Giới tính <span className="text-rose-500">*</span>
               </label>
-              <div className="flex items-center gap-6 pt-2">
-                <label className="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+              <div className="gender-radio-group">
+                <label className="gender-radio-item">
                   <input
                     type="radio"
                     name="gender"
                     value="male"
                     checked={formData.gender === 'male'}
                     onChange={handleChange}
-                    className="w-4 h-4 text-emerald-800 accent-[#2d5a27]"
+                    className="gender-radio-input"
                   />
                   <span>Nam</span>
                 </label>
-                <label className="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                <label className="gender-radio-item">
                   <input
                     type="radio"
                     name="gender"
                     value="female"
                     checked={formData.gender === 'female'}
                     onChange={handleChange}
-                    className="w-4 h-4 text-emerald-800 accent-[#2d5a27]"
+                    className="gender-radio-input"
                   />
                   <span>Nữ</span>
                 </label>
-                <label className="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                <label className="gender-radio-item">
                   <input
                     type="radio"
                     name="gender"
                     value="other"
                     checked={formData.gender === 'other'}
                     onChange={handleChange}
-                    className="w-4 h-4 text-emerald-800 accent-[#2d5a27]"
+                    className="gender-radio-input"
                   />
                   <span>Khác</span>
                 </label>
