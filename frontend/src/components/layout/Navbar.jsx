@@ -48,7 +48,18 @@ export default function Navbar() {
     <Link className="med-brand" to="/" aria-label="Trang chủ MedSi">
       <img src="/logo.png" alt="MedSi - Đặt lịch y tế trực tuyến" className="med-brand-logo" />
     </Link>
-    <form action="/doctors" role="search"><Search size={17}/><input name="q" type="search" maxLength={150} placeholder="Tìm nơi khám…" aria-label="Tìm nơi khám"/></form>
+    <form action="/doctors" role="search">
+      <Search size={16} />
+      <input
+        name="q"
+        type="search"
+        maxLength={150}
+        placeholder="Tìm nơi khám…"
+        aria-label="Tìm nơi khám"
+        autoComplete="off"
+        spellCheck="false"
+      />
+    </form>
     <div className="header-actions">
       <Link className="browse-link" to="/doctors">Tìm nơi khám</Link>
       <BookingSwitch key={location.key} pathname={location.pathname}/>

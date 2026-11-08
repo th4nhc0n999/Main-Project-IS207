@@ -7,7 +7,9 @@
 .brand svg {width:34px;height:34px}
 .nav-search,.med-search label {display:flex;align-items:center;gap:10px;color:#617062}
 .nav-search {margin-right:auto;background:#f5f7f3;border:1px solid #dbe2d9;border-radius:7px;padding:8px 12px}
-.nav-search input,.med-search input {background:transparent;min-width:0;width:100%}
+.nav-search input,.med-search input {background:transparent !important;min-width:0;width:100%;border:none !important;outline:none !important;box-shadow:none !important;color:var(--med-ink,#1f2937)}
+.nav-search input:focus,.nav-search input:focus-visible,.med-search input:focus,.med-search input:focus-visible {outline:none !important;border:none !important;box-shadow:none !important}
+.med-search label:focus-within {border-color:var(--med-sage,#2d5a27);box-shadow:0 0 0 3px rgba(45,90,39,0.15);background:#ffffff}
 .clinic-nav nav>a:last-child,.clinic-nav button,.med-button {background:#2d5a27;color:white;padding:10px 18px;border-radius:7px;font-weight:600}
 .med-hero {display:grid;grid-template-columns:1fr 1fr;background:#eaf0e5;border-radius:18px;overflow:hidden}
 .med-copy {padding:clamp(30px,4.8vw,72px)}

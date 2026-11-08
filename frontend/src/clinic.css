@@ -26,7 +26,8 @@
 .clinic .secondary-action,.clinic [type=button] {background:var(--med-tint);color:var(--med-sage);margin-block:8px}
 .clinic .secondary-action:hover,.clinic [type=button]:hover:not(:disabled) {color:white}
 .clinic a {color:var(--med-sage);text-underline-offset:3px;text-decoration:underline}
-:focus-visible {outline:3px solid #477044;outline-offset:3px}
+:focus-visible:not(input):not(textarea):not(select) {outline:3px solid #477044;outline-offset:3px}
+.clinic input:focus-visible:not([type=checkbox]):not([type=radio]), .clinic select:focus-visible, .clinic textarea:focus-visible {outline:none;border-color:var(--med-sage);box-shadow:0 0 0 3px rgba(45,90,39,0.15)}
 .clinic .results,.clinic .filters {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:16px}
 .clinic article,.clinic .filters,.profile-form,.booking-summary {background:white;border:1px solid var(--med-line);border-radius:14px;padding:clamp(18px,2.5vw,32px);min-width:0}
 .clinic .filters {align-items:end}
