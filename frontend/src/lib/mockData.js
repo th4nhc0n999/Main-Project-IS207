@@ -623,17 +623,135 @@ export function saveBookings(data) {
   localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(data))
 }
 
-export function getStoredPatientProfiles() {
-  const raw = localStorage.getItem(STORAGE_KEYS.PATIENT_PROFILES)
-  if (raw) {
-    try { return JSON.parse(raw) } catch { /* fallback */ }
+export function getStoredPatientProfiles(customUser = null) {
+  let user = customUser
+  if (!user) {
+    try {
+      user = JSON.parse(localStorage.getItem("medsi_auth_user")) || JSON.parse(localStorage.getItem("auth_user"))
+    } catch {}
   }
-  localStorage.setItem(STORAGE_KEYS.PATIENT_PROFILES, JSON.stringify(initialPatientProfiles))
-  return initialPatientProfiles
+
+  const email = (user?.email || "").toLowerCase()
+  const userStorageKey = user?.id ? `${STORAGE_KEYS.PATIENT_PROFILES}_${user.id}` : (email ? `${STORAGE_KEYS.PATIENT_PROFILES}_${email}` : STORAGE_KEYS.PATIENT_PROFILES)
+  const raw = localStorage.getItem(userStorageKey) || (userStorageKey !== STORAGE_KEYS.PATIENT_PROFILES ? null : localStorage.getItem(STORAGE_KEYS.PATIENT_PROFILES))
+  
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+      }
+    } catch { /* fallback */ }
+  }
+
+  // Khởi tạo danh sách hồ sơ riêng biệt theo từng tài khoản kịch bản Sprint 4
+  let defaults = initialPatientProfiles
+  if (email.includes("max10")) {
+    defaults = Array.from({ length: 10 }, (_, i) => ({
+      id: 301 + i,
+      user_id: user?.id || 3,
+      full_name: `Bệnh Nhân Số ${i + 1}`,
+      dob: `199${i % 10}-05-15`,
+      gender: i % 2 === 0 ? "male" : "female",
+      phone: `092345678${i}`,
+      relationship: i === 0 ? "Bản thân" : (i % 2 === 0 ? "Con" : "Người thân"),
+      identity_card: `07909200000${i}`,
+      identity_card_number: `07909200000${i}`,
+      health_insurance_code: `DN40100000000${i}`,
+      is_default: i === 0,
+    }))
+  } else if (email.includes("e17")) {
+    defaults = [
+      {
+        id: 1,
+        user_id: user?.id || 2,
+        full_name: "Nguyễn Văn A",
+        dob: "1992-06-15",
+        gender: "male",
+        phone: "0901234567",
+        relationship: "Bản thân",
+        identity_card: "079092001234",
+        identity_card_number: "079092001234",
+        health_insurance_code: "DN5010123456099",
+        is_default: true,
+      },
+      {
+        id: 2,
+        user_id: user?.id || 2,
+        full_name: "Nguyễn Gia Bảo",
+        dob: "2018-09-20",
+        gender: "male",
+        phone: "0901234567",
+        relationship: "Con",
+        identity_card: "",
+        identity_card_number: "",
+        guardian_name: "Nguyễn Văn A",
+        guardian_phone: "0901234567",
+        guardian_relationship: "Cha",
+        is_default: false,
+      },
+      {
+        id: 3,
+        user_id: user?.id || 2,
+        full_name: "Trần Thị Hạnh",
+        dob: "1960-03-12",
+        gender: "female",
+        phone: "0912345678",
+        relationship: "Mẹ",
+        identity_card: "079160009876",
+        identity_card_number: "079160009876",
+        is_default: false,
+      },
+    ]
+  } else if (email.includes("e15")) {
+    defaults = []
+  }
+
+  localStorage.setItem(userStorageKey, JSON.stringify(defaults))
+  localStorage.setItem(STORAGE_KEYS.PATIENT_PROFILES, JSON.stringify(defaults))
+  return defaults
 }
 
-export function savePatientProfiles(data) {
+export function savePatientProfiles(data, customUser = null) {
+  let user = customUser
+  if (!user) {
+    try {
+      user = JSON.parse(localStorage.getItem("medsi_auth_user")) || JSON.parse(localStorage.getItem("auth_user"))
+    } catch {}
+  }
+  const email = (user?.email || "").toLowerCase()
+  const userStorageKey = user?.id ? `${STORAGE_KEYS.PATIENT_PROFILES}_${user.id}` : (email ? `${STORAGE_KEYS.PATIENT_PROFILES}_${email}` : STORAGE_KEYS.PATIENT_PROFILES)
+
+  localStorage.setItem(userStorageKey, JSON.stringify(data))
   localStorage.setItem(STORAGE_KEYS.PATIENT_PROFILES, JSON.stringify(data))
+}
+
+// Helpers: Mặt nạ dữ liệu nhạy cảm (Data Masking - Sprint 4 Task S4-24)
+export function maskPhone(phone) {
+  if (!phone) return ""
+  if (phone.includes("*")) return phone
+  if (phone.length >= 7) {
+    return phone.slice(0, 3) + "*****" + phone.slice(-2)
+  }
+  return phone
+}
+
+export function maskCCCD(cccd) {
+  if (!cccd) return ""
+  if (cccd.includes("*")) return cccd
+  if (cccd.length >= 8) {
+    return cccd.slice(0, 3) + "******" + cccd.slice(-3)
+  }
+  return cccd
+}
+
+export function maskBHYT(bhyt) {
+  if (!bhyt) return ""
+  if (bhyt.includes("*")) return bhyt
+  if (bhyt.length >= 8) {
+    return bhyt.slice(0, 3) + "******" + bhyt.slice(-3)
+  }
+  return bhyt
 }
 
 // Generate unique booking code e.g. MEDSI-48192
