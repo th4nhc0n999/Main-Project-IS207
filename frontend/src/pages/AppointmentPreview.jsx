@@ -470,7 +470,8 @@ export default function AppointmentPreview({ hospital = false }) {
                   alt={provider.name}
                   className="summary-provider-img"
                   onError={e => {
-                    e.currentTarget.style.display = 'none'
+                    e.currentTarget.onerror = null
+                    e.currentTarget.src = !hospital ? '/media/directory/doctor-1.jpg' : '/media/directory/hospital-1.jpg'
                   }}
                 />
                 <div className="summary-provider-text">

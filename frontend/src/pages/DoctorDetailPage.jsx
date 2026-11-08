@@ -240,7 +240,10 @@ export default function DoctorDetailPage() {
                 src={doctorImage}
                 alt={doctor.name}
                 className="summary-provider-img"
-                onError={(e) => { e.currentTarget.style.display = 'none' }}
+                onError={(e) => {
+                  e.currentTarget.onerror = null
+                  e.currentTarget.src = '/media/directory/doctor-1.jpg'
+                }}
               />
             ) : (
               <div className="patient-initials-avatar" style={{ width: 48, height: 48, background: '#2d5a27' }}>

@@ -280,7 +280,8 @@ export default function HospitalBookingPage() {
                 alt={currentHospital.name}
                 className="facility-logo"
                 onError={(e) => {
-                  e.currentTarget.style.display = 'none'
+                  e.currentTarget.onerror = null
+                  e.currentTarget.src = '/media/directory/hospital-1.jpg'
                 }}
               />
             ) : (
@@ -798,7 +799,8 @@ export default function HospitalBookingPage() {
                     alt={currentHospital?.name}
                     className="summary-provider-img"
                     onError={(e) => {
-                      e.currentTarget.style.display = 'none'
+                      e.currentTarget.onerror = null
+                      e.currentTarget.src = '/media/directory/hospital-1.jpg'
                     }}
                   />
                 ) : (

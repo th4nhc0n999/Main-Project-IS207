@@ -27,7 +27,7 @@ export function MomoPayView({ invoice, onConfirm, onCancel, onBack }) {
 
   const bookingCode = invoice?.booking_code || 'BK20260918001';
   const totalAmount = invoice?.fees?.formatted?.total_amount || '160.000 đ';
-  const momoQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=2|99|0901234567|YOUMED|${bookingCode}|0|0|${invoice?.fees?.total_amount || 160000}`;
+  const momoQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=2|99|0901234567|MEDSI|${bookingCode}|0|0|${invoice?.fees?.total_amount || 160000}`;
 
   return (
     <div className="space-y-6">
