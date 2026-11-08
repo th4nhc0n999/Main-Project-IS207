@@ -36,7 +36,14 @@ class BookingReadService
 
     public function detail(User $user, int $bookingId): array
     {
-        return $this->serialize($this->query($user)->where('b.id', $bookingId)->firstOrFail());
+        $booking = $this->serialize($this->query($user)->where('b.id', $bookingId)->firstOrFail());
+        if ($booking['payment']) {
+            $booking['payment']['pending_transaction_code'] = DB::table('payment_transactions')
+                ->where('payment_id', $booking['payment']['id'])->where('status', 'pending')
+                ->value('transaction_code');
+            $booking['payment']['grace_minutes'] = (int) config('medsi.grace_minutes');
+        }
+        return $booking;
     }
 
     public function serialize(object $row): array

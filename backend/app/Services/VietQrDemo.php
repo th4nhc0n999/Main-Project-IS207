@@ -5,7 +5,7 @@ namespace App\Services;
 class VietQrDemo
 {
     // Synthetic recipient for a scan-only demonstration. Never request a transfer.
-    public const BANK_BIN = '123456';
+    public const BANK_BIN = '970407'; // Techcombank
     public const ACCOUNT = '0000000000';
 
     public static function payload(int $amount, string $description): string

@@ -35,7 +35,8 @@ class PaymentController extends Controller
             : \Carbon\CarbonImmutable::parse($transaction->hold_expires_at)
                 ->addMinutes((int) config('medsi.grace_minutes'))->toIso8601String();
         if ($usesMomo) {
-            $payload = array_merge($payload, $momo->checkout($transaction, $data['method'], $request->user()->email, $description));
+            $payload = array_merge($payload, $momo->checkout($transaction, $data['method'], $request->user()->email, $description,
+                (int) $data['booking_id'], $request->header('Origin')));
             // Render only the QR content returned by MoMo; never invent a wallet QR.
             if (! empty($payload['checkout']['qrCodeUrl'])) {
                 $qr = $payload['checkout']['qrCodeUrl'];

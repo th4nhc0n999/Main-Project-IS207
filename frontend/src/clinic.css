@@ -52,6 +52,25 @@
 .payment-sheet {max-width:780px}
 .payment-sheet button {margin-right:12px}
 .payment-sheet img {margin:18px auto}
+.payment-sheet .pay-choice {
+  display:grid;
+  grid-template-columns:44px 1fr auto;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border:1px solid var(--med-line);
+  border-radius:10px;
+  cursor:pointer;
+}
+.pay-choice:hover {border-color:#849c80}
+.pay-choice:has(:checked) {border-color:var(--med-sage);background:var(--med-paper);box-shadow:inset 0 0 0 1px var(--med-sage)}
+.pay-choice:has(:focus-visible) {outline:3px solid var(--med-sage);outline-offset:2px}
+.pay-mark {display:grid;place-items:center;height:38px;border-radius:8px;background:var(--med-tint);color:var(--med-sage)}
+.pay-mark--momo {background:#a50064;color:white}
+.pay-mark--momo b {font:700 18px/.76 Arial,sans-serif;letter-spacing:-1px}
+.pay-mark--qr_pay {color:#063386;background:#edf2ff}
+.pay-mark--atm {color:#116456;background:#e5f4ef}
+.pay-mark--credit_card {color:white;background:linear-gradient(120deg,#182a51,#485e97)}
 .ticket-sheet {border-top:4px solid var(--med-sage)}
 .ticket-sheet small {display:block;font:600 13px Arial;color:var(--med-muted);margin-bottom:5px}
 .clinic.access-panel {margin:48px auto;max-width:610px;padding:36px;background:white;border:1px solid var(--med-line);border-radius:14px}
