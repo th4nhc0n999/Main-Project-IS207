@@ -47,7 +47,7 @@ export function PaymentResultView({
   const examTypeName =
     paymentData?.exam_type || 'Khám Chuyên Khoa - Tiêu Chuẩn';
 
-  const hospitalCheckInQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=CHECKIN_YOUMED_${orderCode}`;
+  const hospitalCheckInQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=CHECKIN_MEDSI_${orderCode}`;
 
   /* ==========================================================
      5.1. THANH TOÁN THÀNH CÔNG
@@ -64,7 +64,7 @@ export function PaymentResultView({
             Thanh toán thành công!
           </h3>
           <p className="text-xs text-emerald-700 max-w-sm mx-auto">
-            Lịch hẹn khám bệnh của bạn đã được xác nhận thành công trên hệ thống YouMed và cơ sở khám.
+            Lịch hẹn khám bệnh của bạn đã được xác nhận thành công trên hệ thống MedSi và cơ sở khám.
           </p>
           <div className="pt-1">
             <Badge variant="success" className="text-xs px-3 py-1 font-bold uppercase tracking-wider">
@@ -108,11 +108,11 @@ export function PaymentResultView({
         </div>
 
         {/* Hướng dẫn Check-in tại Bệnh viện */}
-        <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 flex items-start gap-3">
-          <QrCode className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-blue-900 space-y-1">
+        <div className="p-4 rounded-xl bg-sage-50 border border-sage-200 flex items-start gap-3">
+          <QrCode className="w-6 h-6 text-sage-700 shrink-0 mt-0.5" />
+          <div className="text-xs text-sage-900 space-y-1">
             <div className="font-bold">Mã QR Tiếp nhận khám bệnh viện</div>
-            <p className="text-blue-800 leading-relaxed">
+            <p className="text-sage-800 leading-relaxed">
               Bạn có thể mở hoặc tải biên nhận có mã QR bên dưới để xuất trình tại quầy lễ tân hoặc ki-ốt tiếp đón tự động khi đến khám.
             </p>
           </div>
@@ -123,7 +123,7 @@ export function PaymentResultView({
           <Button
             type="button"
             onClick={() => setShowReceiptModal(true)}
-            className="w-full bg-blue-600 hover:bg-blue-700 font-bold h-12 text-sm shadow-md"
+            className="w-full bg-sage-600 hover:bg-sage-700 font-bold h-12 text-sm shadow-md"
           >
             <Download className="w-4 h-4 mr-2" /> Tải hóa đơn / Xem QR Code tiếp nhận
           </Button>
@@ -156,7 +156,7 @@ export function PaymentResultView({
           </DialogHeader>
 
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-4 my-2">
-            <div className="text-xs font-bold text-blue-700 uppercase tracking-wider">
+            <div className="text-xs font-bold text-sage-700 uppercase tracking-wider">
               {hospitalName}
             </div>
 
@@ -187,7 +187,7 @@ export function PaymentResultView({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Trạng thái:</span>
-                <span className="font-bold text-blue-600">ĐÃ XÁC NHẬN</span>
+                <span className="font-bold text-sage-700">ĐÃ XÁC NHẬN</span>
               </div>
             </div>
           </div>
@@ -251,7 +251,7 @@ export function PaymentResultView({
           <Button
             type="button"
             onClick={onRetry}
-            className="w-full bg-blue-600 hover:bg-blue-700 font-bold h-11 text-sm shadow-sm"
+            className="w-full bg-sage-600 hover:bg-sage-700 font-bold h-11 text-sm shadow-sm"
           >
             <RotateCcw className="w-4 h-4 mr-2" /> Thử lại thanh toán
           </Button>
@@ -302,7 +302,7 @@ export function PaymentResultView({
         </div>
         <div className="flex justify-between">
           <span className="text-slate-500">Tổng tiền:</span>
-          <span className="font-bold text-blue-600">{totalAmount}</span>
+          <span className="font-bold text-sage-700">{totalAmount}</span>
         </div>
         <div className="text-[11px] text-slate-500 pt-2 border-t border-slate-100">
           * Trong trường hợp tài khoản đã bị trừ tiền nhưng chưa nhận kết quả, hệ thống sẽ tự động cập nhật ngay sau khi nhận được thông báo phản hồi (callback) từ ngân hàng.

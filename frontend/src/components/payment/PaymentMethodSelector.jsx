@@ -19,7 +19,7 @@ export function PaymentMethodSelector({ selectedMethod, onSelectMethod }) {
       subtitle: 'Hơn 40 ngân hàng nội địa (Vietcombank, BIDV, Techcombank, MB...)',
       icon: Landmark,
       badge: 'Phổ biến',
-      iconBg: 'bg-blue-50 text-blue-600 border-blue-200',
+      iconBg: 'bg-sage-50 text-sage-700 border-sage-200',
     },
     {
       id: 'credit_card',
@@ -75,7 +75,7 @@ export function PaymentMethodSelector({ selectedMethod, onSelectMethod }) {
               onClick={() => onSelectMethod(method.id)}
               className={`group relative rounded-xl border p-4 cursor-pointer transition-all duration-200 flex items-center justify-between ${
                 isSelected
-                  ? 'border-blue-500 bg-blue-50/40 shadow-sm ring-2 ring-blue-500/20'
+                  ? 'border-sage-600 bg-sage-50/40 shadow-sm ring-2 ring-sage-600/20'
                   : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70'
               }`}
             >
@@ -84,7 +84,7 @@ export function PaymentMethodSelector({ selectedMethod, onSelectMethod }) {
                 <div
                   className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
                     isSelected
-                      ? 'border-blue-600 bg-blue-600 text-white'
+                      ? 'border-sage-600 bg-sage-600 text-white'
                       : 'border-slate-300 bg-white group-hover:border-slate-400'
                   }`}
                 >
@@ -119,7 +119,7 @@ export function PaymentMethodSelector({ selectedMethod, onSelectMethod }) {
               <ChevronRight
                 className={`w-4 h-4 shrink-0 transition-transform ${
                   isSelected
-                    ? 'text-blue-600 translate-x-0.5'
+                    ? 'text-sage-700 translate-x-0.5'
                     : 'text-slate-300 group-hover:text-slate-400'
                 }`}
               />

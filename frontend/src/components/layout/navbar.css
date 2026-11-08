@@ -1,9 +1,66 @@
 .med-header {position:relative;z-index:20;background:white;border-bottom:1px solid var(--med-line);color:var(--med-ink)}
 .med-header nav {width:min(calc(100% - 40px),1180px);min-height:72px;margin:auto;padding:12px 0;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .med-brand,.header-actions,.header-actions a,.booking-switch button,.med-header form {display:flex;align-items:center;gap:8px}
-.med-brand {font-size:27px;font-weight:750;letter-spacing:-1.4px;color:var(--med-sage)}
-.med-header form {flex:1 1 180px;max-width:300px;padding:0 12px;border:1px solid var(--med-line);border-radius:8px;background:var(--med-paper);color:var(--med-muted)}
-.med-header input {width:100%;min-width:0;height:42px;background:transparent;font-size:14px}
+.med-brand {font-size:27px;font-weight:750;letter-spacing:-1.4px;color:var(--med-sage);text-decoration:none}
+.med-brand-logo {height:40px;max-width:180px;width:auto;object-fit:contain;display:block}
+.med-header form {
+  flex: 1 1 200px;
+  max-width: 320px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--med-line);
+  border-radius: 9999px;
+  background: var(--med-paper);
+  color: var(--med-muted);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.med-header form:focus-within {
+  border-color: var(--med-sage);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.15);
+}
+.med-header form svg {
+  color: var(--med-muted);
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+.med-header form:focus-within svg {
+  color: var(--med-sage);
+}
+.med-header input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  font-size: 14px;
+  color: var(--med-ink);
+  padding: 0;
+  margin: 0;
+}
+.med-header input:focus,
+.med-header input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+.med-header input::placeholder {
+  color: #8c9b8e;
+}
+.med-header input::-webkit-search-cancel-button {
+  cursor: pointer;
+  filter: opacity(0.5);
+  margin-left: 4px;
+}
+.med-header input::-webkit-search-cancel-button:hover {
+  filter: opacity(0.9);
+}
 .header-actions {margin-left:auto;flex-wrap:wrap;gap:8px;font-size:14px}
 .header-actions>a,.header-actions>button,.booking-switch button,.booking-links a {min-height:44px;padding:8px 12px;border-radius:8px;font-weight:600}
 .header-actions>a:hover,.booking-links a:hover {background:var(--med-tint)}

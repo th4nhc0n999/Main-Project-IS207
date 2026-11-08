@@ -17,16 +17,17 @@
 .clinic h2 svg,.booking-summary p svg {display:inline;vertical-align:middle}
 .clinic p {margin:10px 0;line-height:1.6}
 .clinic label {display:block;font-weight:600;font-size:14px}
-.clinic input:not([type=checkbox]),.clinic select,.clinic textarea {width:100%;display:block;min-height:44px;border:1px solid #a4b3a1;border-radius:8px;padding:9px 12px;margin:6px 0 14px;background:white;color:var(--med-ink);font-weight:400}
+.clinic input:not([type=checkbox]):not([type=radio]),.clinic select,.clinic textarea {width:100%;display:block;min-height:44px;border:1px solid #a4b3a1;border-radius:8px;padding:9px 12px;margin:6px 0 14px;background:white;color:var(--med-ink);font-weight:400}
 .clinic :is(select,input,textarea):disabled {background:#f2f4f1;color:#697469}
-.clinic input[type=checkbox] {accent-color:var(--med-sage)}
+.clinic input[type=checkbox],.clinic input[type=radio] {accent-color:var(--med-sage);width:auto;min-height:auto;margin:0;display:inline-block}
 .clinic button,.clinic .action-link {display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 18px;border-radius:8px;background:var(--med-sage);color:white;font-weight:600;text-decoration:none}
 .clinic button:hover:not(:disabled),.clinic .action-link:hover {background:#274d23}
 .clinic button:disabled {background:#d7dfd4;color:#485246;cursor:not-allowed}
 .clinic .secondary-action,.clinic [type=button] {background:var(--med-tint);color:var(--med-sage);margin-block:8px}
 .clinic .secondary-action:hover,.clinic [type=button]:hover:not(:disabled) {color:white}
 .clinic a {color:var(--med-sage);text-underline-offset:3px;text-decoration:underline}
-:focus-visible {outline:3px solid #477044;outline-offset:3px}
+:focus-visible:not(input):not(textarea):not(select) {outline:3px solid #477044;outline-offset:3px}
+.clinic input:focus-visible:not([type=checkbox]):not([type=radio]), .clinic select:focus-visible, .clinic textarea:focus-visible {outline:none;border-color:var(--med-sage);box-shadow:0 0 0 3px rgba(45,90,39,0.15)}
 .clinic .results,.clinic .filters {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:16px}
 .clinic article,.clinic .filters,.profile-form,.booking-summary {background:white;border:1px solid var(--med-line);border-radius:14px;padding:clamp(18px,2.5vw,32px);min-width:0}
 .clinic .filters {align-items:end}

@@ -6,8 +6,10 @@
 .directory-hero>img {width:100%;height:100%;max-height:300px;object-fit:cover}
 .directory h1 {font-size:clamp(30px,3.5vw,44px);line-height:1.15;font-weight:700;letter-spacing:-.04em}
 .directory-hero p {margin:12px 0 24px;color:#eaf0e5}
-.directory-search {background:white;color:var(--med-muted);border-radius:8px;padding:0 14px;max-width:530px}
-.directory-search input {background:transparent;min-width:0;width:100%;height:48px;color:var(--med-ink)}
+.directory-search {background:white;color:var(--med-muted);border:1px solid var(--med-line);border-radius:8px;padding:0 14px;max-width:530px;transition:all 0.2s ease}
+.directory-search:focus-within {border-color:var(--med-sage);box-shadow:0 0 0 3px rgba(45,90,39,0.15)}
+.directory-search input {background:transparent !important;min-width:0;width:100%;height:48px;color:var(--med-ink);border:none !important;outline:none !important;box-shadow:none !important}
+.directory-search input:focus,.directory-search input:focus-visible {outline:none !important;border:none !important;box-shadow:none !important}
 .directory-tabs {border-bottom:1px solid var(--med-line);gap:24px;margin:12px 0 28px}
 .directory-tabs a {padding:14px 4px;border-bottom:3px solid transparent;font-weight:600}
 .directory-tabs [aria-current=page] {border-color:var(--med-coral);color:var(--med-sage)}
