@@ -41,6 +41,7 @@ export default function HospitalBookingPage() {
   const [slots, setSlots] = useState([])
   const [attachments, setAttachments] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(null)
   const [form, setForm] = useState({
     specialty_id: '',
     exam_type_id: '',
@@ -660,6 +661,9 @@ export default function HospitalBookingPage() {
                             .join('')
                             .toUpperCase()
                         : 'BN'
+                      const genderLabel = p.gender === 'female' ? 'Nữ' : p.gender === 'other' ? 'Khác' : 'Nam'
+                      const code = `BN-${String(p.id).padStart(6, '0')}`
+
                       return (
                         <div
                           key={p.id}
@@ -668,26 +672,55 @@ export default function HospitalBookingPage() {
                             change('patient_profile_id', String(p.id))
                           }}
                         >
-                          <div className="patient-card-left">
-                            <div
-                              className="patient-initials-avatar"
-                              style={{
-                                background: isSelected ? 'var(--med-sage)' : '#3b6e34',
-                              }}
-                            >
-                              {initials}
-                            </div>
-                            <div className="patient-card-info">
-                              <h3>
-                                {p.full_name}
-                                {p.is_default && <span className="patient-primary-tag">Chính</span>}
-                              </h3>
-                              <div className="patient-card-meta">
-                                <div>Mối quan hệ: {p.relationship || 'Bản thân'}</div>
+                          <div className="patient-card-header-row">
+                            <div className="patient-card-left">
+                              <div
+                                className="patient-initials-avatar"
+                                style={{
+                                  background: isSelected ? 'var(--med-sage)' : '#3b6e34',
+                                }}
+                              >
+                                {initials}
+                              </div>
+                              <div className="patient-card-info">
+                                <h3>
+                                  {p.full_name}
+                                  <span className="patient-primary-tag">
+                                    {p.is_default || p.relationship === 'Bản thân' ? 'Tôi' : p.relationship || 'Chính'}
+                                  </span>
+                                </h3>
+                                <div className="text-xs text-slate-500">{p.dob || '--'}</div>
                               </div>
                             </div>
+                            <div className="patient-radio-circle" />
                           </div>
-                          <div className="patient-radio-circle" />
+
+                          {/* Detailed structured info */}
+                          <div className="patient-card-details-grid">
+                            <span className="detail-key">Mã bệnh nhân</span>
+                            <span className="detail-val font-mono">{p.code || code}</span>
+                            <span className="detail-key">Họ và tên</span>
+                            <span className="detail-val">{p.full_name}</span>
+                            <span className="detail-key">Giới tính</span>
+                            <span className="detail-val">{genderLabel}</span>
+                            <span className="detail-key">Ngày sinh</span>
+                            <span className="detail-val">{p.dob || '--'}</span>
+                            <span className="detail-key">Số điện thoại</span>
+                            <span className="detail-val">{p.phone || '--'}</span>
+                          </div>
+
+                          {/* Edit profile button */}
+                          <button
+                            type="button"
+                            className="btn-edit-profile"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setEditingProfile(p)
+                              setIsModalOpen(true)
+                            }}
+                          >
+                            Điều chỉnh
+                          </button>
                         </div>
                       )
                     })}
@@ -697,7 +730,10 @@ export default function HospitalBookingPage() {
                 <div className="mb-4">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                      setEditingProfile(null)
+                      setIsModalOpen(true)
+                    }}
                     className="btn-add-profile"
                   >
                     <Plus size={16} /> Thêm hồ sơ mới
@@ -848,10 +884,22 @@ export default function HospitalBookingPage() {
 
       <ProfileModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        initialData={editingProfile}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingProfile(null)
+        }}
         onCreated={(newProfile) => {
           setOptions((o) => ({ ...o, profiles: [...(o?.profiles || []), newProfile] }))
           change('patient_profile_id', String(newProfile.id))
+        }}
+        onUpdated={(updatedProfile) => {
+          setOptions((o) => ({
+            ...o,
+            profiles: (o?.profiles || []).map((p) =>
+              String(p.id) === String(updatedProfile.id) ? { ...p, ...updatedProfile } : p
+            ),
+          }))
         }}
       />
     </section>

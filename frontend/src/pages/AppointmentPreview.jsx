@@ -82,6 +82,7 @@ export default function AppointmentPreview({ hospital = false }) {
   const [symptoms, setSymptoms] = useState('')
   const [attachments, setAttachments] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(null)
   const [summaryCollapsed, setSummaryCollapsed] = useState(false)
 
   const activeProfile = profiles.find(p => p.id === selectedProfileId) || profiles[0]
@@ -301,7 +302,7 @@ export default function AppointmentPreview({ hospital = false }) {
                   Chọn hồ sơ cần khám…
                 </label>
 
-                {/* Profile Card List (Ảnh 3 & 4) */}
+                {/* Profile Card List (Khớp với UI người dùng yêu cầu) */}
                 <div className="profile-card-list">
                   {profiles.map(p => {
                     const isSelected = p.id === selectedProfileId
@@ -313,34 +314,62 @@ export default function AppointmentPreview({ hospital = false }) {
                           .join('')
                           .toUpperCase()
                       : 'BN'
+                    const genderLabel = p.gender === 'female' ? 'Nữ' : p.gender === 'other' ? 'Khác' : 'Nam'
+                    const code = `BN-${String(p.id).padStart(6, '0')}`
+
                     return (
                       <div
                         key={p.id}
                         className={`patient-profile-card ${isSelected ? 'selected' : ''}`}
                         onClick={() => setSelectedProfileId(p.id)}
                       >
-                        <div className="patient-card-left">
-                          <div
-                            className="patient-initials-avatar"
-                            style={{ background: isSelected ? 'var(--med-sage)' : '#3b6e34' }}
-                          >
-                            {initials}
-                          </div>
-                          <div className="patient-card-info">
-                            <h3>
-                              {p.full_name}
-                              {p.is_default && <span className="patient-primary-tag">Chính</span>}
-                            </h3>
-                            <div className="patient-card-meta">
-                              <div>Ngày sinh: {p.dob || '--'}</div>
-                              <div>Số điện thoại: {p.phone || '--'}</div>
-                              {p.relationship && (
-                                <div className="text-xs text-slate-500 mt-0.5">Quan hệ: {p.relationship}</div>
-                              )}
+                        <div className="patient-card-header-row">
+                          <div className="patient-card-left">
+                            <div
+                              className="patient-initials-avatar"
+                              style={{ background: isSelected ? 'var(--med-sage)' : '#3b6e34' }}
+                            >
+                              {initials}
+                            </div>
+                            <div className="patient-card-info">
+                              <h3>
+                                {p.full_name}
+                                <span className="patient-primary-tag">
+                                  {p.is_default || p.relationship === 'Bản thân' ? 'Tôi' : p.relationship || 'Chính'}
+                                </span>
+                              </h3>
+                              <div className="text-xs text-slate-500">{p.dob || '--'}</div>
                             </div>
                           </div>
+                          <div className="patient-radio-circle" />
                         </div>
-                        <div className="patient-radio-circle" />
+
+                        {/* Detailed structured info */}
+                        <div className="patient-card-details-grid">
+                          <span className="detail-key">Mã bệnh nhân</span>
+                          <span className="detail-val font-mono">{p.code || code}</span>
+                          <span className="detail-key">Họ và tên</span>
+                          <span className="detail-val">{p.full_name}</span>
+                          <span className="detail-key">Giới tính</span>
+                          <span className="detail-val">{genderLabel}</span>
+                          <span className="detail-key">Ngày sinh</span>
+                          <span className="detail-val">{p.dob || '--'}</span>
+                          <span className="detail-key">Số điện thoại</span>
+                          <span className="detail-val">{p.phone || '--'}</span>
+                        </div>
+
+                        {/* Edit profile button */}
+                        <button
+                          type="button"
+                          className="btn-edit-profile"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setEditingProfile(p)
+                            setIsModalOpen(true)
+                          }}
+                        >
+                          Điều chỉnh
+                        </button>
                       </div>
                     )
                   })}
@@ -350,7 +379,10 @@ export default function AppointmentPreview({ hospital = false }) {
                   <button
                     type="button"
                     className="btn-add-profile"
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                      setEditingProfile(null)
+                      setIsModalOpen(true)
+                    }}
                   >
                     <Plus size={16} /> Thêm hồ sơ mới
                   </button>
@@ -488,10 +520,19 @@ export default function AppointmentPreview({ hospital = false }) {
 
       <ProfileModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        initialData={editingProfile}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingProfile(null)
+        }}
         onCreated={newProfile => {
           setProfiles(prev => [...prev, newProfile])
           setSelectedProfileId(newProfile.id)
+        }}
+        onUpdated={updatedProfile => {
+          setProfiles(prev =>
+            prev.map(p => (String(p.id) === String(updatedProfile.id) ? { ...p, ...updatedProfile } : p))
+          )
         }}
       />
     </section>

@@ -36,6 +36,7 @@ export default function BookingConfirmPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(null)
   const [summaryCollapsed, setSummaryCollapsed] = useState(false)
   const key = useRef(null)
   const navigate = useNavigate()
@@ -186,6 +187,9 @@ export default function BookingConfirmPage() {
                       const initials = p.full_name
                         ? p.full_name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase()
                         : 'BN'
+                      const genderLabel = p.gender === 'female' ? 'Nữ' : p.gender === 'other' ? 'Khác' : 'Nam'
+                      const code = `BN-${String(p.id).padStart(6, '0')}`
+
                       return (
                         <div
                           key={p.id}
@@ -196,30 +200,55 @@ export default function BookingConfirmPage() {
                             setError('')
                           }}
                         >
-                          <div className="patient-card-left">
-                            <div
-                              className="patient-initials-avatar"
-                              style={{
-                                background: isSelected ? 'var(--med-sage)' : '#3b6e34',
-                              }}
-                            >
-                              {initials}
-                            </div>
-                            <div className="patient-card-info">
-                              <h3>
-                                {p.full_name}
-                                {p.is_default && <span className="patient-primary-tag">Chính</span>}
-                              </h3>
-                              <div className="patient-card-meta">
-                                <div>Ngày sinh: {p.dob || '--'}</div>
-                                <div>Số điện thoại: {p.phone || '--'}</div>
-                                {p.relationship && (
-                                  <div className="text-xs text-slate-500 mt-0.5">Quan hệ: {p.relationship}</div>
-                                )}
+                          <div className="patient-card-header-row">
+                            <div className="patient-card-left">
+                              <div
+                                className="patient-initials-avatar"
+                                style={{
+                                  background: isSelected ? 'var(--med-sage)' : '#3b6e34',
+                                }}
+                              >
+                                {initials}
+                              </div>
+                              <div className="patient-card-info">
+                                <h3>
+                                  {p.full_name}
+                                  <span className="patient-primary-tag">
+                                    {p.is_default || p.relationship === 'Bản thân' ? 'Tôi' : p.relationship || 'Chính'}
+                                  </span>
+                                </h3>
+                                <div className="text-xs text-slate-500">{p.dob || '--'}</div>
                               </div>
                             </div>
+                            <div className="patient-radio-circle" />
                           </div>
-                          <div className="patient-radio-circle" />
+
+                          {/* Detailed structured info */}
+                          <div className="patient-card-details-grid">
+                            <span className="detail-key">Mã bệnh nhân</span>
+                            <span className="detail-val font-mono">{p.code || code}</span>
+                            <span className="detail-key">Họ và tên</span>
+                            <span className="detail-val">{p.full_name}</span>
+                            <span className="detail-key">Giới tính</span>
+                            <span className="detail-val">{genderLabel}</span>
+                            <span className="detail-key">Ngày sinh</span>
+                            <span className="detail-val">{p.dob || '--'}</span>
+                            <span className="detail-key">Số điện thoại</span>
+                            <span className="detail-val">{p.phone || '--'}</span>
+                          </div>
+
+                          {/* Edit profile button */}
+                          <button
+                            type="button"
+                            className="btn-edit-profile"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setEditingProfile(p)
+                              setIsModalOpen(true)
+                            }}
+                          >
+                            Điều chỉnh
+                          </button>
                         </div>
                       )
                     })}
@@ -230,7 +259,10 @@ export default function BookingConfirmPage() {
                 <div className="mt-3">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                      setEditingProfile(null)
+                      setIsModalOpen(true)
+                    }}
                     className="btn-add-profile"
                   >
                     <Plus size={16} /> Thêm hồ sơ mới
@@ -349,9 +381,17 @@ export default function BookingConfirmPage() {
 
       <ProfileModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        initialData={editingProfile}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingProfile(null)
+        }}
         onCreated={newProfile => {
           setProfileId(newProfile.id)
+          refresh(v => v + 1)
+          key.current = null
+        }}
+        onUpdated={updatedProfile => {
           refresh(v => v + 1)
           key.current = null
         }}
