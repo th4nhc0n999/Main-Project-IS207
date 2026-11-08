@@ -3,6 +3,7 @@ import { Check, Clock3, RefreshCw, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import doctorBookingApi from '@/api/doctorBookingApi'
 import DoctorRejectionDialog from './DoctorRejectionDialog'
+import DoctorBookingRows from './DoctorBookingRows'
 
 const errorMessages = {
   UNAUTHENTICATED: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
@@ -159,23 +160,17 @@ export default function PendingDoctorApprovals({ onDecision }) {
     {loading ? <p role="status" className="rounded-[14px] border border-[var(--med-line)] bg-white p-6">Đang tải lịch chờ duyệt…</p>
       : current.error ? <div role="alert" className="rounded-lg bg-[#FFF2EE] p-4 text-[#842E25]"><p>{current.error}</p><Button variant="outline" className="mt-3 min-h-11" onClick={reload}>Thử lại</Button></div>
         : snapshot.items.length === 0 ? <p role="status" className="rounded-[14px] border border-[var(--med-line)] bg-white p-6 text-[var(--med-muted)]">Chưa có yêu cầu chờ duyệt.</p>
-          : <div className="grid gap-4">{snapshot.items.map(booking => {
+          : <DoctorBookingRows bookings={snapshot.items} renderDeadline={booking => {
+            const remaining = secondsLeft(booking, time)
+            return <p className={`flex items-center gap-2 text-sm tabular-nums ${remaining === 0 ? 'text-[#842E25]' : 'text-sage-700'}`}><Clock3 size={16}/>{countdown(remaining)}</p>
+          }} renderActions={booking => {
             const remaining = secondsLeft(booking, time)
             const disabled = busy || booking.status !== 'pending_approval' || remaining === null || remaining <= 0
-            return <article key={booking.id} className="grid gap-4 rounded-[14px] border border-[var(--med-line)] bg-white p-5 md:grid-cols-[1fr_auto]">
-              <div><div className="mb-3 flex flex-wrap items-center gap-3"><h3 className="font-semibold">{booking.code}</h3><span className="rounded-full bg-sage-100 px-3 py-1 text-sm text-sage-700">Chờ duyệt</span></div>
-                <p className="font-semibold">{booking.patient?.full_name || 'Chưa có tên người khám'}</p>
-                <p className="mt-2 tabular-nums text-[var(--med-muted)]">{booking.slot?.work_date} · {booking.slot?.start_time?.slice(0, 5)} – {booking.slot?.end_time?.slice(0, 5)}</p>
-              </div>
-              <div className="flex flex-col gap-3 md:items-end">
-                <p className={`flex items-center gap-2 text-sm tabular-nums ${remaining === 0 ? 'text-[#842E25]' : 'text-sage-700'}`}><Clock3 size={16}/>{countdown(remaining)}</p>
-                <div className="flex flex-wrap gap-3">
+            return <>
                   <Button className="min-h-11" disabled={disabled} onClick={() => decide(booking, 'approve', undefined, performance.now())}><Check size={16}/>{pending?.id === booking.id && pending.action === 'approve' ? 'Đang gửi…' : 'Chấp nhận'}</Button>
                   <Button variant="outline" className="min-h-11 text-[#842E25]" disabled={disabled} onClick={() => { setIssue(''); if (canDecide(booking, performance.now())) setRejectionId(booking.id); else reload() }}><X size={16}/>Từ chối</Button>
-                </div>
-              </div>
-            </article>
-          })}</div>}
+            </>
+          }}/>}
     {snapshot && snapshot.pagination.last_page > 1 && <nav aria-label="Phân trang lịch chờ duyệt" className="mt-5 flex flex-wrap items-center justify-end gap-3">
       <Button variant="outline" className="min-h-11" disabled={busy || page <= 1} onClick={() => { setRejectionId(null); setPage(value => value - 1) }}>Trang trước</Button>
       <span className="text-sm">Trang {snapshot.pagination.current_page}/{snapshot.pagination.last_page}</span>

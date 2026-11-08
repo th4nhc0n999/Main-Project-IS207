@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import BookingSignIn from '@/components/BookingSignIn'
 import PendingDoctorApprovals from '@/components/bkd/PendingDoctorApprovals'
+import DoctorBookingList from '@/components/bkd/DoctorBookingList'
 import { Button } from '@/components/ui/button'
 import useApi from '@/api/useApi'
 import client from '@/api/axiosClient'
@@ -16,15 +17,20 @@ export default function DoctorAppointments() {
 
 function DoctorWorkspace() {
   const [revision, refresh] = useState(0)
+  const [tab, setTab] = useState('pending')
+  const tabs = [['pending', 'Chờ duyệt'], ['appointments', 'Lịch khám']]
   return <section className="mx-auto max-w-[1180px] px-5 py-10 font-sans text-[var(--med-ink)]">
     <h1 className="mb-2 text-3xl font-bold">Lịch tiếp khám</h1>
     <p className="mb-6 text-[var(--med-muted)]">Xem yêu cầu đã thanh toán và quyết định trước khi hết hạn duyệt.</p>
     <div role="tablist" aria-label="Lịch bác sĩ" className="mb-6 border-b border-[var(--med-line)]">
-      <button id="pending-approvals-tab" type="button" role="tab" aria-selected="true" aria-controls="pending-approvals-panel"
-        className="min-h-11 border-b-[3px] border-[var(--med-coral)] px-4 font-semibold text-sage-600">Chờ duyệt</button>
+      {tabs.map(([value, label], index) => <button key={value} id={`doctor-${value}-tab`} type="button" role="tab" aria-selected={tab === value} aria-controls={`doctor-${value}-panel`} tabIndex={tab === value ? 0 : -1}
+        onClick={() => setTab(value)} onKeyDown={event => {
+          const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length : event.key === 'ArrowLeft' ? (index + tabs.length - 1) % tabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : null
+          if (next !== null) { event.preventDefault(); setTab(tabs[next][0]); document.getElementById(`doctor-${tabs[next][0]}-tab`)?.focus() }
+        }} className={`min-h-11 border-b-[3px] px-4 font-semibold ${tab === value ? 'border-[var(--med-coral)] text-sage-600' : 'border-transparent text-[var(--med-muted)]'}`}>{label}</button>)}
     </div>
-    <div id="pending-approvals-panel" role="tabpanel" aria-labelledby="pending-approvals-tab">
-      <PendingDoctorApprovals onDecision={() => refresh(value => value + 1)}/>
+    <div id={`doctor-${tab}-panel`} role="tabpanel" aria-labelledby={`doctor-${tab}-tab`}>
+      {tab === 'pending' ? <PendingDoctorApprovals onDecision={() => refresh(value => value + 1)}/> : <DoctorBookingList revision={revision}/>}
     </div>
     <ExistingAppointments revision={revision}/>
   </section>
