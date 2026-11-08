@@ -67,9 +67,9 @@ export default function AppointmentPreview({ hospital = false }) {
   const [profiles, setProfiles] = useState([
     {
       id: 1,
-      full_name: 'Nguyễn Quốc Huy',
-      dob: '04/04/2006',
-      phone: '0905 756 842',
+      full_name: 'Nguyễn Văn An',
+      dob: '15/08/1990',
+      phone: '0912 345 678',
       relationship: 'Bản thân',
       is_default: true,
     },

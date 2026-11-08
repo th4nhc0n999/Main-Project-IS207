@@ -288,7 +288,7 @@ export default function ProfileModal({
               <input
                 required
                 name="full_name"
-                placeholder="Nguyễn Quốc Huy"
+                placeholder="Ví dụ: Nguyễn Văn An"
                 className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-sage-600 focus:ring-1 focus:ring-sage-600 bg-white"
                 value={formData.full_name}
                 onChange={handleChange}
@@ -303,9 +303,9 @@ export default function ProfileModal({
                 required
                 type="tel"
                 name="phone"
-                placeholder="0905756842"
+                placeholder="Ví dụ: 0912345678"
                 pattern="^(0[3|5|7|8|9])[0-9]{8}$"
-                title="Số điện thoại 10 số hợp lệ (ví dụ: 0905756842)"
+                title="Số điện thoại 10 số hợp lệ (ví dụ: 0912345678)"
                 className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-sage-600 focus:ring-1 focus:ring-sage-600 bg-white"
                 value={formData.phone}
                 onChange={handleChange}
@@ -447,7 +447,7 @@ export default function ProfileModal({
               </label>
               <input
                 name="identity_card_number"
-                placeholder="049306002785"
+                placeholder="Số CMND hoặc 12 số CCCD"
                 maxLength={12}
                 className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-sage-600 focus:ring-1 focus:ring-sage-600 bg-white"
                 value={formData.identity_card_number}
