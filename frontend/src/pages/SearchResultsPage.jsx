@@ -86,19 +86,12 @@ export default function SearchResultsPage() {
   // Counts for each category tab
   const totalAll = allData.length
   const totalDoctors = allData.filter((r) => r.kind === 'doctor').length
-  const totalHospitals = allData.filter(
-    (r) => r.kind === 'hospital' && !/phòng khám|clinic/i.test(r.name)
-  ).length
-  const totalClinics = allData.filter(
-    (r) => r.kind === 'hospital' && /phòng khám|clinic/i.test(r.name)
-  ).length
+  const totalHospitals = allData.filter((r) => r.kind === 'hospital').length
 
   // Filter rows based on active category
   const rows = allData.filter((row) => {
     if (currentType === 'doctor') return row.kind === 'doctor'
-    const isClinic = /phòng khám|clinic/i.test(row.name)
-    if (currentType === 'clinic') return row.kind === 'hospital' && isClinic
-    if (currentType === 'hospital') return row.kind === 'hospital' && !isClinic
+    if (currentType === 'hospital') return row.kind === 'hospital'
     return true
   })
 
@@ -153,9 +146,7 @@ export default function SearchResultsPage() {
       ? 'Nhập tên bác sĩ cần tìm…'
       : currentType === 'hospital'
       ? 'Nhập tên bệnh viện cần tìm…'
-      : currentType === 'clinic'
-      ? 'Nhập tên phòng khám…'
-      : 'Tên bác sĩ, bệnh viện hoặc phòng khám…'
+      : 'Tên bác sĩ hoặc bệnh viện…'
 
   return (
     <section className="search-results-container">
@@ -163,11 +154,11 @@ export default function SearchResultsPage() {
       <div className="search-header-row">
         <h1 className="search-header-title">Tìm nơi khám</h1>
         <p className="search-header-desc">
-          Tra cứu bác sĩ chuyên khoa và cơ sở y tế uy tín trên toàn hệ thống MedSi.
+          Tra cứu bác sĩ chuyên khoa và bệnh viện uy tín trên toàn hệ thống MedSi.
         </p>
       </div>
 
-      {/* Category Tabs: Tất cả / Bác sĩ / Bệnh viện / Phòng khám */}
+      {/* Category Tabs: Tất cả / Bác sĩ / Bệnh viện */}
       <div className="search-type-pills" role="tablist" aria-label="Lọc theo đối tượng khám">
         <button
           type="button"
@@ -203,20 +194,6 @@ export default function SearchResultsPage() {
           <span>Bệnh viện</span>
           <span className="type-pill-count">{totalHospitals}</span>
         </button>
-
-        {totalClinics > 0 && (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={currentType === 'clinic'}
-            className={`type-pill-btn ${currentType === 'clinic' ? 'active' : ''}`}
-            onClick={() => handleTypeChange('clinic')}
-          >
-            <Building2 size={16} />
-            <span>Phòng khám</span>
-            <span className="type-pill-count">{totalClinics}</span>
-          </button>
-        )}
       </div>
 
       {/* Filter Card */}
@@ -377,8 +354,6 @@ export default function SearchResultsPage() {
                 ? 'bác sĩ'
                 : currentType === 'hospital'
                 ? 'bệnh viện'
-                : currentType === 'clinic'
-                ? 'phòng khám'
                 : 'kết quả'}
             </span>
           </div>
@@ -474,9 +449,7 @@ export default function SearchResultsPage() {
                       ) : (
                         <>
                           <div>
-                            <span className="card-specialty-tag">
-                              {/phòng khám|clinic/i.test(r.name) ? 'Phòng khám' : 'Bệnh viện'}
-                            </span>
+                            <span className="card-specialty-tag">Bệnh viện</span>
                             <h2 className="card-provider-name">
                               <Link to={targetLink}>{r.name}</Link>
                             </h2>

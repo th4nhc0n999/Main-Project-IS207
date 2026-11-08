@@ -9,7 +9,7 @@ import { initialDoctors, initialHospitals, initialSpecialties } from '@/lib/mock
 import photo from '@/assets/consultation.jpg'
 import './home.css'
 
-const tabs = [['doctor','Bác sĩ',Stethoscope], ['hospital','Bệnh viện',Hospital], ['clinic','Phòng khám',Building2]]
+const tabs = [['doctor', 'Bác sĩ', Stethoscope], ['hospital', 'Bệnh viện', Hospital]]
 export default function HomePage() {
   const {user} = useAuth()
   const [type,setType] = useState('doctor')
@@ -22,9 +22,9 @@ export default function HomePage() {
   const doctors = sampleDoctors ? initialDoctors : liveDoctors
   const label = tabs.find(([key])=>key===type)[1].toLowerCase()
   return <div className="med-home"><div className="med-wrap">
-    <section className="med-hero"><div className="med-copy"><h1>{user?.role === 'patient' ? <>Xin chào,<br/><em>{user.name || 'bạn'}.</em></> : <>Đặt lịch khám<br/><em>theo nhu cầu.</em></>}</h1><p>Tìm bác sĩ, bệnh viện và phòng khám.<br/>Chọn thời gian khám phù hợp với bạn.</p><div className="booking-entry"><Link to="/dat-kham/bac-si"><Stethoscope size={18}/>Đặt lịch bác sĩ</Link><Link to="/dat-kham/benh-vien"><Hospital size={18}/>Đặt lịch bệnh viện</Link></div></div><img src={photo} alt="Buổi tư vấn tại phòng khám"/></section>
+    <section className="med-hero"><div className="med-copy"><h1>{user?.role === 'patient' ? <>Xin chào,<br/><em>{user.name || 'bạn'}.</em></> : <>Đặt lịch khám<br/><em>theo nhu cầu.</em></>}</h1><p>Tìm bác sĩ và bệnh viện uy tín.<br/>Chọn thời gian khám phù hợp với bạn.</p><div className="booking-entry"><Link to="/dat-kham/bac-si"><Stethoscope size={18}/>Đặt lịch bác sĩ</Link><Link to="/dat-kham/benh-vien"><Hospital size={18}/>Đặt lịch bệnh viện</Link></div></div><img src={photo} alt="Buổi tư vấn y tế"/></section>
     <section className="med-search" aria-label="Tìm nơi khám"><div className="med-tabs">{tabs.map(([key,title,Icon])=><button key={key} aria-pressed={type===key} onClick={()=>setType(key)}><Icon size={18}/>{title}</button>)}</div>
-    <form action={type==='clinic'?'/doctors':'/dat-kham/'+(type==='doctor'?'bac-si':'benh-vien')}><input type="hidden" name="type" value={type}/><label><Search size={20}/><input name="q" aria-label={'Tên '+label} type="search" maxLength={150} placeholder={'Nhập tên '+label+'…'}/></label><button className="med-button">Tìm kiếm <ArrowRight size={16}/></button></form></section>
+    <form action={'/dat-kham/'+(type==='doctor'?'bac-si':'benh-vien')}><input type="hidden" name="type" value={type}/><label><Search size={20}/><input name="q" aria-label={'Tên '+label} type="search" maxLength={150} placeholder={'Nhập tên '+label+'…'}/></label><button className="med-button">Tìm kiếm <ArrowRight size={16}/></button></form></section>
     <PatientOverview/>
     <section><div className="med-heading"><h2>Khám theo chuyên khoa</h2>
       {specialties.length > 6 && <button className="specialty-toggle" aria-expanded={expanded} onClick={()=>setExpanded(!expanded)}>{expanded ? 'Thu gọn' : 'Xem tất cả'}</button>}</div>
