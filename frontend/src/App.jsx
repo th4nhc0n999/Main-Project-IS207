@@ -39,7 +39,7 @@ function App() {
             <Route path="/dat-kham/bac-si" element={<ProviderDirectory/>}/>
             <Route path="/dat-kham/benh-vien" element={<ProviderDirectory hospital/>}/>
             <Route path="/dat-lich/bac-si" element={<AppointmentPreview key="doctor"/>}/>
-            <Route path="/dat-lich/benh-vien" element={<AppointmentPreview key="hospital" hospital/>}/>
+            <Route path="/dat-lich/benh-vien" element={<HospitalBookingPage/>}/>
 
             {/* 2. Danh sách bác sĩ, bệnh viện */}
             <Route path="/doctors" element={<SearchResultsPage />} />

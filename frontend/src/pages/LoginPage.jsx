@@ -49,6 +49,32 @@ export default function LoginPage() {
         {error && <p role="alert">{error}</p>}
         <button className="login-submit" disabled={busy}>{busy?'Đang đăng nhập…':'Đăng nhập'}<ArrowRight size={17}/></button>
       </form>
+      <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px dashed #e2e8f0' }}>
+        <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.5rem', fontWeight: 500 }}>Điền nhanh tài khoản test:</p>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => { setEmail('patient1@medsi.vn'); setPassword('Patient@123456'); }}
+            style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer' }}
+          >
+            👤 Bệnh nhân
+          </button>
+          <button
+            type="button"
+            onClick={() => { setEmail('staff.choray@medsi.vn'); setPassword('Staff@123456'); }}
+            style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #86efac', background: '#f0fdf4', color: '#166534', cursor: 'pointer', fontWeight: 500 }}
+          >
+            🏥 Staff (BV Chợ Rẫy)
+          </button>
+          <button
+            type="button"
+            onClick={() => { setEmail('admin@medsi.vn'); setPassword('Admin@123456'); }}
+            style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #fde68a', background: '#fffbeb', color: '#92400e', cursor: 'pointer', fontWeight: 500 }}
+          >
+            🛡️ Admin
+          </button>
+        </div>
+      </div>
       <p className="login-register">Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link></p>
     </div>
   </section>
