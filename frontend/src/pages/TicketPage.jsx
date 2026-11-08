@@ -9,6 +9,7 @@ export default function TicketPage() {
   const { user, loading } = useAuth()
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -89,6 +90,22 @@ export default function TicketPage() {
       <p>Trạng thái phiếu: {data.ticket.status}</p>
       <div className="rounded-lg bg-sage-50 p-4"><h2 className="font-semibold">Dặn dò chuyên khoa</h2><p className="mt-2 whitespace-pre-wrap">{data.ticket.instructions || 'Vui lòng đến quầy tiếp đón trước giờ hẹn 15 phút.'}</p></div>
     </article>
-    <div className="flex gap-3 print:hidden"><button onClick={download} className="rounded-lg bg-sage-700 px-4 py-2 text-white">Tải phiếu PNG</button><button onClick={() => window.print()} className="rounded-lg border px-4 py-2">In phiếu</button></div>
+    <div className="flex flex-wrap gap-3 print:hidden">
+      <button onClick={download} className="rounded-lg bg-sage-700 px-4 py-2 text-white">Tải phiếu PNG</button>
+      <button onClick={() => window.print()} className="rounded-lg border px-4 py-2">In phiếu</button>
+      {data.ticket.qr_token && (
+        <button
+          type="button"
+          onClick={() => {
+            navigator.clipboard.writeText(data.ticket.qr_token)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+          }}
+          className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+        >
+          {copied ? '✓ Đã sao chép chuỗi JWT!' : '📋 Sao chép chuỗi QR (JWT) để test'}
+        </button>
+      )}
+    </div>
   </main>
 }
