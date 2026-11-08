@@ -21,6 +21,7 @@ class Refund extends Model
         'reason',
         'status',
         'refund_ref',
+        'gateway_refund_id',
         'requested_by',
         'approved_by',
         'requested_at',
@@ -54,7 +55,17 @@ class Refund extends Model
         return $this->belongsTo(User::class, 'requested_by');
     }
 
+    public function requestedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
+
     public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function approvedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
     }

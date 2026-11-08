@@ -54,14 +54,14 @@ export default function CheckInPage() {
             disabled={pending}
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            className="mt-2 min-h-32 w-full rounded-lg border border-slate-300 p-3 font-mono text-sm focus:border-sky-500 focus:outline-none"
+            className="mt-2 min-h-32 w-full rounded-lg border border-slate-300 p-3 font-mono text-sm focus:border-sage-500 focus:outline-none"
             placeholder="Dán chuỗi JWT mã QR tại đây..."
           />
         </label>
         <button
           type="submit"
           disabled={pending || !token.trim()}
-          className="rounded-lg bg-sky-700 px-5 py-3 text-white font-medium hover:bg-sky-800 disabled:opacity-50 transition-colors"
+          className="rounded-lg bg-sage-700 px-5 py-3 text-white font-medium hover:bg-sage-800 disabled:opacity-50 transition-colors"
         >
           {pending ? 'Đang kiểm tra…' : 'Xác nhận check-in'}
         </button>

@@ -3,6 +3,9 @@ import { AuthProvider } from "@/context/AuthContext"
 import PageLayout from "@/components/layout/PageLayout"
 
 // Core screens according to project specifications
+import DoctorAppointments from "@/pages/DoctorAppointments"
+import ProviderDirectory from "@/pages/ProviderDirectory"
+import AppointmentPreview from "@/pages/AppointmentPreview"
 import HomePage from "@/pages/HomePage"
 import SearchResultsPage from "@/pages/SearchResultsPage"
 import DoctorDetailPage from "@/pages/DoctorDetailPage"
@@ -33,6 +36,10 @@ function App() {
           <Route element={<PageLayout />}>
             {/* 1. Trang chủ */}
             <Route path="/" element={<HomePage />} />
+            <Route path="/dat-kham/bac-si" element={<ProviderDirectory/>}/>
+            <Route path="/dat-kham/benh-vien" element={<ProviderDirectory hospital/>}/>
+            <Route path="/dat-lich/bac-si" element={<AppointmentPreview key="doctor"/>}/>
+            <Route path="/dat-lich/benh-vien" element={<HospitalBookingPage/>}/>
 
             {/* 2. Danh sách bác sĩ, bệnh viện */}
             <Route path="/doctors" element={<SearchResultsPage />} />
@@ -44,6 +51,7 @@ function App() {
             <Route path="/booking/confirm" element={<BookingConfirmPage />} />
 
             {/* 3.2. Thanh toán đặt khám */}
+            <Route path="/bookings/:bookingId/refunds" element={<PaymentPage />} />
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/payments" element={<Navigate to="/payment" replace />} />
 
@@ -56,6 +64,7 @@ function App() {
             <Route path="/hospital-booking" element={<HospitalBookingPage />} />
             <Route path="/hospitals/:hospitalId/book" element={<HospitalBookingPage />} />
             <Route path="/bookings/:bookingId/ticket" element={<TicketPage />} />
+            <Route path="/doctor/appointments" element={<DoctorAppointments />} />
             <Route path="/check-in" element={<CheckInPage />} />
 
             {/* 6. Trang quản trị Admin */}
