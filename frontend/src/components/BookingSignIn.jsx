@@ -4,7 +4,7 @@ import { CalendarDays } from 'lucide-react'
 export default function BookingSignIn({ title }) {
   const location = useLocation()
   return <section className="clinic access-panel">
-    <CalendarDays size={32} aria-hidden="true"/>
+    <img src="/logo.png" alt="MedSi" style={{ height: '44px', width: 'auto', marginBottom: '16px', objectFit: 'contain' }} />
     <h1>{title}</h1>
     <p>Đăng nhập để sử dụng hồ sơ người khám của bạn.</p>
     <Link className="action-link" state={{returnTo: location.pathname + location.search}} to="/login">Đăng nhập</Link>

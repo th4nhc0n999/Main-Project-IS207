@@ -45,7 +45,9 @@ export default function Navbar() {
   const { user, logout } = useAuth()
   const location = useLocation()
   return <header className="med-header print:hidden"><nav aria-label="Điều hướng chính">
-    <Link className="med-brand" to="/"><HeartPulse size={32}/>MedSi</Link>
+    <Link className="med-brand" to="/" aria-label="Trang chủ MedSi">
+      <img src="/logo.png" alt="MedSi - Đặt lịch y tế trực tuyến" className="med-brand-logo" />
+    </Link>
     <form action="/doctors" role="search"><Search size={17}/><input name="q" type="search" maxLength={150} placeholder="Tìm nơi khám…" aria-label="Tìm nơi khám"/></form>
     <div className="header-actions">
       <Link className="browse-link" to="/doctors">Tìm nơi khám</Link>

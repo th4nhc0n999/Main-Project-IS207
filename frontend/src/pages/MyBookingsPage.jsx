@@ -352,7 +352,11 @@ export default function MyBookingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
+              <div className="hidden lg:flex items-center pr-3 border-r border-slate-200">
+                <img src="/logo.png" alt="MedSi" className="h-9 w-auto object-contain" />
+              </div>
+
               <Button asChild className="bg-sage-800 hover:bg-sage-700 text-white shadow-sm font-semibold text-xs sm:text-sm">
                 <Link to="/doctors" className="flex items-center gap-1.5">
                   <Stethoscope className="w-4 h-4" />

@@ -136,7 +136,10 @@ export default function AdminBookingsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex bg-white px-3 py-1.5 rounded-lg shadow-xs">
+              <img src="/logo.png" alt="MedSi" className="h-8 w-auto object-contain" />
+            </div>
             <Button asChild variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-semibold">
               <Link to="/admin/catalog">
                 <Database className="w-4 h-4 mr-1.5 text-amber-400" />
