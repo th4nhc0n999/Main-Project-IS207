@@ -393,28 +393,30 @@ function PaymentDetail({ id, refundsOnly }) {
                                   <div className="flex flex-col items-center">
                                     {tx.qr_svg ? (
                                       <div
-                                        className="p-3 bg-white rounded-xl shadow-xs border border-slate-200 max-w-[260px]"
+                                        className="p-4 bg-white rounded-2xl shadow-sm border border-slate-200 inline-block"
                                         dangerouslySetInnerHTML={{ __html: tx.qr_svg }}
                                       />
                                     ) : (
                                       <p className="text-sm text-slate-500">Đang tạo mã VietQR...</p>
                                     )}
                                     {tx.payment_description && (
-                                      <div className="mt-3 text-center text-xs text-slate-600 space-y-1">
-                                        <div className="flex items-center justify-center gap-1">
-                                          <span>Nội dung chuyển khoản:</span>
-                                          <strong className="font-mono text-slate-900">{tx.payment_description}</strong>
-                                          <button
-                                            type="button"
-                                            onClick={() => copyText(tx.payment_description)}
-                                            className="text-emerald-600 hover:text-emerald-800 p-0.5"
-                                          >
-                                            <Copy className="w-3.5 h-3.5" />
-                                          </button>
-                                          {copied && <span className="text-emerald-600 text-[10px]">Đã chép</span>}
+                                      <div className="mt-4 text-center text-xs text-slate-600 space-y-1.5 w-full max-w-sm">
+                                        <div className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-slate-200">
+                                          <span className="text-slate-500">Nội dung chuyển khoản:</span>
+                                          <div className="flex items-center gap-1.5 font-mono font-bold text-slate-900">
+                                            <span>{tx.payment_description}</span>
+                                            <button
+                                              type="button"
+                                              onClick={() => copyText(tx.payment_description)}
+                                              title="Sao chép nội dung"
+                                              className="text-emerald-600 hover:text-emerald-800 p-1 rounded-md hover:bg-emerald-50 transition-colors"
+                                            >
+                                              <Copy className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
                                         </div>
-                                        {tx.recipient && (
-                                          <p>Tài khoản: {tx.recipient.account} · BIN: {tx.recipient.bank_bin}</p>
+                                        {copied && (
+                                          <p className="text-emerald-600 font-medium text-[11px]">Đã chép nội dung chuyển khoản vào clipboard!</p>
                                         )}
                                       </div>
                                     )}
