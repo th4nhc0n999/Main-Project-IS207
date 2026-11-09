@@ -35,6 +35,7 @@ Route::middleware(['auth:sanctum', EnsureActiveBookingAccount::class, 'throttle:
     Route::get('/hospitals/{hospital}/booking-options', [HospitalBookingController::class, 'options'])->whereNumber('hospital');
     Route::post('/hospitals/{hospital}/slots', [HospitalBookingController::class, 'createSlot'])->whereNumber('hospital');
     Route::post('/hospital-bookings', [HospitalBookingController::class, 'store']);
+    Route::post('/hospital-bookings/{booking}/cancel', [HospitalBookingController::class, 'cancel'])->whereNumber('booking');
     Route::get('/me/bookings', [BookingHistoryController::class, 'index']);
     Route::get('/bookings', [BookingHistoryController::class, 'index']);
     Route::get('/bookings/{booking}/ticket', [TicketController::class, 'show'])->whereNumber('booking');
