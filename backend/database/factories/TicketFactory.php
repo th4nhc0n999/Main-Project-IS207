@@ -23,7 +23,7 @@ class TicketFactory extends Factory
             'queue_seq' => $seq,
             'queue_number' => sprintf('A%03d', $seq),
             'room_number' => 'Phòng 204',
-            'status' => TicketStatus::Issued,
+            'status' => TicketStatus::ISSUED,
             'check_in_at' => null,
             'instructions' => 'Đến trước giờ hẹn 15 phút tại quầy tiếp nhận.',
         ];

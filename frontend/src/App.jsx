@@ -6,7 +6,6 @@ import ScrollToTop from "@/components/layout/ScrollToTop"
 // Core screens according to project specifications
 import DoctorAppointments from "@/pages/DoctorAppointments"
 import ProviderDirectory from "@/pages/ProviderDirectory"
-import AppointmentPreview from "@/pages/AppointmentPreview"
 import HomePage from "@/pages/HomePage"
 import SearchResultsPage from "@/pages/SearchResultsPage"
 import DoctorDetailPage from "@/pages/DoctorDetailPage"
@@ -28,6 +27,12 @@ function MyBookingsRoute() {
   return ['profiles', 'account'].includes(params.get('tab')) ? <MyBookingsPage /> : <BookingHistoryPage />
 }
 
+function DoctorBookingEntry() {
+  const [params] = useSearchParams()
+  const id = params.get('id')
+  return <Navigate replace to={id && /^\d+$/.test(id) ? '/doctors/' + id : '/doctors?type=doctor'} />
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -40,7 +45,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/dat-kham/bac-si" element={<ProviderDirectory/>}/>
             <Route path="/dat-kham/benh-vien" element={<ProviderDirectory hospital/>}/>
-            <Route path="/dat-lich/bac-si" element={<AppointmentPreview key="doctor"/>}/>
+            <Route path="/dat-lich/bac-si" element={<DoctorBookingEntry/>}/>
             <Route path="/dat-lich/benh-vien" element={<HospitalBookingPage/>}/>
 
             {/* 2. Danh sách bác sĩ, bệnh viện */}
