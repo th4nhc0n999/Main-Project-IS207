@@ -12,12 +12,31 @@ const normalize = value => value.toLocaleLowerCase('vi').normalize('NFD').replac
 function ProviderCard({ provider, hospital }) {
   const p = provider
   return <article className={'provider-card' + (hospital ? ' facility' : '')}>
-    {hospital && <img className="facility-image" src={'/media/directory/hospital-'+p.id+'.jpg'} alt=""/>}
+    {hospital && (
+      <img
+        className="facility-image"
+        src={'/media/directory/hospital-' + p.id + '.jpg'}
+        alt={p.name}
+        onError={(e) => {
+          e.currentTarget.onerror = null
+          e.currentTarget.src = '/media/directory/hospital-1.jpg'
+        }}
+      />
+    )}
     <div className="provider-body">
       <header>
-        {!hospital && (p.avatar
-          ? <img className="provider-avatar" src={p.avatar} alt=""/>
-          : <span className="provider-avatar initials">{p.name.split(' ').slice(-2).map(word=>word[0]).join('')}</span>)}
+{!hospital && (
+  <img
+    className="provider-avatar"
+    src={p.avatar || `/media/directory/doctor-${p.id}.jpg`}
+    alt={p.name || ''}
+    onError={(e) => {
+      // Nếu lỗi ảnh thì ẩn thẻ img và fallback về cách hiện chữ (hoặc đổi src sang ảnh mặc định)
+      e.currentTarget.onerror = null
+      e.currentTarget.src = '/media/directory/doctor-1.jpg'
+    }}
+  />
+)}
         <div>{!hospital && <small>{p.specialty_name}</small>}<h3>{p.name}</h3></div>
       </header>
       <p className="provider-location"><MapPin size={16}/>{hospital ? p.address : p.workplace}</p>

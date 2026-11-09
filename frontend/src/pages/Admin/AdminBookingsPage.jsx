@@ -136,7 +136,10 @@ export default function AdminBookingsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex bg-white px-3 py-1.5 rounded-lg shadow-xs">
+              <img src="/logo.png" alt="MedSi" className="h-8 w-auto object-contain" />
+            </div>
             <Button asChild variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-semibold">
               <Link to="/admin/catalog">
                 <Database className="w-4 h-4 mr-1.5 text-amber-400" />
@@ -152,31 +155,31 @@ export default function AdminBookingsPage() {
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Tổng lượt đặt</span>
-            <div className="text-2xl font-black text-slate-900 mt-1">{metrics.total}</div>
+            <div className="text-2xl font-bold text-slate-900 mt-1">{metrics.total}</div>
             <span className="text-[10px] text-slate-500">Toàn bộ phiếu khám</span>
           </div>
 
           <div className="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-sm">
             <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider block">Chờ duyệt</span>
-            <div className="text-2xl font-black text-amber-600 mt-1">{metrics.pending}</div>
+            <div className="text-2xl font-bold text-amber-600 mt-1">{metrics.pending}</div>
             <span className="text-[10px] text-amber-600">Cần xử lý ngay</span>
           </div>
 
           <div className="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/30 shadow-sm">
             <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block">Đã duyệt</span>
-            <div className="text-2xl font-black text-emerald-600 mt-1">{metrics.confirmed}</div>
+            <div className="text-2xl font-bold text-emerald-600 mt-1">{metrics.confirmed}</div>
             <span className="text-[10px] text-emerald-600">Sẵn sàng phục vụ</span>
           </div>
 
           <div className="bg-white p-4 rounded-2xl border border-purple-200 bg-purple-50/30 shadow-sm">
             <span className="text-[11px] font-bold text-purple-700 uppercase tracking-wider block">Đã khám xong</span>
-            <div className="text-2xl font-black text-purple-600 mt-1">{metrics.completed}</div>
+            <div className="text-2xl font-bold text-purple-600 mt-1">{metrics.completed}</div>
             <span className="text-[10px] text-purple-600">Hoàn tất quy trình</span>
           </div>
 
           <div className="col-span-2 lg:col-span-1 bg-white p-4 rounded-2xl border border-sage-200 bg-sage-50/30 shadow-sm">
             <span className="text-[11px] font-bold text-sage-700 uppercase tracking-wider block">Doanh thu dự kiến</span>
-            <div className="text-xl font-black text-sage-600 mt-1">{formatCurrency(metrics.totalRevenue)}</div>
+            <div className="text-xl font-bold text-sage-600 mt-1">{formatCurrency(metrics.totalRevenue)}</div>
             <span className="text-[10px] text-sage-600">Bao gồm phí dịch vụ</span>
           </div>
         </div>

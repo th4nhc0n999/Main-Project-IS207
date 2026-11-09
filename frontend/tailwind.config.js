@@ -20,7 +20,18 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Arial', 'sans-serif'],
+        sans: [
+          'Inter',
+          'Be Vietnam Pro',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica',
+          'Arial',
+          'sans-serif',
+        ],
       },
       colors: {
         sage,

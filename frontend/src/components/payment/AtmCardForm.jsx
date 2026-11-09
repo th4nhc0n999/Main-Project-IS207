@@ -108,7 +108,7 @@ export function AtmCardForm({ bookingCode, onContinue, onBack }) {
             Nhập thông tin thẻ ATM nội địa
           </h3>
           <p className="text-xs text-slate-500">
-            Mã đơn hàng: <span className="font-semibold text-blue-600">{bookingCode}</span>
+            Mã đơn hàng: <span className="font-semibold text-sage-700">{bookingCode}</span>
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-500">
@@ -141,7 +141,7 @@ export function AtmCardForm({ bookingCode, onContinue, onBack }) {
                 onClick={() => setSelectedBank(bank)}
                 className={`p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer ${
                   isSelected
-                    ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-600 text-blue-900 font-semibold'
+                    ? 'border-sage-600 bg-sage-50/80 ring-1 ring-sage-600 text-sage-900 font-semibold'
                     : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
                 }`}
               >
@@ -149,7 +149,7 @@ export function AtmCardForm({ bookingCode, onContinue, onBack }) {
                   <div className="text-xs font-bold">{bank.name}</div>
                   <div className="text-[10px] text-slate-500 truncate">{bank.fullName}</div>
                 </div>
-                {isSelected && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 ml-1" />}
+                {isSelected && <Check className="w-3.5 h-3.5 text-sage-600 shrink-0 ml-1" />}
               </button>
             );
           })}
@@ -303,11 +303,11 @@ export function AtmCardForm({ bookingCode, onContinue, onBack }) {
             id="agreeTermsAtm"
             checked={agreeTerms}
             onChange={(e) => setAgreeTerms(e.target.checked)}
-            className="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+            className="mt-1 w-4 h-4 rounded text-sage-600 focus:ring-sage-500 border-slate-300 cursor-pointer"
           />
           <label htmlFor="agreeTermsAtm" className="text-xs text-slate-600 cursor-pointer leading-relaxed">
             Tôi đồng ý với các{' '}
-            <span className="text-blue-600 underline font-medium">Điều khoản sử dụng</span> và chính sách thanh toán bảo mật của YouMed và cổng thanh toán NAPAS.
+            <span className="text-sage-600 underline font-medium">Điều khoản sử dụng</span> và chính sách thanh toán bảo mật của MedSi và cổng thanh toán NAPAS.
           </label>
         </div>
 

@@ -1,4 +1,3 @@
-import BookingSteps from '@/components/BookingSteps'
 import BookingSignIn from '@/components/BookingSignIn'
 import {useEffect,useState,useRef} from 'react'
 import {Link,useSearchParams,useNavigate} from 'react-router-dom'

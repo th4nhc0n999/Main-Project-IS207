@@ -40,6 +40,8 @@ class PaymentGatewayService
                     $this->invalid('Cần truy vấn giao dịch đang chờ trước khi đổi phương thức.');
                 }
 
+                $pending->hold_expires_at = $booking->hold_expires_at->toIso8601String();
+                $pending->booking_code = $booking->code;
                 return $pending;
             }
             if ($method === 'store_pay') {
@@ -68,7 +70,10 @@ class PaymentGatewayService
                 'received_at' => now(), 'created_at' => now(), 'updated_at' => now(),
             ]);
 
-            return DB::table('payment_transactions')->find($id);
+            $transaction = DB::table('payment_transactions')->find($id);
+            $transaction->hold_expires_at = $booking->hold_expires_at->toIso8601String();
+            $transaction->booking_code = $booking->code;
+            return $transaction;
         });
     }
 

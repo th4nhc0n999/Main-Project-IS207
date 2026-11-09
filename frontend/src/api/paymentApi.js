@@ -1,44 +1,56 @@
 import axiosClient from './axiosClient';
 
+/**
+ * paymentApi — Tích hợp API Cổng thanh toán MedSi (Sprint 4: S4-60..65)
+ * Kết nối trực tiếp vào Laravel Backend /api/payments
+ */
 const paymentApi = {
   /**
-   * Tính toán hóa đơn đặt khám bệnh viện
-   * @param {string|number} bookingId
+   * Bắt đầu giao dịch thanh toán
+   * @param {{ booking_id: number|string, method: 'qr_pay'|'momo'|'atm'|'credit_card'|'store_pay' }} data
    */
-  calculateInvoice: (bookingId) => {
-    return axiosClient.post('/payments/calculate-invoice', { booking_id: bookingId });
+  start: (data) => {
+    return axiosClient.post('/payments/start', data);
   },
 
   /**
-   * Khởi tạo giao dịch thanh toán
-   * @param {{ booking_id: string|number, method: string }} data
+   * Mô phỏng xác nhận kết quả thanh toán từ cổng (chỉ cho môi trường thử nghiệm)
+   * @param {{ transaction_code: string, status: 'success'|'failed' }} data
    */
-  createPayment: (data) => {
-    return axiosClient.post('/payments/create', data);
+  simulate: (data) => {
+    return axiosClient.post('/payments/simulate', data);
   },
 
   /**
-   * Xác nhận thanh toán (sau khi nhập OTP / xác thực ngân hàng)
-   * @param {{ payment_id: number, otp?: string, transaction_code?: string }} data
+   * Lấy thông tin thanh toán của một booking
+   * @param {number|string} bookingId
    */
-  confirmPayment: (data) => {
-    return axiosClient.post('/payments/confirm', data);
+  getByBooking: (bookingId) => {
+    return axiosClient.get(`/payments/bookings/${bookingId}`);
   },
 
   /**
-   * Lấy chi tiết thông tin thanh toán theo ID
-   * @param {number} paymentId
+   * Tra cứu chi tiết một giao dịch theo transaction_code
+   * @param {string} code
    */
-  getPaymentDetail: (paymentId) => {
-    return axiosClient.get(`/payments/${paymentId}`);
+  getTransaction: (code) => {
+    return axiosClient.get(`/payments/transactions/${code}`);
   },
 
   /**
-   * Hủy giao dịch thanh toán
-   * @param {number} paymentId
+   * Truy vấn trạng thái giao dịch MoMo Sandbox
+   * @param {string} code
    */
-  cancelPayment: (paymentId) => {
-    return axiosClient.post(`/payments/${paymentId}/cancel`);
+  queryMomo: (code) => {
+    return axiosClient.post(`/payments/momo/transactions/${code}/query`);
+  },
+
+  /**
+   * Admin / Quầy xác nhận thanh toán tại quầy (Store Pay)
+   * @param {number|string} bookingId
+   */
+  confirmCounter: (bookingId) => {
+    return axiosClient.post(`/payments/bookings/${bookingId}/counter-confirm`);
   },
 };
 

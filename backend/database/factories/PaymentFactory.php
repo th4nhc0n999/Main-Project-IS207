@@ -27,7 +27,7 @@ class PaymentFactory extends Factory
             'total_amount' => $totalAmount,
             'received_amount' => 0,
             'refunded_amount' => 0,
-            'status' => PaymentStatus::Pending,
+            'status' => PaymentStatus::PENDING,
             'paid_at' => null,
         ];
     }
@@ -35,7 +35,7 @@ class PaymentFactory extends Factory
     public function paid(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => PaymentStatus::Paid,
+            'status' => PaymentStatus::PAID,
             'received_amount' => $attributes['total_amount'],
             'paid_at' => now(),
         ]);

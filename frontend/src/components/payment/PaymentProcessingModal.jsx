@@ -58,7 +58,7 @@ export function PaymentProcessingModal({
     <Dialog open={open} onClose={() => {}}>
       {stage === 'connecting' && (
         <div className="py-8 px-4 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border-4 border-blue-100">
+          <div className="w-16 h-16 rounded-full bg-sage-50 text-sage-700 flex items-center justify-center mx-auto border-4 border-sage-100">
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
           <div>
@@ -80,7 +80,7 @@ export function PaymentProcessingModal({
         <form onSubmit={handleSubmitOtp} className="space-y-4">
           <DialogHeader>
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+              <div className="w-7 h-7 rounded-lg bg-sage-600 text-white flex items-center justify-center font-bold text-xs">
                 3D
               </div>
               <div>
@@ -95,7 +95,7 @@ export function PaymentProcessingModal({
           <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
             <div className="flex justify-between">
               <span className="text-slate-500">Số tiền giao dịch:</span>
-              <span className="font-bold text-blue-700 text-sm">{amount}</span>
+              <span className="font-bold text-sage-800 text-sm">{amount}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Gửi tới số điện thoại:</span>
@@ -115,7 +115,7 @@ export function PaymentProcessingModal({
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
               placeholder="123456"
-              className="text-center font-mono text-2xl tracking-[0.5em] font-bold h-14 bg-white border-2 border-blue-400 focus-visible:ring-blue-500"
+              className="text-center font-mono text-2xl tracking-[0.5em] font-bold h-14 bg-white border-2 border-sage-400 focus-visible:ring-sage-500"
               required
               autoFocus
             />
@@ -127,7 +127,7 @@ export function PaymentProcessingModal({
                 <button
                   type="button"
                   onClick={() => setResendTimer(60)}
-                  className="text-blue-600 hover:underline font-semibold"
+                  className="text-sage-700 hover:underline font-semibold"
                 >
                   Gửi lại mã OTP
                 </button>
@@ -147,7 +147,7 @@ export function PaymentProcessingModal({
             <Button
               type="submit"
               disabled={otp.length < 4}
-              className="w-2/3 bg-blue-600 hover:bg-blue-700 font-bold"
+              className="w-2/3 bg-sage-600 hover:bg-sage-700 font-bold"
             >
               Xác nhận OTP
             </Button>

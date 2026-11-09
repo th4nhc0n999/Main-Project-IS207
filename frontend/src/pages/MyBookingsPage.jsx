@@ -41,6 +41,7 @@ import {
 } from "@/api/profileApi"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import photo from "@/assets/consultation.jpg"
 
 function getRoleLabel(role) {
   switch (role) {
@@ -336,54 +337,90 @@ export default function MyBookingsPage() {
     <div className="min-h-screen bg-background pb-16">
       {/* Top Banner & User Summary */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <img
-                  src={user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80"}
-                  alt={user?.name || "User"}
-                  className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md ring-2 ring-sage-100"
-                />
-                <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900">
-                    {user?.name || "Người dùng MedSi"}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+          {/* Hero Banner Card matching MedSi Design System */}
+          <div className="relative overflow-hidden rounded-2xl bg-[#eaf0e5] border border-[#d7dfd4] shadow-sm mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-12 items-stretch">
+              {/* Copy column */}
+              <div className="md:col-span-7 p-6 sm:p-8 lg:p-10 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <img
+                        src={user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80"}
+                        alt={user?.name || "User"}
+                        className="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-sm ring-2 ring-sage-200"
+                      />
+                      <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full" />
+                    </div>
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/80 border border-sage-200 text-[11px] font-semibold text-sage-800 shadow-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        {user?.role === "admin" ? "🛡️ Quản trị viên" : "🩺 Bệnh nhân"}
+                      </div>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        {user?.email || "Chưa cập nhật email"} {user?.phone ? `• ${user.phone}` : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLogoutModalOpen(true)}
+                    className="text-rose-600 border-rose-200 bg-white/80 hover:bg-rose-50 hover:text-rose-700 text-xs font-medium gap-1.5 shadow-xs"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Đăng xuất</span>
+                  </Button>
+                </div>
+
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#234831] leading-tight">
+                    Xin chào,<br />
+                    <span className="text-[#2d5a27]">{user?.name || "bạn"}.</span>
                   </h1>
                   <Badge variant="info" className="text-[10px] py-0.5">
                     {getRoleLabel(user?.role)}
                   </Badge>
+                  <p className="text-xs sm:text-sm text-[#49584c] mt-2 max-w-md leading-relaxed">
+                    Tìm bác sĩ và bệnh viện uy tín.<br />
+                    Chọn thời gian khám phù hợp với bạn.
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                  {user?.email || "Chưa cập nhật email"} • {user?.phone || "Chưa cập nhật SĐT"}
-                </p>
+
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <Link
+                    to="/dat-kham/bac-si"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2d5a27] hover:bg-[#234831] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all"
+                  >
+                    <Stethoscope className="w-4 h-4" />
+                    <span>Đặt lịch bác sĩ</span>
+                  </Link>
+
+                  <Link
+                    to="/dat-kham/benh-vien"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#2d5a27] border border-[#a4b3a1] text-xs sm:text-sm font-semibold shadow-xs transition-all"
+                  >
+                    <Building2 className="w-4 h-4" />
+                    <span>Đặt lịch bệnh viện</span>
+                  </Link>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2.5">
-              <Button asChild className="bg-sage-800 hover:bg-sage-700 text-white shadow-sm font-semibold text-xs sm:text-sm">
-                <Link to="/doctors" className="flex items-center gap-1.5">
-                  <Stethoscope className="w-4 h-4" />
-                  <span>Đặt Lịch Khám Mới</span>
-                </Link>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLogoutModalOpen(true)}
-                className="text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 text-xs sm:text-sm font-medium gap-1.5"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Đăng xuất</span>
-              </Button>
+              {/* Image column */}
+              <div className="hidden md:block md:col-span-5 relative self-stretch overflow-hidden rounded-r-2xl">
+                <img
+                  src={photo}
+                  alt="MedSi Bác sĩ tư vấn"
+                  className="absolute inset-0 w-full h-full object-cover object-center rounded-r-2xl"
+                />
+              </div>
             </div>
           </div>
 
           {/* Navigation Tabs (All on the same page) */}
-          <div className="flex items-center gap-2 overflow-x-auto pt-6 border-t border-slate-100 mt-6 scrollbar-none">
+          <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-100 scrollbar-none">
             <button
               onClick={() => setMainTab("bookings")}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
@@ -570,7 +607,7 @@ export default function MyBookingsPage() {
                       {/* Top Bar: Code, Status & Date */}
                       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs sm:text-sm font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                          <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
                             {b.code}
                           </span>
                           {getStatusBadge(b.status)}
@@ -624,7 +661,7 @@ export default function MyBookingsPage() {
                           <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
                             Tổng tiền & Thanh toán
                           </span>
-                          <p className="text-base font-black text-sage-600">
+                          <p className="text-base font-bold text-sage-600">
                             {formatCurrency(b.payment?.total_amount || 420000)}
                           </p>
                           <div className="flex items-center md:justify-end gap-1.5">
@@ -765,7 +802,7 @@ export default function MyBookingsPage() {
                       <div className="space-y-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sage-500 to-sage-600 text-white font-black flex items-center justify-center text-sm shadow-md shadow-sage-500/20">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sage-500 to-sage-600 text-white font-bold flex items-center justify-center text-sm shadow-md shadow-sage-500/20">
                               {initials}
                             </div>
                             <div>

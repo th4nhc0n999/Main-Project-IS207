@@ -9,6 +9,7 @@ use App\Http\Resources\PaymentResource;
 use App\Models\Booking;
 use App\Services\MomoSandboxService;
 use App\Services\PaymentGatewayService;
+use App\Services\VietQrDemo;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -27,12 +28,20 @@ class PaymentController extends Controller
         }
         $transaction = $gateway->start($data['booking_id'], $data['method'], $request->user());
         $payload = (new PaymentResource($transaction))->resolve($request);
+        $description = 'MEDSI '.$transaction->booking_code;
+        $payload['payment_description'] = $description;
+        $payload['hold_expires_at'] = $transaction->hold_expires_at;
+        $payload['result_wait_until'] = $data['method'] === 'store_pay' ? null
+            : \Carbon\CarbonImmutable::parse($transaction->hold_expires_at)
+                ->addMinutes((int) config('medsi.grace_minutes'))->toIso8601String();
         if ($usesMomo) {
-            $payload = array_merge($payload, $momo->checkout($transaction, $data['method'], $request->user()->email));
+            $payload = array_merge($payload, $momo->checkout($transaction, $data['method'], $request->user()->email, $description,
+                (int) $data['booking_id'], $request->header('Origin')));
             // Render only the QR content returned by MoMo; never invent a wallet QR.
             if (! empty($payload['checkout']['qrCodeUrl'])) {
-                $writer = new Writer(new ImageRenderer(new RendererStyle(320), new SvgImageBackEnd));
-                $payload['qr_svg'] = $writer->writeString($payload['checkout']['qrCodeUrl']);
+                $qr = $payload['checkout']['qrCodeUrl'];
+                $payload['qr_svg'] = $this->renderQr($qr);
+                $payload['qr_format'] = str_starts_with($qr, 'momo://') ? 'momo_deeplink' : 'provider_qr';
             }
 
             return response()->json(['success' => true, 'message' => $payload['needs_query']
@@ -40,13 +49,20 @@ class PaymentController extends Controller
         }
         $payload['simulation'] = true;
         if ($data['method'] === 'qr_pay') {
-            $qr = json_encode(['type' => 'medsi_simulated_payment',
-                'transaction_code' => $transaction->transaction_code, 'amount' => (int) $transaction->amount]);
-            $writer = new Writer(new ImageRenderer(new RendererStyle(320), new SvgImageBackEnd));
-            $payload['qr_svg'] = $writer->writeString($qr);
+            $qr = VietQrDemo::payload((int) $transaction->amount, $description);
+            $payload['recipient'] = ['bank_bin' => VietQrDemo::BANK_BIN, 'account' => VietQrDemo::ACCOUNT];
+            $payload['qr_format'] = 'vietqr';
+            $payload['qr_svg'] = $this->renderQr($qr);
         }
 
         return response()->json(['success' => true, 'message' => 'Đã tạo giao dịch giả lập.', 'data' => $payload]);
+    }
+
+    private function renderQr(string $content): string
+    {
+        $writer = new Writer(new ImageRenderer(new RendererStyle(320), new SvgImageBackEnd));
+
+        return $writer->writeString($content);
     }
 
     public function show(PaymentRequest $request, int $booking)

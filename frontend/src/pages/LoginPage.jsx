@@ -40,9 +40,18 @@ export default function LoginPage() {
   return <section className="login-shell" aria-labelledby="login-title">
     <aside className="login-cover">
       <img src={consultation} alt=""/>
-      <div><HeartPulse size={32}/><h2>Lịch khám của bạn</h2><p>Xem lại giờ hẹn, mở phiếu khám và quản lý hồ sơ cho cả gia đình.</p></div>
+      <div>
+        <div style={{ display: 'inline-block', background: 'white', padding: '6px 12px', borderRadius: '8px', marginBottom: '14px' }}>
+          <img src="/logo.png" alt="MedSi" style={{ height: '32px', width: 'auto', display: 'block' }} />
+        </div>
+        <h2>Lịch khám của bạn</h2>
+        <p>Xem lại giờ hẹn, mở phiếu khám và quản lý hồ sơ cho cả gia đình.</p>
+      </div>
     </aside>
     <div className="login-panel">
+      <Link to="/" style={{ display: 'inline-block', marginBottom: '16px' }}>
+        <img src="/logo.png" alt="MedSi" style={{ height: '42px', width: 'auto', objectFit: 'contain' }} />
+      </Link>
       <h1 id="login-title">Đăng nhập MedSi</h1><p>Sử dụng email đã đăng ký để tiếp tục.</p>
       <form onSubmit={submit} onChange={()=>setError('')}>
         <label htmlFor="email">Email</label><div className="login-field"><Mail size={18}/><input id="email" name="email" type="email" autoComplete="username" required placeholder="ban@example.com" value={email} onChange={e=>setEmail(e.target.value)}/></div>
