@@ -43,7 +43,7 @@ export function QrPayView({ invoice, onConfirm, onCancel, onBack }) {
   };
 
   // Dynamic QR Code SVG rendering simulation (VietQR standard look)
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=YOUMED_${bookingCode}_AMOUNT_${invoice?.fees?.total_amount || 160000}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=MEDSI_${bookingCode}_AMOUNT_${invoice?.fees?.total_amount || 160000}`;
 
   return (
     <div className="space-y-5">
@@ -101,7 +101,7 @@ export function QrPayView({ invoice, onConfirm, onCancel, onBack }) {
             className="w-52 h-52 object-contain rounded-lg"
           />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-10 h-10 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-blue-600 font-extrabold text-xs">
+            <div className="w-10 h-10 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-sage-700 font-extrabold text-xs">
               YM
             </div>
           </div>
@@ -114,7 +114,7 @@ export function QrPayView({ invoice, onConfirm, onCancel, onBack }) {
         {/* Số tiền cần chuyển */}
         <div className="mt-3 flex items-baseline gap-2">
           <span className="text-xs text-slate-500">Số tiền:</span>
-          <span className="text-2xl font-black text-emerald-600">{totalAmount}</span>
+          <span className="text-2xl font-bold text-emerald-600">{totalAmount}</span>
         </div>
       </div>
 
@@ -127,7 +127,7 @@ export function QrPayView({ invoice, onConfirm, onCancel, onBack }) {
         >
           <div className="flex items-center gap-2">
             <span>Mã đơn hàng:</span>
-            <span className="font-mono text-blue-600 font-bold">{bookingCode}</span>
+            <span className="font-mono text-sage-700 font-bold">{bookingCode}</span>
             <button
               type="button"
               onClick={(e) => {

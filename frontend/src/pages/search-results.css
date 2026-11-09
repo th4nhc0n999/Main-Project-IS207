@@ -1,0 +1,422 @@
+/* Search Results & Filter Styles */
+
+.search-results-container {
+  width: min(calc(100% - 40px), 1180px);
+  margin-inline: auto;
+  padding: 32px 0 64px;
+  color: var(--med-ink, #1f2937);
+}
+
+.search-header-row {
+  margin-bottom: 24px;
+}
+
+.search-header-title {
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 700;
+  color: #193723;
+  margin: 0 0 8px;
+}
+
+.search-header-desc {
+  font-size: 14.5px;
+  color: #556658;
+  margin: 0;
+}
+
+/* Category Filter Tabs (Tất cả / Bác sĩ / Bệnh viện / Phòng khám) */
+.search-type-pills {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.type-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 9999px;
+  border: 1.5px solid #d5dfd3;
+  background: #ffffff;
+  color: #37483b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.type-pill-btn:hover {
+  background: #f2f6f1;
+  border-color: #b3c5b0;
+  color: #1f2937;
+}
+
+.type-pill-btn.active {
+  background: var(--med-sage, #2d5a27);
+  color: #ffffff;
+  border-color: var(--med-sage, #2d5a27);
+  box-shadow: 0 3px 12px rgba(45, 90, 39, 0.25);
+}
+
+.type-pill-btn.active svg {
+  color: #ffffff;
+}
+
+.type-pill-count {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+  min-width: 20px;
+  text-align: center;
+}
+
+.type-pill-btn.active .type-pill-count {
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+}
+
+/* Filter Card Box */
+.search-filter-box {
+  background: #ffffff;
+  border: 1px solid var(--med-line, #d7dfd4);
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 12px rgba(25, 55, 35, 0.04);
+  margin-bottom: 28px;
+}
+
+.filter-grid-fields {
+  display: grid;
+  grid-template-columns: 1.5fr 1.2fr 1fr auto;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+@media (max-width: 960px) {
+  .filter-grid-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .filter-grid-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filter-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-field-group label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #2e3e31;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-field-group input,
+.filter-field-group select {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #bdccba;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #ffffff;
+  font-size: 14px;
+  color: var(--med-ink, #1f2937);
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.filter-field-group input:focus,
+.filter-field-group select:focus {
+  border-color: var(--med-sage, #2d5a27);
+  box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.15);
+  outline: none;
+}
+
+.filter-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-nearby {
+  height: 44px;
+  padding: 0 18px;
+  background: var(--med-sage, #2d5a27);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-nearby:hover:not(:disabled) {
+  background: #234820;
+}
+
+.btn-nearby:disabled {
+  background: #d4ded2;
+  color: #637061;
+  cursor: not-allowed;
+}
+
+.btn-reset-filter {
+  height: 44px;
+  padding: 0 14px;
+  background: #f2f5f1;
+  color: #445446;
+  border: 1px solid #d0dbce;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-reset-filter:hover {
+  background: #e4ebe2;
+  color: #193723;
+}
+
+/* Results Status Bar */
+.results-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  font-size: 14.5px;
+  color: #556658;
+}
+
+.results-status-bar strong {
+  color: var(--med-sage, #2d5a27);
+  font-size: 16px;
+}
+
+/* Results Cards Grid */
+.results-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 1200px) {
+  .results-cards-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .results-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 540px) {
+  .results-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Doctor / Facility Card */
+.provider-card-item {
+  background: #ffffff;
+  border: 1px solid #dce4da;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.provider-card-item:hover {
+  transform: translateY(-3px);
+  border-color: #8dae88;
+  box-shadow: 0 10px 24px rgba(45, 90, 39, 0.12);
+}
+
+.card-top-cover {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  background: #eaf0e5;
+  display: block;
+}
+
+.card-body-content {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.card-doctor-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.doctor-avatar-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #eaf0e5;
+  flex-shrink: 0;
+  background: #eaf0e5;
+}
+
+.doctor-avatar-fallback {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--med-tint, #eaf0e5);
+  color: var(--med-sage, #2d5a27);
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #d4dfce;
+  flex-shrink: 0;
+}
+
+.card-specialty-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--med-sage, #2d5a27);
+  background: #edf3e9;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.card-provider-name {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #193723;
+  margin: 0;
+}
+
+.card-provider-name a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.card-provider-name a:hover {
+  color: var(--med-sage, #2d5a27);
+  text-decoration: underline;
+}
+
+.card-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 16px;
+  font-size: 13px;
+  color: #4b5d4e;
+  line-height: 1.45;
+}
+
+.card-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.card-info-item svg {
+  color: #6a8b66;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.card-footer-action {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid #eef2ec;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-fee-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12.5px;
+  color: #637365;
+}
+
+.card-fee-badge strong {
+  font-size: 15px;
+  color: #1f2937;
+  font-weight: 750;
+}
+
+.card-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  background: var(--med-sage, #2d5a27);
+  color: #ffffff !important;
+  text-decoration: none !important;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.card-cta-btn:hover {
+  background: #234820;
+}
+
+/* Empty State */
+.search-empty-state {
+  background: #ffffff;
+  border: 1px dashed #c8d4c5;
+  border-radius: 14px;
+  padding: 48px 24px;
+  text-align: center;
+  color: #556658;
+}
+
+.search-empty-state p {
+  font-size: 15px;
+  margin: 12px 0 16px;
+}
+

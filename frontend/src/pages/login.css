@@ -2,10 +2,10 @@
 .login-cover {display:flex;flex-direction:column;background:#193723;color:white}
 .login-cover img {width:100%;height:215px;object-fit:cover}
 .login-cover div,.login-panel {padding:clamp(24px,4vw,48px)}
-.login-cover h2 {margin:14px 0 6px;font-size:26px;font-weight:650;letter-spacing:-.035em}
+.login-cover h2 {margin:14px 0 6px;font-size:26px;font-weight:600}
 .login-cover p {color:#eaf0e5;font-size:15px}
 .login-panel {align-self:center}
-.login-panel h1 {font-size:clamp(28px,3vw,38px);font-weight:700;letter-spacing:-.045em}
+.login-panel h1 {font-size:clamp(28px,3vw,38px);font-weight:700}
 .login-panel>p {color:var(--med-muted);margin-top:6px}
 .login-panel form {margin:24px 0}
 .login-panel label {font-size:14px;font-weight:600;display:block;margin:16px 0 6px}

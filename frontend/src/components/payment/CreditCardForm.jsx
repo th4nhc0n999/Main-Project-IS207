@@ -92,7 +92,7 @@ export function CreditCardForm({ bookingCode, onContinue, onBack }) {
             Thẻ thanh toán quốc tế
           </h3>
           <p className="text-xs text-slate-500">
-            Mã đơn hàng: <span className="font-semibold text-blue-600">{bookingCode}</span>
+            Mã đơn hàng: <span className="font-semibold text-sage-700">{bookingCode}</span>
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-500">
@@ -109,7 +109,7 @@ export function CreditCardForm({ bookingCode, onContinue, onBack }) {
             onClick={() => setCardBrand(brand)}
             className={`px-3 py-1.5 rounded-lg border text-xs font-bold uppercase transition-all cursor-pointer ${
               cardBrand === brand
-                ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                ? 'border-sage-600 bg-sage-50 text-sage-800 ring-1 ring-sage-600'
                 : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
             }`}
           >
@@ -130,7 +130,7 @@ export function CreditCardForm({ bookingCode, onContinue, onBack }) {
             </span>
             <div className="flex items-center gap-2">
               <Wifi className="w-5 h-5 rotate-90 text-white/80" />
-              <span className="font-black text-sm uppercase px-2 py-0.5 rounded bg-white/15">
+              <span className="font-bold text-sm uppercase px-2 py-0.5 rounded bg-white/15">
                 {cardBrand}
               </span>
             </div>
@@ -253,7 +253,7 @@ export function CreditCardForm({ bookingCode, onContinue, onBack }) {
             id="agreeTermsCredit"
             checked={agreeTerms}
             onChange={(e) => setAgreeTerms(e.target.checked)}
-            className="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+            className="mt-1 w-4 h-4 rounded text-sage-600 focus:ring-sage-500 border-slate-300 cursor-pointer"
           />
           <label htmlFor="agreeTermsCredit" className="text-xs text-slate-600 cursor-pointer">
             Tôi đồng ý với các điều khoản bảo mật thanh toán quốc tế và xác thực 3D-Secure.

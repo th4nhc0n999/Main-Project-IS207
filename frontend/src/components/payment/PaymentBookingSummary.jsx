@@ -78,13 +78,13 @@ export function PaymentBookingSummary({ invoice, onExpired }) {
   };
 
   return (
-    <Card className="border-blue-100 shadow-md bg-white overflow-hidden">
+    <Card className="border-slate-200 shadow-md bg-white overflow-hidden">
       {/* Banner Countdown Timer giữ slot */}
       <div
         className={`px-4 py-2.5 flex items-center justify-between text-xs font-medium transition-colors ${
           timeLeft < 180
             ? 'bg-rose-50 text-rose-700 border-b border-rose-200'
-            : 'bg-blue-50 text-blue-800 border-b border-blue-100'
+            : 'bg-sage-50 text-sage-800 border-b border-sage-100'
         }`}
       >
         <span className="flex items-center gap-1.5 font-medium">
@@ -99,11 +99,11 @@ export function PaymentBookingSummary({ invoice, onExpired }) {
       <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50">
         <div className="flex items-start justify-between">
           <div>
-            <span className="text-xs font-semibold uppercase text-blue-600 tracking-wider">
+            <span className="text-xs font-semibold uppercase text-sage-700 tracking-wider">
               Phiếu đặt lịch khám
             </span>
             <CardTitle className="text-lg text-slate-900 mt-0.5 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-600" />
+              <FileText className="w-5 h-5 text-sage-700" />
               {invoice?.booking_code || 'BK20260918001'}
             </CardTitle>
           </div>
@@ -116,7 +116,7 @@ export function PaymentBookingSummary({ invoice, onExpired }) {
       <CardContent className="pt-4 space-y-4 text-sm">
         {/* Thông tin bệnh nhân */}
         <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-start gap-3">
-          <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 font-bold">
+          <div className="w-9 h-9 rounded-full bg-sage-100 text-sage-700 flex items-center justify-center shrink-0 font-bold">
             <User className="w-4 h-4" />
           </div>
           <div className="min-w-0 flex-1">
@@ -154,7 +154,7 @@ export function PaymentBookingSummary({ invoice, onExpired }) {
             <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
             <div>
               <span className="text-xs text-slate-500">Ngày khám: </span>
-              <span className="font-semibold text-blue-700">
+              <span className="font-semibold text-sage-800">
                 {schedule.work_date} ({schedule.time_slot})
               </span>
             </div>
@@ -178,7 +178,7 @@ export function PaymentBookingSummary({ invoice, onExpired }) {
 
           <div className="flex justify-between text-slate-600">
             <span className="flex items-center gap-1">
-              Phí tiện ích YouMed
+              Phí tiện ích MedSi
               <span className="text-[10px] text-slate-400" title="Bảo mật & nhắc lịch tự động">(?)</span>
             </span>
             <span className="font-medium text-slate-800 shrink-0">
@@ -191,7 +191,7 @@ export function PaymentBookingSummary({ invoice, onExpired }) {
               <div className="text-base font-bold text-slate-900">Tổng thanh toán</div>
               <div className="text-[11px] text-slate-500">Đã bao gồm VAT</div>
             </div>
-            <div className="text-xl font-extrabold text-blue-600">
+            <div className="text-xl font-extrabold text-sage-700">
               {fees.formatted.total_amount}
             </div>
           </div>

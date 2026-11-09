@@ -39,7 +39,7 @@ export function PaymentConfirmationModal({
   return (
     <div className="space-y-6">
       <div>
-        <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+        <span className="text-xs font-semibold text-sage-700 uppercase tracking-wider">
           Bước 3 / Xác nhận đơn hàng
         </span>
         <h3 className="font-bold text-slate-900 text-xl mt-0.5">
@@ -82,7 +82,7 @@ export function PaymentConfirmationModal({
               <div className="text-[9px] text-slate-400 uppercase tracking-wider">
                 Phương thức
               </div>
-              <div className="font-semibold text-blue-300 uppercase text-[11px]">
+              <div className="font-semibold text-emerald-300 uppercase text-[11px]">
                 {cardData?.type === 'credit_card' ? 'Thẻ Quốc Tế' : 'Thẻ ATM'}
               </div>
             </div>
@@ -94,7 +94,7 @@ export function PaymentConfirmationModal({
       <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-3">
         <div className="flex justify-between text-xs py-1 border-b border-slate-200/60">
           <span className="text-slate-500">Mã đơn hàng:</span>
-          <span className="font-mono font-bold text-blue-600">{bookingCode}</span>
+          <span className="font-mono font-bold text-sage-700">{bookingCode}</span>
         </div>
 
         <div className="flex justify-between text-xs py-1 border-b border-slate-200/60">
@@ -114,7 +114,7 @@ export function PaymentConfirmationModal({
 
         <div className="flex justify-between items-baseline pt-2">
           <span className="font-bold text-slate-900 text-sm">Tổng tiền thanh toán:</span>
-          <span className="font-black text-2xl text-blue-600">{fees.formatted.total_amount}</span>
+          <span className="font-bold text-2xl text-sage-700">{fees.formatted.total_amount}</span>
         </div>
       </div>
 
@@ -134,7 +134,7 @@ export function PaymentConfirmationModal({
           type="button"
           disabled={loading}
           onClick={onConfirmPayment}
-          className="w-2/3 bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 text-base shadow-md disabled:cursor-not-allowed"
+          className="w-2/3 bg-sage-600 hover:bg-sage-700 text-white font-bold h-12 text-base shadow-md disabled:cursor-not-allowed"
         >
           {loading ? (
             <span className="flex items-center gap-2">

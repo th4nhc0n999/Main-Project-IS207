@@ -83,9 +83,9 @@ export default function RegisterPage() {
       <div className="w-full max-w-lg space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-sage-600 text-white shadow-lg shadow-sage-500/25 mb-1">
-            <Stethoscope className="w-8 h-8" />
-          </div>
+          <Link to="/" className="inline-block mb-1">
+            <img src="/logo.png" alt="MedSi" className="h-12 w-auto mx-auto object-contain" />
+          </Link>
           <h1 className="text-2xl sm:text-3xl font-semibold leading-snug tracking-normal text-slate-900">
             Tạo tài khoản <span className="text-sage-600">MedSi</span>
           </h1>

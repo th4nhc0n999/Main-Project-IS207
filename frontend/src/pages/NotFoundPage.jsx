@@ -11,8 +11,8 @@ export default function NotFoundPage() {
         </div>
 
         <div>
-          <span className="text-4xl sm:text-5xl font-black text-sage-600 tracking-tight block">404</span>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
+          <span className="text-4xl sm:text-5xl font-extrabold text-sage-600 tracking-tight block">404</span>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mt-2">
             Không Tìm Thấy Trang Yêu Cầu
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
