@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, Eye, EyeOff, HeartPulse, LockKeyhole, Mail } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, HeartPulse, LockKeyhole, Mail, Stethoscope } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
 import consultation from '@/assets/consultation.jpg'
 import './login.css'
@@ -68,6 +69,15 @@ export default function LoginPage() {
           >
             👤 Bệnh nhân
           </button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => { setEmail('doctor1@medsi.vn'); setPassword('Doctor@123456'); setError(''); }}
+            className="min-h-11 border-sage-200 bg-sage-100 px-3 text-xs text-sage-700 hover:bg-sage-200"
+          >
+            <Stethoscope size={15} aria-hidden="true"/> Bác sĩ
+          </Button>
           <button
             type="button"
             onClick={() => { setEmail('staff.choray@medsi.vn'); setPassword('Staff@123456'); }}

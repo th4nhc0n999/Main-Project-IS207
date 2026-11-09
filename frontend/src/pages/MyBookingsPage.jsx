@@ -43,6 +43,16 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import photo from "@/assets/consultation.jpg"
 
+function getRoleLabel(role) {
+  switch (role) {
+    case "patient": return "Bệnh nhân"
+    case "doctor": return "Bác sĩ"
+    case "staff": return "Nhân viên cơ sở"
+    case "admin": return "Quản trị viên"
+    default: return "Không xác định"
+  }
+}
+
 export default function MyBookingsPage() {
   const { 
     user, 
@@ -370,6 +380,9 @@ export default function MyBookingsPage() {
                     Xin chào,<br />
                     <span className="text-[#2d5a27]">{user?.name || "bạn"}.</span>
                   </h1>
+                  <Badge variant="info" className="text-[10px] py-0.5">
+                    {getRoleLabel(user?.role)}
+                  </Badge>
                   <p className="text-xs sm:text-sm text-[#49584c] mt-2 max-w-md leading-relaxed">
                     Tìm bác sĩ và bệnh viện uy tín.<br />
                     Chọn thời gian khám phù hợp với bạn.
@@ -925,7 +938,7 @@ export default function MyBookingsPage() {
 
                 <div className="pt-4 flex items-center justify-between border-t border-slate-100">
                   <span className="text-xs text-slate-600">
-                    Vai trò: <strong className="text-slate-700">{user?.role === "admin" ? "Quản trị viên" : "Bệnh nhân"}</strong>
+                    Vai trò: <strong className="text-slate-700">{getRoleLabel(user?.role)}</strong>
                   </span>
 
                   <Button

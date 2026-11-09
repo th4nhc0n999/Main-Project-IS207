@@ -5,7 +5,7 @@ import SpecialtyImage from '@/components/SpecialtyImage'
 import PatientOverview from '@/components/PatientOverview'
 import { useAuth } from '@/context/AuthContext'
 import useApi from '@/api/useApi'
-import { initialDoctors, initialHospitals, initialSpecialties } from '@/lib/mockData'
+import { initialHospitals, initialSpecialties } from '@/lib/mockData'
 import photo from '@/assets/consultation.jpg'
 import './home.css'
 
@@ -14,12 +14,10 @@ export default function HomePage() {
   const {user} = useAuth()
   const [type,setType] = useState('doctor')
   const [expanded, setExpanded] = useState(false)
-  const {data} = useApi('/directory')
+  const {data,error} = useApi('/directory')
   const hasSpecialties = Boolean(data?.specialties?.length)
   const specialties = hasSpecialties ? data.specialties : initialSpecialties
-  const liveDoctors = data?.data?.filter(item=>item.kind==='doctor') || []
-  const sampleDoctors = liveDoctors.length === 0
-  const doctors = sampleDoctors ? initialDoctors : liveDoctors
+  const doctors = data?.data?.filter(item=>item.kind==='doctor') || []
   const label = tabs.find(([key])=>key===type)[1].toLowerCase()
   return <div className="med-home"><div className="med-wrap">
     <section className="med-hero"><div className="med-copy"><h1>{user?.role === 'patient' ? <>Xin chào,<br/><em>{user.name || 'bạn'}.</em></> : <>Đặt lịch khám<br/><em>theo nhu cầu.</em></>}</h1><p>Tìm bác sĩ và bệnh viện uy tín.<br/>Chọn thời gian khám phù hợp với bạn.</p><div className="booking-entry"><Link to="/dat-kham/bac-si"><Stethoscope size={18}/>Đặt lịch bác sĩ</Link><Link to="/dat-kham/benh-vien"><Hospital size={18}/>Đặt lịch bệnh viện</Link></div></div><img src={photo} alt="Buổi tư vấn y tế"/></section>
@@ -34,8 +32,8 @@ export default function HomePage() {
         </Link>)}</div>
     </section>
     <section><div className="med-heading"><h2>Bác sĩ khám bệnh</h2><Link to="/dat-kham/bac-si">Tất cả bác sĩ <ArrowRight size={16}/></Link></div>
-    {sampleDoctors && <small>Hồ sơ bác sĩ minh họa</small>}
-    <div className="med-doctors">{doctors.slice(0,3).map(d=><article key={d.id}><header>{(sampleDoctors ? d.id !== 2 : d.avatar) ? <img src={sampleDoctors ? '/media/directory/doctor-'+d.id+'.jpg' : d.avatar} alt=""/> : <span className="med-avatar">{d.name.split(' ').slice(-2).map(n=>n[0]).join('')}</span>}<div><small>{d.specialty || d.specialty_name}</small><h3>{d.name}</h3></div></header><p><Building2 size={16}/>{d.hospital || d.workplace || d.city}</p>{d.rating && <p><Star size={15}/>{d.rating.toFixed(1)} ({d.reviews_count} đánh giá)</p>}<Link to={sampleDoctors?'/dat-lich/bac-si?id='+d.id:'/doctors/'+d.id}>Đặt lịch khám <ArrowRight size={16}/></Link></article>)}</div></section>
+    {error ? <p role="alert">Không tải được danh sách bác sĩ: {error}</p> : !data ? <p role="status">Đang tải bác sĩ…</p> : doctors.length === 0 ? <p role="status">Hiện chưa có bác sĩ trong danh mục.</p> :
+    <div className="med-doctors">{doctors.slice(0,3).map(d=><article key={d.id}><header>{d.avatar ? <img src={d.avatar} alt=""/> : <span className="med-avatar">{d.name.split(' ').slice(-2).map(n=>n[0]).join('')}</span>}<div><small>{d.specialty}</small><h3>{d.name}</h3></div></header><p><Building2 size={16}/>{d.hospital || d.city}</p>{d.rating != null && <p><Star size={15}/>{Number(d.rating).toFixed(1)}{d.reviews_count != null && ` (${d.reviews_count} đánh giá)`}</p>}<Link to={'/doctors/'+d.id}>Đặt lịch khám <ArrowRight size={16}/></Link></article>)}</div>}</section>
     <section><div className="med-heading"><h2>Khám tại bệnh viện</h2><Link to="/dat-kham/benh-vien">Tất cả bệnh viện <ArrowRight size={16}/></Link></div>
       <div className="home-facilities">{initialHospitals.filter(h=>!/phòng khám/i.test(h.name)).slice(0,3).map(h=>
         <Link key={h.id} to={'/dat-lich/benh-vien?id='+h.id}>

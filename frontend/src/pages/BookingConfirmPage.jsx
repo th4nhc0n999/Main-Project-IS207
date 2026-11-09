@@ -1,401 +1,143 @@
 import BookingSignIn from '@/components/BookingSignIn'
-import { useState, useRef, useMemo } from 'react'
-import { Link, useSearchParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '@/context/AuthContext'
-import useApi, { money } from '@/api/useApi'
-import client from '@/api/axiosClient'
-import AttachmentUploader from '@/components/AttachmentUploader'
-import ProfileModal from '@/components/ProfileModal'
-import {
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  Check,
-  Calendar,
-  Clock,
-  User,
-  Plus,
-  Upload,
-  ArrowRight,
-  ShieldCheck,
-} from 'lucide-react'
-import './booking-modern.css'
+import {useEffect,useState,useRef} from 'react'
+import {Link,useSearchParams,useNavigate} from 'react-router-dom'
+import {useAuth} from '@/context/AuthContext'
+import useApi from '@/api/useApi'
+import doctorBookingApi from '@/api/doctorBookingApi'
+import ProfileCreator from '@/components/ProfileCreator'
+
+function bookingError(error) {
+  const body = error.raw?.response?.data
+  const code = body?.code || error.code
+  const messages = {
+    SE001: 'Ca khám đã hết chỗ hoặc trùng với lịch của hồ sơ. Vui lòng chọn ca khác.',
+    VALIDATION_ERROR: 'Thông tin đặt lịch chưa hợp lệ. Vui lòng kiểm tra ca khám và hồ sơ người khám.',
+    IDEMPOTENCY_CONFLICT: 'Yêu cầu đặt lịch đã được dùng với thông tin khác. Vui lòng kiểm tra Lịch khám của tôi trước khi đặt lại.',
+    UNAUTHENTICATED: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+    FORBIDDEN: 'Tài khoản không có quyền đặt lịch này. Vui lòng dùng tài khoản bệnh nhân đang hoạt động.',
+    BKD_INTEGRATION_UNAVAILABLE: 'Dịch vụ đặt lịch tạm thời chưa sẵn sàng. Vui lòng thử lại sau.',
+  }
+  if (messages[code]) return messages[code]
+  if (error.status === 401) return messages.UNAUTHENTICATED
+  if (error.status === 403) return messages.FORBIDDEN
+  return error.message || 'Chưa nhận được kết quả đặt lịch. Vui lòng thử lại với thông tin hiện tại.'
+}
 
 export default function BookingConfirmPage() {
   const [params] = useSearchParams()
-  const doctorId = params.get('doctor')
-  const slotId = params.get('slot')
+  const doctor = params.get('doctor'), slot = params.get('slot')
   const { user, loading } = useAuth()
-  const [revision, refresh] = useState(0)
-  const profiles = useApi(user ? '/patient-profiles' : null, revision)
-  const detail = useApi(doctorId ? '/doctors/' + doctorId : null)
+  if (loading) return <p className="clinic">Đang kiểm tra tài khoản…</p>
+  if (!user) return <BookingSignIn title="Chọn hồ sơ người khám"/>
+  if (user.role !== 'patient') return <p className="clinic" role="alert">Vui lòng dùng tài khoản bệnh nhân để đặt lịch.</p>
+  if (!/^[1-9]\d*$/.test(doctor || '') || !/^[1-9]\d*$/.test(slot || '')) {
+    return <section className="clinic"><p role="alert">Thiếu thông tin bác sĩ hoặc ca khám hợp lệ.</p><Link to="/doctors">Chọn bác sĩ và ca khám</Link></section>
+  }
+  // A different account, doctor or slot starts a separate booking attempt.
+  return <BookingConfirmation key={`${user.id}:${doctor}:${slot}`} doctor={doctor} slot={slot}/>
+}
 
-  const [profileId, setProfileId] = useState('')
-  const [symptoms, setSymptoms] = useState('')
-  const [attachments, setAttachments] = useState([])
+function BookingConfirmation({ doctor, slot }) {
+  const [revision, refresh] = useState(0)
+  const profiles = useApi('/patient-profiles', revision)
+  const detail = useApi('/doctors/' + doctor)
+  const [profile, setProfile] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingProfile, setEditingProfile] = useState(null)
-  const [summaryCollapsed, setSummaryCollapsed] = useState(false)
-  const key = useRef(null)
+  const [slotResult, setSlotResult] = useState(null)
+  const requestKey = useRef(null)
+  const submitting = useRef(false)
   const navigate = useNavigate()
 
-  const doctor = detail.data?.data
-  const chosenSlot = detail.data?.slots.find(s => String(s.id) === String(slotId))
-  const profileList = profiles.data?.data || []
+  // The existing detail API supplies the date; BKD decides whether the slot is bookable.
+  const slotDate = detail.data?.slots?.find(item => String(item.id) === slot)?.work_date
+  useEffect(() => {
+    if (!slotDate) return
+    let active = true
+    doctorBookingApi.slots(doctor, slotDate)
+      .then(response => {
+        if (active) setSlotResult({ date: slotDate, slots: response.data })
+      })
+      .catch(issue => {
+        if (active) setSlotResult({ date: slotDate, error: bookingError(issue) })
+      })
+    return () => { active = false }
+  }, [doctor, slotDate])
 
-  // Auto-select first profile if none selected
-  const selectedProfile = useMemo(() => {
-    if (profileId) {
-      return profileList.find(p => String(p.id) === String(profileId))
-    }
-    if (profileList.length > 0) {
-      return profileList[0]
-    }
-    return null
-  }, [profileId, profileList])
+  const slotsReady = slotResult?.date === slotDate && Array.isArray(slotResult?.slots)
+  const chosen = slotsReady ? slotResult.slots.find(item => String(item.id) === slot) : null
+  const patientProfiles = Array.isArray(profiles.data?.data) ? profiles.data.data : []
+  const selectedProfile = patientProfiles.find(item => String(item.id) === profile)
+  const canSubmit = chosen?.can_book === true && Boolean(selectedProfile) && !busy
 
-  const activeProfileId = selectedProfile?.id || ''
-
-  async function submit(e) {
-    e.preventDefault()
-    if (!activeProfileId) {
-      setError('Vui lòng chọn hồ sơ bệnh nhân cần khám.')
-      return
+  function chooseProfile(id) {
+    const next = String(id)
+    if (next !== profile) {
+      requestKey.current = null
+      setProfile(next)
+      setError('')
     }
+  }
+
+  async function submit(event) {
+    event.preventDefault()
+    if (submitting.current || !canSubmit) return
+    submitting.current = true
     setBusy(true)
     setError('')
-    key.current ||= crypto.randomUUID()
     try {
-      const { data } = await client.post('/doctors/' + doctorId + '/bookings', {
-        slot_id: slotId,
-        patient_profile_id: activeProfileId,
-        symptoms: symptoms.trim() || undefined,
-        request_key: key.current,
+      // Keep this key after errors/timeouts so retry cannot create a second booking.
+      requestKey.current ||= crypto.randomUUID()
+      const response = await doctorBookingApi.create({
+        doctor_id: Number(doctor),
+        slot_id: Number(slot),
+        patient_profile_id: Number(profile),
+        request_key: requestKey.current,
       })
-      navigate('/payment?booking_id=' + data.id, { replace: true })
-    } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi tạo lịch khám.')
+      if (response.success !== true || !response.data?.id) {
+        throw new Error('Chưa nhận được mã lịch khám. Vui lòng thử lại với thông tin hiện tại.')
+      }
+      navigate('/payment?booking_id=' + encodeURIComponent(response.data.id), { replace: true })
+    } catch (issue) {
+      setError(bookingError(issue))
     } finally {
+      submitting.current = false
       setBusy(false)
     }
   }
 
-  if (loading) return <p className="clinic">Đang kiểm tra tài khoản…</p>
-  if (!user) return <BookingSignIn title="Chọn hồ sơ người khám" />
-
-  const avatarLetters = doctor?.name ? doctor.name.split(' ').slice(-2).map(w => w[0]).join('') : 'BS'
-  const doctorImage = doctor?.id ? `/media/directory/doctor-${doctor.id}.jpg` : null
-
-  const formattedDate = chosenSlot?.work_date
-    ? new Date(chosenSlot.work_date + 'T00:00:00').toLocaleDateString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
-    : '--'
-
-  const formattedTime = chosenSlot?.start_time
-    ? `${chosenSlot.start_time.slice(0, 5)} - ${chosenSlot.end_time?.slice(0, 5) || ''}`
-    : '--'
-
-  return (
-    <section className="clinic med-booking-page">
-      {/* Modern Stepper Top: [✓] Thời gian khám — [2] Bệnh nhân (Ảnh 2/4) */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link
-          to={`/doctors/${doctorId}`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-sage-50 text-sage-800 text-sm font-semibold hover:bg-sage-100 transition"
-        >
-          <span className="w-5 h-5 rounded-full bg-sage-600 text-white flex items-center justify-center text-xs">
-            ✓
-          </span>
-          Thời gian khám
-        </Link>
-        <span className="text-slate-300 font-bold">—</span>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white border border-sage-600 text-sage-800 text-sm font-bold shadow-sm">
-          <span className="w-5 h-5 rounded-full bg-sage-600 text-white flex items-center justify-center text-xs">
-            2
-          </span>
-          Bệnh nhân
-        </div>
-      </div>
-
-      <div className="booking-layout-grid">
-        {/* Left Column: Accordions & Form (Ảnh 2/4) */}
-        <div className="booking-main-content">
-          {/* Accordion 1: Ngày và giờ khám (Collapsed completed) */}
-          <div className="booking-accordion-card mb-4">
-            <Link
-              to={`/doctors/${doctorId}`}
-              className="booking-card-header flex justify-between items-center no-underline hover:bg-slate-50 transition"
-            >
-              <div className="booking-card-title flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center text-xs font-bold">
-                  ✓
-                </span>
-                <span className="text-slate-800 font-semibold text-base">Ngày và giờ khám</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-sage-700 font-medium">
-                <span>{formattedDate} · {formattedTime}</span>
-                <ChevronRight size={18} />
-              </div>
-            </Link>
-          </div>
-
-          {/* Accordion 2: Hồ sơ bệnh nhân (Expanded active) */}
-          <div className="booking-accordion-card active">
-            <div className="booking-card-header">
-              <div className="booking-card-title">
-                <span className="step-circle">2</span>
-                <span>Hồ sơ bệnh nhân</span>
-              </div>
-              <ChevronDown size={20} className="text-slate-400" />
-            </div>
-
-            <div className="booking-card-body">
-              {error && (
-                <div role="alert" className="mb-4 rounded-lg bg-rose-50 p-4 text-sm text-rose-800 border border-rose-200">
-                  {error}
-                </div>
-              )}
-
-              {/* Profiles Selection Card List (Ảnh 3/4) */}
-              <div className="mb-4">
-                <label className="block text-sm font-bold text-slate-700 mb-3">
-                  Chọn hồ sơ cần khám…
-                </label>
-
-                {profileList.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center bg-slate-50">
-                    <p className="text-sm text-slate-600 mb-3">
-                      Bạn chưa có hồ sơ bệnh nhân nào. Vui lòng tạo hồ sơ để tiếp tục.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setIsModalOpen(true)}
-                      className="btn-add-profile"
-                    >
-                      <Plus size={16} /> Thêm hồ sơ mới
-                    </button>
-                  </div>
-                ) : (
-                  <div className="profile-card-list">
-                    {profileList.map(p => {
-                      const isSelected = String(p.id) === String(activeProfileId)
-                      const initials = p.full_name
-                        ? p.full_name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase()
-                        : 'BN'
-                      const genderLabel = p.gender === 'female' ? 'Nữ' : p.gender === 'other' ? 'Khác' : 'Nam'
-                      const code = `BN-${String(p.id).padStart(6, '0')}`
-
-                      return (
-                        <div
-                          key={p.id}
-                          className={`patient-profile-card ${isSelected ? 'selected' : ''}`}
-                          onClick={() => {
-                            setProfileId(p.id)
-                            key.current = null
-                            setError('')
-                          }}
-                        >
-                          <div className="patient-card-header-row">
-                            <div className="patient-card-left">
-                              <div
-                                className="patient-initials-avatar"
-                                style={{
-                                  background: isSelected ? 'var(--med-sage)' : '#3b6e34',
-                                }}
-                              >
-                                {initials}
-                              </div>
-                              <div className="patient-card-info">
-                                <h3>
-                                  {p.full_name}
-                                  <span className="patient-primary-tag">
-                                    {p.is_default || p.relationship === 'Bản thân' ? 'Tôi' : p.relationship || 'Chính'}
-                                  </span>
-                                </h3>
-                                <div className="text-xs text-slate-500">{p.dob || '--'}</div>
-                              </div>
-                            </div>
-                            <div className="patient-radio-circle" />
-                          </div>
-
-                          {/* Detailed structured info */}
-                          <div className="patient-card-details-grid">
-                            <span className="detail-key">Mã bệnh nhân</span>
-                            <span className="detail-val font-mono">{p.code || code}</span>
-                            <span className="detail-key">Họ và tên</span>
-                            <span className="detail-val">{p.full_name}</span>
-                            <span className="detail-key">Giới tính</span>
-                            <span className="detail-val">{genderLabel}</span>
-                            <span className="detail-key">Ngày sinh</span>
-                            <span className="detail-val">{p.dob || '--'}</span>
-                            <span className="detail-key">Số điện thoại</span>
-                            <span className="detail-val">{p.phone || '--'}</span>
-                          </div>
-
-                          {/* Edit profile button */}
-                          <button
-                            type="button"
-                            className="btn-edit-profile"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setEditingProfile(p)
-                              setIsModalOpen(true)
-                            }}
-                          >
-                            Điều chỉnh
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {/* Button Thêm hồ sơ mới */}
-                <div className="mt-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingProfile(null)
-                      setIsModalOpen(true)
-                    }}
-                    className="btn-add-profile"
-                  >
-                    <Plus size={16} /> Thêm hồ sơ mới
-                  </button>
-                </div>
-              </div>
-
-              {/* Thông tin bổ sung (không bắt buộc) (Ảnh 4) */}
-              <div className="mt-6 pt-6 border-t border-slate-200">
-                <h4 className="text-sm font-bold text-slate-800 mb-3">Thông tin bổ sung (không bắt buộc)</h4>
-
-                <div className="mb-4">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Ghi chú</label>
-                  <textarea
-                    rows={3}
-                    className="w-full rounded-lg border border-slate-300 p-3 text-sm focus:border-sage-600 focus:ring-1 focus:ring-sage-600"
-                    placeholder="Triệu chứng, thuốc đang dùng, tiền sử, ..."
-                    value={symptoms}
-                    onChange={e => setSymptoms(e.target.value)}
-                    maxLength={500}
-                  />
-                </div>
-
-                <div>
-                  <AttachmentUploader
-                    files={attachments}
-                    onChange={setAttachments}
-                    maxFiles={5}
-                    maxSizeMb={15}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Sticky Summary Panel (Ảnh 1 & 4) */}
-        <aside className="booking-summary-sticky">
-          <div className="summary-header-row">
-            <h2>Thông tin đặt khám</h2>
-            <button
-              type="button"
-              className="text-slate-400 hover:text-slate-600"
-              onClick={() => setSummaryCollapsed(!summaryCollapsed)}
-            >
-              {summaryCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-            </button>
-          </div>
-
-          {!summaryCollapsed && (
-            <>
-              {/* Doctor snippet */}
-              <div className="summary-provider-snippet">
-                {doctorImage ? (
-                  <img
-                    src={doctorImage}
-                    alt={doctor?.name}
-                    className="summary-provider-img"
-                    onError={e => {
-                      e.currentTarget.style.display = 'none'
-                    }}
-                  />
-                ) : (
-                  <div
-                    className="patient-initials-avatar"
-                    style={{ width: 48, height: 48, background: '#2d5a27', fontSize: 16 }}
-                  >
-                    {avatarLetters}
-                  </div>
-                )}
-                <div className="summary-provider-text">
-                  <h3>{[doctor?.title, doctor?.name].filter(Boolean).join(' ')}</h3>
-                  <p>{[doctor?.hospital, doctor?.city || doctor?.address].filter(Boolean).join(' · ')}</p>
-                </div>
-              </div>
-
-              {/* Key-Value Breakdown */}
-              <div className="summary-kv-list">
-                <div className="summary-kv-item">
-                  <span className="label">Ngày khám</span>
-                  <span className="value">{formattedDate}</span>
-                </div>
-                <div className="summary-kv-item">
-                  <span className="label">Khung giờ</span>
-                  <span className="value">{formattedTime}</span>
-                </div>
-                <div className="summary-kv-item">
-                  <span className="label">Bệnh nhân</span>
-                  <span className="value">
-                    {selectedProfile?.full_name || '--'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="summary-price-total">
-                <span>Phí khám:</span>
-                <strong>{money(doctor?.consultation_fee || 0)}</strong>
-              </div>
-
-              <button
-                type="button"
-                className="summary-submit-btn"
-                disabled={busy || !chosenSlot || !activeProfileId}
-                onClick={submit}
-              >
-                {busy ? 'Đang giữ chỗ…' : 'Đặt lịch'}
-              </button>
-
-              <p className="summary-disclaimer">
-                Bằng cách nhấn nút xác nhận, bạn đã đồng ý với các điều khoản và điều kiện đặt khám của MedSi.
-              </p>
-            </>
-          )}
-        </aside>
-      </div>
-
-      <ProfileModal
-        isOpen={isModalOpen}
-        initialData={editingProfile}
-        onClose={() => {
-          setIsModalOpen(false)
-          setEditingProfile(null)
-        }}
-        onCreated={newProfile => {
-          setProfileId(newProfile.id)
-          refresh(v => v + 1)
-          key.current = null
-        }}
-        onUpdated={updatedProfile => {
-          refresh(v => v + 1)
-          key.current = null
-        }}
-      />
-    </section>
-  )
+  return <section className="clinic">
+    <h1>Chọn hồ sơ người khám</h1><BookingSteps current={2}/>
+    <div className="booking-columns">
+      <aside className="booking-summary">
+        <h2>Lịch đã chọn</h2><strong>{detail.data?.data.name}</strong><p>{detail.data?.data.hospital}</p>
+        <p>{chosen?.work_date || slotDate} · {chosen?.start_time}</p>
+        <Link to={'/doctors/' + doctor}>Đổi ca khám</Link>
+      </aside>
+      <article>
+        <h2>Hồ sơ người khám</h2>
+        <fieldset disabled={busy} className="border-0 p-0">
+          <ProfileCreator onCreated={item => { chooseProfile(item.id); refresh(value => value + 1) }}/>
+          <form onSubmit={submit}>
+            <label>Hồ sơ bệnh nhân
+              <select required value={profile} disabled={!profiles.data} onChange={event => chooseProfile(event.target.value)}>
+                <option value="">Chọn hồ sơ</option>
+                {patientProfiles.map(item => <option key={item.id} value={item.id}>
+                  {item.full_name} — {item.relationship || 'Chưa có quan hệ'} — {item.dob ? 'Sinh năm ' + item.dob.slice(0, 4) : 'Chưa có năm sinh'}
+                </option>)}
+              </select>
+            </label>
+            {!profiles.data && !profiles.error && <p role="status">Đang tải hồ sơ…</p>}
+            {profiles.data && patientProfiles.length === 0 && <p>Bạn chưa có hồ sơ người khám. Vui lòng tạo hồ sơ và đồng ý xử lý dữ liệu.</p>}
+            {!detail.data && !detail.error && <p role="status">Đang tải ca khám…</p>}
+            {slotDate && !slotResult && <p role="status">Đang kiểm tra chỗ còn…</p>}
+            {detail.data && !detail.error && (!slotDate || (slotsReady && chosen?.can_book !== true)) &&
+              <p role="alert">Ca khám không còn khả dụng. <Link to={'/doctors/' + doctor}>Chọn ca khác</Link></p>}
+            <button disabled={!canSubmit}>{busy ? 'Đang giữ chỗ…' : 'Giữ chỗ và thanh toán'}</button>
+          </form>
+        </fieldset>
+        <p role="alert">{error || slotResult?.error || profiles.error || detail.error}</p>
+      </article>
+    </div>
+  </section>
 }
