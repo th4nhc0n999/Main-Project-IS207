@@ -7,7 +7,7 @@ import axiosClient from './axiosClient';
 const paymentApi = {
   /**
    * Bắt đầu giao dịch thanh toán
-   * @param {{ booking_id: number|string, method: 'qr_pay'|'momo'|'atm'|'credit_card'|'store_pay' }} data
+   * @param {{ booking_id: number|string, method: 'qr_pay'|'momo'|'atm'|'credit_card' }} data
    */
   start: (data) => {
     return axiosClient.post('/payments/start', data);
@@ -45,13 +45,6 @@ const paymentApi = {
     return axiosClient.post(`/payments/momo/transactions/${code}/query`);
   },
 
-  /**
-   * Admin / Quầy xác nhận thanh toán tại quầy (Store Pay)
-   * @param {number|string} bookingId
-   */
-  confirmCounter: (bookingId) => {
-    return axiosClient.post(`/payments/bookings/${bookingId}/counter-confirm`);
-  },
 };
 
 export default paymentApi;
