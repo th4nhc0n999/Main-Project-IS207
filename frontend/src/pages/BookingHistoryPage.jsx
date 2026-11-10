@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { hospitalBookingApi as api } from '@/api/hospitalBookingApi'
 import { useAuth } from '@/context/AuthContext'
+import DoctorBookingCancelButton from '@/components/bkd/DoctorBookingCancelButton'
 
 const statuses = {
   pending_payment: 'Chờ thanh toán', pending_approval: 'Chờ bác sĩ duyệt', confirmed: 'Đã xác nhận',
@@ -15,6 +16,7 @@ export default function BookingHistoryPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [revision, setRevision] = useState(0)
+  const [cancelNotice, setCancelNotice] = useState('')
   const [state, setState] = useState({ loading: true, data: [], pagination: null, error: '' })
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function BookingHistoryPage() {
       <button key={value} role="tab" aria-selected={tab === value} onClick={() => { setTab(value); setPage(1) }} className={`rounded-lg px-4 py-2 ${tab === value ? 'bg-sage-700 text-white' : 'bg-slate-100'}`}>{label}</button>)}</div>
     <label className="block">Tìm mã phiếu, mã lịch hoặc cơ sở khám<input className="mt-2 w-full rounded-lg border p-3" value={search} maxLength={100} onChange={(e) => { setSearch(e.target.value); setPage(1) }} /></label>
     <button className="text-sage-700 underline" onClick={() => setRevision((value) => value + 1)}>Cập nhật trạng thái</button>
+    {cancelNotice && <p role="status" className="rounded-lg bg-sage-50 p-4 text-sage-800">{cancelNotice}</p>}
     {state.error && <p role="alert" className="rounded-lg bg-rose-50 p-4 text-rose-800">{state.error}</p>}
     {state.loading ? <p role="status">Đang tải lịch khám…</p> : state.data.length === 0 && !state.error ? <p>Chưa có lịch khám trong mục này.</p> :
       state.data.map((booking) => <article key={booking.id} className="space-y-3 rounded-xl border bg-white p-5">
@@ -53,6 +56,7 @@ export default function BookingHistoryPage() {
         <Link className="text-sage-800 underline" to={`/bookings/${booking.id}/refunds`}>Theo dõi hoàn tiền</Link>
         {booking.ticket ? <><p>Mã phiếu: {booking.ticket.ticket_code} · Số thứ tự: <strong>{booking.ticket.queue_number}</strong></p><Link className="inline-block text-sage-700 underline" to={`/bookings/${booking.id}/ticket`}>Xem phiếu, QR và tải PNG</Link></> : <p className="text-slate-500">Phiếu được cấp khi lịch được xác nhận.</p>}
         {booking.status === 'pending_payment' && <p><Link className="text-sage-700 underline" to={`/payment?booking_id=${booking.id}`}>Tiếp tục thanh toán</Link></p>}
+        <DoctorBookingCancelButton booking={booking} onResult={message => { setCancelNotice(message); setRevision(value => value + 1) }}/>
       </article>)}
     {state.pagination && <div className="flex items-center gap-4"><button disabled={page <= 1 || state.loading} className="disabled:opacity-40" onClick={() => setPage(page - 1)}>Trang trước</button><span>Trang {page}/{state.pagination.last_page}</span><button disabled={page >= state.pagination.last_page || state.loading} className="disabled:opacity-40" onClick={() => setPage(page + 1)}>Trang sau</button></div>}
   </main>
