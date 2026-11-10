@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { XCircle } from 'lucide-react'
+import { CalendarClock, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
 import doctorBookingApi from '@/api/doctorBookingApi'
 import DoctorModal from './DoctorModal'
-import { apiErrorMessage, needsRefresh } from './bookingPresentation'
+import { apiErrorMessage, formatMoney, needsRefresh } from './bookingPresentation'
 
 const cancellable = ['pending_payment', 'pending_approval', 'confirmed']
 const day = 24 * 60 * 60 * 1000
@@ -16,7 +16,7 @@ export default function DoctorBookingCancelButton({ booking, onResult }) {
   return <PatientCancellation key={`${user.id}:${booking.id}:${booking.status}`} bookingId={booking.id} onResult={onResult}/>
 }
 
-function PatientCancellation({ bookingId, onResult }) {
+export function PatientCancellation({ bookingId, onResult, reschedule = false, onCancelled }) {
   const [result, setResult] = useState(null)
   const [revision, refresh] = useState(0)
   const [tick, setTick] = useState(0)
@@ -64,7 +64,7 @@ function PatientCancellation({ bookingId, onResult }) {
   }
 
   const window = cancellationWindow(tick)
-  const active = cancellable.includes(booking?.status)
+  const active = reschedule ? booking?.status === 'confirmed' : cancellable.includes(booking?.status)
   const paid = ['pending_approval', 'confirmed'].includes(booking?.status) || booking?.payment?.status === 'paid'
   const disabled = !active || !window.allowed || busy
   const close = () => { if (!inFlight.current) { setOpen(false); setIssue(''); setReason('') } }
@@ -76,12 +76,14 @@ function PatientCancellation({ bookingId, onResult }) {
     inFlight.current = true
     setBusy(true); setIssue('')
     try {
-      const response = await doctorBookingApi.cancel(booking.id, booking.version, reason.trim())
+      const response = await doctorBookingApi.cancel(booking.id, booking.version, reason.trim(),
+        reschedule ? 'patient_reschedule' : null)
       if (response.success !== true || response.data?.status !== 'cancelled') {
         throw new Error('Chưa xác nhận được kết quả huỷ. Vui lòng cập nhật danh sách trước khi thử lại.')
       }
       setOpen(false)
-      onResult(paid ? 'Đã yêu cầu hoàn tiền' : 'Đã huỷ lịch')
+      if (reschedule) onCancelled(response.data)
+      else onResult(paid ? 'Đã yêu cầu hoàn tiền' : 'Đã huỷ lịch')
     } catch (error) {
       const message = apiErrorMessage(error)
       setIssue(message)
@@ -98,20 +100,26 @@ function PatientCancellation({ bookingId, onResult }) {
   return <div>
     <Button type="button" variant="outline" size="sm" disabled={disabled}
       onClick={() => { setIssue(''); setOpen(true) }}
-      className="border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700">
-      <XCircle className="mr-1 h-3.5 w-3.5"/>Huỷ lịch
+      className={reschedule ? 'border-sage-200 text-sage-800 hover:bg-sage-50' : 'border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700'}>
+      {reschedule ? <CalendarClock className="mr-1 h-3.5 w-3.5"/> : <XCircle className="mr-1 h-3.5 w-3.5"/>}{reschedule ? 'Đổi lịch' : 'Huỷ lịch'}
     </Button>
     {!current && <p role="status" className="mt-2 text-sm text-[var(--med-muted)]">Đang kiểm tra điều kiện huỷ…</p>}
     {current?.error && <div className="mt-2"><p role="alert">{current.error}</p><Button type="button" variant="link" onClick={() => refresh(value => value + 1)}>Thử lại</Button></div>}
     {window.tooLate && <p className="mt-2 text-sm text-[var(--med-muted)]">Còn dưới 24 giờ, vui lòng liên hệ hỗ trợ</p>}
     {booking && !active && <p role="status" className="mt-2 text-sm">Lịch đã thay đổi, không còn cho phép huỷ. Vui lòng cập nhật danh sách.</p>}
     {active && booking.status !== 'pending_payment' && !window.tooLate && !window.allowed && <p role="alert">Chưa kiểm tra được giờ ca khám. Vui lòng cập nhật danh sách.</p>}
-    {open && <DoctorModal title="Xác nhận huỷ lịch hẹn" busy={busy} onClose={close}>
+    {open && <DoctorModal title={reschedule ? 'Xác nhận đổi lịch khám' : 'Xác nhận huỷ lịch hẹn'} busy={busy} onClose={close}>
       <div className="mb-4 space-y-2 rounded-xl border border-[var(--med-line)] bg-sage-50 p-4">
         <p className="font-semibold">Mã lịch: {booking.code}</p>
         <p>{booking.slot?.work_date} · {booking.slot?.start_time?.slice(0, 5)}–{booking.slot?.end_time?.slice(0, 5)}</p>
-        <p>Bạn có chắc chắn muốn huỷ lịch khám này? Chỗ đã giữ sẽ được giải phóng.</p>
-        {paid && <p className="font-semibold">Hoàn 100% phí khám, không hoàn phí tiện ích</p>}
+        {reschedule ? <>
+          <p>Lịch cũ sẽ bị huỷ và chỗ đã giữ sẽ được giải phóng. Hệ thống tạo yêu cầu hoàn 100% phí khám ({formatMoney(booking.payment?.exam_fee)}), không hoàn phí tiện ích.</p>
+          <p>Bạn sẽ chọn ca mới của cùng bác sĩ và thanh toán lại đầy đủ phí khám cùng phí tiện ích. Ví dụ: hoàn 200.000đ phí khám lịch cũ; lịch mới thanh toán 220.000đ gồm 20.000đ phí tiện ích mới.</p>
+          <p className="font-semibold">Lịch cũ vẫn bị huỷ nếu bạn dừng hoặc không đặt được ca mới. Khoản hoàn chưa được giải ngân ngay.</p>
+        </> : <>
+          <p>Bạn có chắc chắn muốn huỷ lịch khám này? Chỗ đã giữ sẽ được giải phóng.</p>
+          {paid && <p className="font-semibold">Hoàn 100% phí khám, không hoàn phí tiện ích</p>}
+        </>}
       </div>
       {window.tooLate && <p role="alert" className="mb-4 text-rose-700">Còn dưới 24 giờ, vui lòng liên hệ hỗ trợ</p>}
       <form onSubmit={submit}>
@@ -122,8 +130,8 @@ function PatientCancellation({ bookingId, onResult }) {
         <p className="text-right text-sm text-[var(--med-muted)]">{reason.length}/255 ký tự</p>
         {issue && <p role="alert" className="my-4 rounded-lg bg-rose-50 p-4 text-rose-800">{issue}</p>}
         <div className="mt-4 flex justify-end gap-2">
-          <Button type="button" variant="outline" disabled={busy} onClick={close}>Không huỷ</Button>
-          <Button type="submit" variant="destructive" disabled={disabled || !reason.trim()}>{busy ? 'Đang huỷ…' : 'Xác nhận huỷ lịch'}</Button>
+          <Button type="button" variant="outline" disabled={busy} onClick={close}>{reschedule ? 'Quay lại' : 'Không huỷ'}</Button>
+          <Button type="submit" variant={reschedule ? 'default' : 'destructive'} disabled={disabled || !reason.trim()}>{busy ? 'Đang huỷ…' : reschedule ? 'Huỷ lịch cũ và chọn ca mới' : 'Xác nhận huỷ lịch'}</Button>
         </div>
       </form>
     </DoctorModal>}

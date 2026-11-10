@@ -26,6 +26,9 @@ function bookingError(error) {
 export default function BookingConfirmPage() {
   const [params] = useSearchParams()
   const doctor = params.get('doctor'), slot = params.get('slot')
+  const profileId = params.get('patient_profile_id'), rescheduleFrom = params.get('reschedule_from')
+  const initialProfile = /^[1-9]\d*$/.test(profileId || '') ? profileId : ''
+  const attempt = /^[1-9]\d*$/.test(rescheduleFrom || '') ? rescheduleFrom : ''
   const { user, loading } = useAuth()
   if (loading) return <p className="clinic">Đang kiểm tra tài khoản…</p>
   if (!user) return <BookingSignIn title="Chọn hồ sơ người khám"/>
@@ -34,20 +37,25 @@ export default function BookingConfirmPage() {
     return <section className="clinic"><p role="alert">Thiếu thông tin bác sĩ hoặc ca khám hợp lệ.</p><Link to="/doctors">Chọn bác sĩ và ca khám</Link></section>
   }
   // A different account, doctor or slot starts a separate booking attempt.
-  return <BookingConfirmation key={`${user.id}:${doctor}:${slot}`} doctor={doctor} slot={slot}/>
+  return <BookingConfirmation key={`${user.id}:${doctor}:${slot}:${initialProfile}:${attempt}`}
+    doctor={doctor} slot={slot} initialProfile={initialProfile} rescheduleFrom={attempt}/>
 }
 
-function BookingConfirmation({ doctor, slot }) {
+function BookingConfirmation({ doctor, slot, initialProfile, rescheduleFrom }) {
   const [revision, refresh] = useState(0)
   const profiles = useApi('/patient-profiles', revision)
   const detail = useApi('/doctors/' + doctor)
-  const [profile, setProfile] = useState('')
+  const [profile, setProfile] = useState(initialProfile)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [slotResult, setSlotResult] = useState(null)
   const requestKey = useRef(null)
   const submitting = useRef(false)
   const navigate = useNavigate()
+  const selectionParams = new URLSearchParams()
+  if (initialProfile) selectionParams.set('patient_profile_id', initialProfile)
+  if (rescheduleFrom) selectionParams.set('reschedule_from', rescheduleFrom)
+  const selectionPath = '/doctors/' + doctor + (selectionParams.size ? '?' + selectionParams : '')
 
   // The existing detail API supplies the date; BKD decides whether the slot is bookable.
   const slotDate = detail.data?.slots?.find(item => String(item.id) === slot)?.work_date
@@ -112,7 +120,7 @@ function BookingConfirmation({ doctor, slot }) {
       <aside className="booking-summary">
         <h2>Lịch đã chọn</h2><strong>{detail.data?.data.name}</strong><p>{detail.data?.data.hospital}</p>
         <p>{chosen?.work_date || slotDate} · {chosen?.start_time}</p>
-        <Link to={'/doctors/' + doctor}>Đổi ca khám</Link>
+        <Link to={selectionPath}>Đổi ca khám</Link>
       </aside>
       <article>
         <h2>Hồ sơ người khám</h2>
@@ -129,10 +137,11 @@ function BookingConfirmation({ doctor, slot }) {
             </label>
             {!profiles.data && !profiles.error && <p role="status">Đang tải hồ sơ…</p>}
             {profiles.data && patientProfiles.length === 0 && <p>Bạn chưa có hồ sơ người khám. Vui lòng tạo hồ sơ và đồng ý xử lý dữ liệu.</p>}
+            {profiles.data && initialProfile && !patientProfiles.some(item => String(item.id) === initialProfile) && <p role="alert">Hồ sơ cũ không còn khả dụng. Vui lòng chọn hồ sơ hợp lệ của tài khoản.</p>}
             {!detail.data && !detail.error && <p role="status">Đang tải ca khám…</p>}
             {slotDate && !slotResult && <p role="status">Đang kiểm tra chỗ còn…</p>}
             {detail.data && !detail.error && (!slotDate || (slotsReady && chosen?.can_book !== true)) &&
-              <p role="alert">Ca khám không còn khả dụng. <Link to={'/doctors/' + doctor}>Chọn ca khác</Link></p>}
+              <p role="alert">Ca khám không còn khả dụng. <Link to={selectionPath}>Chọn ca khác</Link></p>}
             <button disabled={!canSubmit}>{busy ? 'Đang giữ chỗ…' : 'Giữ chỗ và thanh toán'}</button>
           </form>
         </fieldset>

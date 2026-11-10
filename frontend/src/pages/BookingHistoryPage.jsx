@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { hospitalBookingApi as api } from '@/api/hospitalBookingApi'
 import { useAuth } from '@/context/AuthContext'
 import DoctorBookingCancelButton from '@/components/bkd/DoctorBookingCancelButton'
+import DoctorBookingRescheduleButton from '@/components/bkd/DoctorBookingRescheduleButton'
 
 const statuses = {
   pending_payment: 'Chờ thanh toán', pending_approval: 'Chờ bác sĩ duyệt', confirmed: 'Đã xác nhận',
@@ -57,6 +58,7 @@ export default function BookingHistoryPage() {
         {booking.ticket ? <><p>Mã phiếu: {booking.ticket.ticket_code} · Số thứ tự: <strong>{booking.ticket.queue_number}</strong></p><Link className="inline-block text-sage-700 underline" to={`/bookings/${booking.id}/ticket`}>Xem phiếu, QR và tải PNG</Link></> : <p className="text-slate-500">Phiếu được cấp khi lịch được xác nhận.</p>}
         {booking.status === 'pending_payment' && <p><Link className="text-sage-700 underline" to={`/payment?booking_id=${booking.id}`}>Tiếp tục thanh toán</Link></p>}
         <DoctorBookingCancelButton booking={booking} onResult={message => { setCancelNotice(message); setRevision(value => value + 1) }}/>
+        <DoctorBookingRescheduleButton booking={booking} onResult={message => { setCancelNotice(message); setRevision(value => value + 1) }}/>
       </article>)}
     {state.pagination && <div className="flex items-center gap-4"><button disabled={page <= 1 || state.loading} className="disabled:opacity-40" onClick={() => setPage(page - 1)}>Trang trước</button><span>Trang {page}/{state.pagination.last_page}</span><button disabled={page >= state.pagination.last_page || state.loading} className="disabled:opacity-40" onClick={() => setPage(page + 1)}>Trang sau</button></div>}
   </main>
