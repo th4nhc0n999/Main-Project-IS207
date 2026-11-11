@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { ChevronRight, ChevronLeft, Sun, Sunset, MapPin, Check, ShieldCheck, ArrowRight } from 'lucide-react'
 import useApi, { money } from '@/api/useApi'
 import './booking-modern.css'
@@ -7,6 +7,7 @@ import './booking-modern.css'
 export default function DoctorDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const { data, error } = useApi('/doctors/' + id)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedSlot, setSelectedSlot] = useState(null)
@@ -68,7 +69,12 @@ export default function DoctorDetailPage() {
 
   function handleContinue() {
     if (!selectedSlot) return
-    navigate(`/booking/confirm?doctor=${id}&slot=${selectedSlot.id}`)
+    const next = new URLSearchParams({ doctor: id, slot: String(selectedSlot.id) })
+    for (const field of ['patient_profile_id', 'reschedule_from']) {
+      const value = params.get(field)
+      if (/^[1-9]\d*$/.test(value || '')) next.set(field, value)
+    }
+    navigate(`/booking/confirm?${next}`)
   }
 
   if (!data) {

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { hospitalBookingApi as api } from '@/api/hospitalBookingApi'
 import { useAuth } from '@/context/AuthContext'
+import DoctorBookingCancelButton from '@/components/bkd/DoctorBookingCancelButton'
+import DoctorBookingRescheduleButton from '@/components/bkd/DoctorBookingRescheduleButton'
 
 const statuses = {
   pending_payment: 'Chờ thanh toán', pending_approval: 'Chờ bác sĩ duyệt', confirmed: 'Đã xác nhận',
@@ -183,8 +185,15 @@ export default function BookingHistoryPage() {
                 )}
               </div>
 
+              {tab === 'upcoming' && booking.booking_type === 'doctor' && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <DoctorBookingCancelButton booking={booking} onResult={message => { setActionSuccess(message); setRevision(value => value + 1) }}/>
+                  <DoctorBookingRescheduleButton booking={booking} onResult={message => { setActionSuccess(message); setRevision(value => value + 1) }}/>
+                </div>
+              )}
+
               {/* Nút hủy dành cho tab Sắp khám */}
-              {tab === 'upcoming' && (
+              {tab === 'upcoming' && booking.booking_type === 'hospital' && (
                 <div className="flex items-center gap-2">
                   {booking.status === 'pending_payment' && (
                     <button
@@ -222,7 +231,7 @@ export default function BookingHistoryPage() {
       )}
 
       {/* MODAL: XÁC NHẬN HỦY LỊCH KHÁM */}
-      {cancellingBooking && (
+      {cancellingBooking?.booking_type === 'hospital' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b pb-3">
