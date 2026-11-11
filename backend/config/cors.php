@@ -16,6 +16,13 @@ return [
         'http://localhost:3000',
     ],
 
+    // 3.1. Cho phép tất cả subdomain trên các nền tảng deploy phổ biến
+    'allowed_origins_patterns' => [
+        '/^https:\/\/.*\.onrender\.com$/',
+        '/^https:\/\/.*\.vercel\.app$/',
+        '/^https:\/\/.*\.netlify\.app$/',
+    ],
+
     'allowed_origins_patterns' => [],
 
     // 4. Cho phép gửi các header phổ biến (Authorization, Content-Type,...)
