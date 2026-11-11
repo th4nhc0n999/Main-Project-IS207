@@ -166,7 +166,6 @@ Route::middleware([\App\Http\Middleware\PaymentApi::class.':sanctum', 'active', 
     Route::get('/payments/bookings/{booking}', [\App\Http\Controllers\Api\PaymentController::class, 'show'])->whereNumber('booking');
     Route::post('/payments/simulate', [\App\Http\Controllers\Api\PaymentController::class, 'simulate']);
     Route::get('/payments/transactions/{code}', [\App\Http\Controllers\Api\PaymentController::class, 'transaction']);
-    Route::post('/payments/bookings/{booking}/counter-confirm', [App\Http\Controllers\Api\Admin\PaymentController::class, 'counter'])->whereNumber('booking')->middleware('role:admin');
     Route::post('/payments/refunds/{refund}/transition', [App\Http\Controllers\Api\Admin\PaymentController::class, 'refund'])->whereNumber('refund')->middleware('role:admin');
 });
 

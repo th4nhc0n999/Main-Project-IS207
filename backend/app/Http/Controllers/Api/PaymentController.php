@@ -31,8 +31,7 @@ class PaymentController extends Controller
         $description = 'MEDSI '.$transaction->booking_code;
         $payload['payment_description'] = $description;
         $payload['hold_expires_at'] = $transaction->hold_expires_at;
-        $payload['result_wait_until'] = $data['method'] === 'store_pay' ? null
-            : \Carbon\CarbonImmutable::parse($transaction->hold_expires_at)
+        $payload['result_wait_until'] = \Carbon\CarbonImmutable::parse($transaction->hold_expires_at)
                 ->addMinutes((int) config('medsi.grace_minutes'))->toIso8601String();
         if ($usesMomo) {
             $payload = array_merge($payload, $momo->checkout($transaction, $data['method'], $request->user()->email, $description,

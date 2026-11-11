@@ -23,5 +23,4 @@ return [
     'near_me_radius_options_km' => [2, 5, 10, 20],
     'near_me_default_radius_km' => 5,
     'symptoms_max_length' => 500,
-    'store_pay_cutoff_minutes_before' => 30,
 ];
