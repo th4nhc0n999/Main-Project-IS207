@@ -15,7 +15,7 @@ class PaymentRequest extends FormRequest
     {
         return match ($this->route()->getActionMethod()) {
             'start' => ['booking_id' => ['required', 'integer', 'min:1'],
-                'method' => ['required', 'in:atm,credit_card,qr_pay,momo,store_pay']],
+                'method' => ['required', 'in:atm,credit_card,qr_pay,momo']],
             'simulate' => ['transaction_code' => ['required', 'string', 'max:64'],
                 'status' => ['required', 'in:success,failed']],
             'callback' => ['booking_id' => ['required', 'integer', 'min:1'],

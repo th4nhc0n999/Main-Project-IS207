@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { CreditCard, Landmark, QrCode, Store, Wallet } from 'lucide-react'
 import BookingSteps from '@/components/BookingSteps'
 import BookingSignIn from '@/components/BookingSignIn'
 import { useAuth } from '@/context/AuthContext'
@@ -8,11 +7,10 @@ import paymentApi from '@/api/paymentApi'
 import useApi, { money } from '@/api/useApi'
 
 const methods = [
-  { id: 'momo', name: 'Ví MoMo', icon: Wallet },
-  { id: 'qr_pay', name: 'Chuyển khoản VietQR', icon: QrCode },
-  { id: 'atm', name: 'Thẻ ATM nội địa', icon: Landmark },
-  { id: 'credit_card', name: 'Thẻ quốc tế', icon: CreditCard },
-  { id: 'store_pay', name: 'Tại quầy bệnh viện', icon: Store },
+  { id: 'momo', name: 'Ví MoMo', logo: 'momo.png' },
+  { id: 'qr_pay', name: 'Chuyển khoản VietQR', logo: 'vietqr.png' },
+  { id: 'atm', name: 'Thẻ ATM nội địa', logo: 'napas.png' },
+  { id: 'credit_card', name: 'Thẻ quốc tế', logo: 'visa.svg' },
 ]
 const refundLabels = { requested: 'Đã yêu cầu', approved: 'Đã duyệt', processing: 'Đang xử lý', succeeded: 'Đã hoàn tiền', failed: 'Hoàn tiền thất bại', rejected: 'Bị từ chối' }
 const providerMethods = ['momo', 'atm', 'credit_card']
@@ -124,19 +122,23 @@ function PaymentDetail({ id, refundsOnly, returnedOrder }) {
             <p>{counter ? 'Hạn thanh toán tại quầy: ' + dateTime(deadline) :
               'Thời gian giữ chỗ còn ' + Math.floor(remaining / 60) + ':' + String(remaining % 60).padStart(2,'0')}</p>
             {!code && <fieldset disabled={busy}><legend>Chọn phương thức thanh toán</legend>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">{methods.filter(m => m.id !== 'store_pay' || booking.booking_type === 'hospital').map(({id: value, name, icon: Icon}) =>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">{methods.map(({id: value, name, logo}) =>
                 <label key={value} className="pay-choice">
-                  <span className={'pay-mark pay-mark--' + value} aria-hidden="true">
-                    {value === 'momo' ? <b>mo<br/>mo</b> : <Icon size={24} strokeWidth={1.8}/>}
-                  </span>
+                  <img className="pay-method-logo" src={'/media/payment/' + logo} alt=""/>
                   <span>{name}</span>
                   <input type="radio" name="method" value={value} checked={method===value} onChange={() => {choose(value);setIssue('');setNotice('')}}/>
                 </label>)}</div></fieldset>}
-            {code && <p>Phương thức: <strong>{methods.find(m => m.id === method)?.name}</strong></p>}
-            {counter ? <p>Đưa mã lịch {booking.code} cho bệnh viện và thanh toán trước thời hạn trên. Admin xác nhận sau khi đã thu tiền.</p> : <>
+            {code && <p>Phương thức: <strong>{counter ? 'Tại quầy (lịch cũ)' : methods.find(m => m.id === method)?.name}</strong></p>}
+            {counter ? <p>Lịch này đã đăng ký trả tại quầy trước khi phương thức ngừng hỗ trợ. Vui lòng liên hệ hỗ trợ và cung cấp mã lịch {booking.code}.</p> : <>
               {!tx && <button disabled={busy || !method} onClick={() => act('start')}>{code ? 'Mở lại giao dịch' : 'Tiếp tục thanh toán'}</button>}
               {tx?.qr_svg && <figure><img width="288" height="288" alt={provider ? 'Mã thanh toán từ MoMo Sandbox' : 'Mã chuyển khoản VietQR'} src={'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(tx.qr_svg)}/>
-                <figcaption>{provider ? 'Quét bằng MoMo Test.' : 'Quét bằng ứng dụng ngân hàng để xem thông tin. Chỉ minh họa, không chuyển tiền.'}</figcaption></figure>}
+                <figcaption>{method === 'qr_pay' ? <div className="vietqr-apps">
+                  <strong>Dùng ứng dụng để quét VietQR</strong>
+                  <ul aria-label="Ví và ứng dụng ngân hàng">
+                    {[['MoMo','momo'], ['Vietcombank','VCB'], ['BIDV','BIDV'], ['Techcombank','TCB'], ['VietinBank','ICB'], ['MB','MB']].map(([name, file]) =>
+                      <li key={name}><img src={'/media/payment/' + file + '.png'} alt={name}/></li>)}
+                  </ul>
+                </div> : 'Quét bằng MoMo Test.'}</figcaption></figure>}
               {tx?.payment_description && <p>Nội dung: {tx.payment_description}</p>}
               {tx?.checkout?.payUrl && <a className="inline-block font-semibold underline" href={tx.checkout.payUrl}>Mở trang thanh toán của MoMo Sandbox</a>}
               {tx?.needs_query && <p>Đang chờ kết quả tạo giao dịch từ MoMo.</p>}

@@ -21,7 +21,7 @@ class PaymentGatewayService
         return DB::transaction(function () use ($bookingId, $method, $user) {
             [$booking, $payment] = $this->lock($bookingId);
             $this->authorize($booking, $user);
-            if (! in_array($method, ['atm', 'credit_card', 'qr_pay', 'momo', 'store_pay'], true)) {
+            if (! in_array($method, ['atm', 'credit_card', 'qr_pay', 'momo'], true)) {
                 $this->invalid('Phương thức thanh toán không hợp lệ.');
             }
             $momo = array_key_exists($method, MomoSandboxService::METHODS);
@@ -44,19 +44,7 @@ class PaymentGatewayService
                 $pending->booking_code = $booking->code;
                 return $pending;
             }
-            if ($method === 'store_pay') {
-                if ($booking->booking_type !== 'hospital') {
-                    $this->invalid('Chỉ lịch bệnh viện được thanh toán tại quầy.');
-                }
-                $slot = DB::table('slots')->find($booking->slot_id);
-                $deadline = CarbonImmutable::parse($slot->work_date.' '.$slot->start_time)
-                    ->subMinutes((int) config('medsi.store_pay_cutoff_minutes_before'));
-                if (now()->gte($deadline)) {
-                    $this->invalid('Đã quá hạn thanh toán tại quầy.');
-                }
-                $booking->hold_expires_at = $deadline;
-                $booking->save();
-            } elseif ($payment->method === 'store_pay') {
+            if ($payment->method === 'store_pay') {
                 $this->invalid('Không đổi giao dịch tại quầy sang trực tuyến.');
             }
             DB::table('payments')->where('id', $payment->id)->update([
@@ -65,7 +53,7 @@ class PaymentGatewayService
             $id = DB::table('payment_transactions')->insertGetId([
                 'payment_id' => $payment->id, 'transaction_code' => ($momo ? 'MOMO-' : 'SIM-').Str::uuid(),
                 'amount' => $payment->total_amount, 'status' => 'pending',
-                'source' => $method === 'store_pay' ? 'counter' : 'gateway',
+                'source' => 'gateway',
                 'raw_payload' => $momo ? json_encode(['provider' => 'momo_sandbox', 'request_type' => MomoSandboxService::METHODS[$method]]) : null,
                 'received_at' => now(), 'created_at' => now(), 'updated_at' => now(),
             ]);
@@ -83,10 +71,10 @@ class PaymentGatewayService
         return DB::transaction(function () use ($bookingId, $code, $amount, $status, $source, $actor) {
             [$booking, $payment] = $this->lock($bookingId);
             if (! in_array($status, ['success', 'failed'], true) || $amount !== (int) $payment->total_amount
-                || ! in_array($source, ['gateway', 'counter', 'demo_admin'], true)) {
+                || ! in_array($source, ['gateway', 'demo_admin'], true)) {
                 $this->invalid('Kết quả hoặc số tiền không khớp giao dịch.');
             }
-            if (($payment->method === 'store_pay') !== ($source === 'counter')) {
+            if ($payment->method === 'store_pay') {
                 $this->invalid('Nguồn xác nhận không khớp phương thức thanh toán.');
             }
             $transaction = DB::table('payment_transactions')->where('transaction_code', $code)->lockForUpdate()->first();
@@ -101,7 +89,7 @@ class PaymentGatewayService
                 return $transaction;
             }
             $deadline = $booking->hold_expires_at?->copy();
-            if ($deadline && $source !== 'counter' && $transaction
+            if ($deadline && $transaction
                 && CarbonImmutable::parse($transaction->created_at)->lt($deadline)) {
                 $deadline->addMinutes((int) config('medsi.grace_minutes'));
             }
@@ -117,7 +105,7 @@ class PaymentGatewayService
                 ]);
             }
             app(AuditLogger::class)->log(AuditEvent::AU_17, 'payment_transaction', $id,
-                $actor ?? ($source === 'counter' ? 'system' : 'gateway'), [
+                $actor ?? 'gateway', [
                     'event' => 'payment_transaction.'.$status, 'from' => $transaction?->status, 'to' => $status,
                     'transaction_code' => $code, 'amount' => $amount, 'source' => $source,
                 ]);
@@ -150,27 +138,6 @@ class PaymentGatewayService
             }
 
             return DB::table('payment_transactions')->find($id);
-        });
-    }
-
-    public function confirmCounter(int $bookingId, User $admin): object
-    {
-        abort_unless($admin->role === 'admin' && $admin->status->value === 'active', 403);
-
-        return DB::transaction(function () use ($bookingId, $admin) {
-            [$booking, $payment] = $this->lock($bookingId);
-            if ($payment->method !== 'store_pay' || $booking->booking_type !== 'hospital'
-                || ! $booking->hold_expires_at || now()->gte($booking->hold_expires_at)) {
-                $this->invalid('Không thể xác nhận trả tại quầy sau hạn hoặc sai loại lịch.');
-            }
-            $transaction = DB::table('payment_transactions')->where('payment_id', $payment->id)
-                ->where('source', 'counter')->orderByDesc('id')->first();
-            if (! $transaction) {
-                $this->invalid('Chưa đăng ký thanh toán tại quầy.');
-            }
-
-            return $this->callback($bookingId, $transaction->transaction_code,
-                (int) $transaction->amount, 'success', 'counter', $admin);
         });
     }
 

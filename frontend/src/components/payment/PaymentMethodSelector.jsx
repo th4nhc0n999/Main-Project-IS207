@@ -2,7 +2,6 @@ import React from 'react';
 import {
   CreditCard,
   QrCode,
-  Store,
   Wallet,
   Landmark,
   CheckCircle2,
@@ -36,14 +35,6 @@ export function PaymentMethodSelector({ selectedMethod, onSelectMethod }) {
       icon: QrCode,
       badge: 'Nhanh nhất',
       iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-    },
-    {
-      id: 'store_pay',
-      title: 'Thanh toán tại Cửa hàng tiện lợi',
-      subtitle: 'Thanh toán bằng tiền mặt tại Circle K, GS25, MiniStop, FamilyMart...',
-      icon: Store,
-      badge: 'Tiền mặt',
-      iconBg: 'bg-amber-50 text-amber-600 border-amber-200',
     },
     {
       id: 'momo',
