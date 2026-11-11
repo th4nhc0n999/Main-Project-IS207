@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BookingEvent;
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Slot;
 use App\Services\BookingReadService;
@@ -117,6 +118,46 @@ class HospitalBookingController extends Controller
         $booking = $stateMachine->apply($booking, BookingEvent::T01, $request->user(), ['ip_address' => $request->ip()]);
 
         return response()->json(['data' => $read->detail($request->user(), $booking->id)], $booking->wasRecentlyCreated ? 201 : 200);
+    }
+
+    public function cancel(Request $request, int $booking, BookingStateMachine $stateMachine, BookingReadService $read): JsonResponse
+    {
+        $instance = Booking::query()->findOrFail($booking);
+        abort_unless((int) $instance->user_id === (int) $request->user()->id || $request->user()->role === 'admin', 403, 'Bạn không có quyền thao tác trên lịch này.');
+
+        $data = $request->validate([
+            'reason' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $event = match ($instance->status) {
+            BookingStatus::PENDING_PAYMENT => BookingEvent::T04,
+            BookingStatus::CONFIRMED => BookingEvent::T10,
+            default => throw ValidationException::withMessages(['status' => 'Không thể hủy lịch ở trạng thái '.$instance->status->value.'.']),
+        };
+
+        $reason = trim((string) ($data['reason'] ?? ''));
+        if ($event === BookingEvent::T10 && $reason === '') {
+            throw ValidationException::withMessages(['reason' => 'Vui lòng cung cấp lý do hủy lịch.']);
+        }
+        if ($reason === '') {
+            $reason = 'Bệnh nhân hủy giữ chỗ';
+        }
+
+        try {
+            $updated = $stateMachine->apply($instance, $event, $request->user(), [
+                'reason' => $reason,
+                'ip_address' => $request->ip(),
+            ]);
+        } catch (\App\Exceptions\Booking\InvalidBookingTransitionException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => $event === BookingEvent::T10
+                ? 'Đã hủy lịch khám thành công. Yêu cầu hoàn tiền đã được chuyển đến bộ phận tài chính.'
+                : 'Đã hủy giữ chỗ thành công.',
+            'data' => $read->detail($request->user(), $updated->id),
+        ]);
     }
 
     private function hospital(int $id): object

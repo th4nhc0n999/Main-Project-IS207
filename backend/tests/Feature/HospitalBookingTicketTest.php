@@ -264,6 +264,59 @@ class HospitalBookingTicketTest extends TestCase
         $this->postJson('/api/tickets/check-in', ['qr_token' => 'test'])->assertUnauthorized();
     }
 
+    public function test_patient_can_cancel_pending_payment_and_confirmed_booking_before_24_hours(): void
+    {
+        $pending = $this->book();
+        $this->assertSame('pending_payment', $pending->status->value);
+        $this->assertSame(1, $this->slot->fresh()->booked_count);
+
+        Sanctum::actingAs($this->patient);
+        $this->postJson('/api/hospital-bookings/'.$pending->id.'/cancel', [
+            'reason' => 'Đổi kế hoạch cá nhân',
+        ])->assertOk()->assertJsonPath('data.status', 'cancelled');
+
+        $this->assertSame('cancelled', $pending->fresh()->status->value);
+        $this->assertSame(0, $this->slot->fresh()->booked_count);
+
+        $confirmed = $this->confirm($this->book());
+        $this->assertSame('confirmed', $confirmed->status->value);
+        $ticket = Ticket::where('booking_id', $confirmed->id)->firstOrFail();
+        $this->assertSame(TicketStatus::ISSUED, $ticket->status);
+
+        $this->travelTo(now()->setDate(2026, 11, 5)->setTime(10, 0));
+
+        $res = $this->postJson('/api/hospital-bookings/'.$confirmed->id.'/cancel', [
+            'reason' => 'Bận việc đột xuất',
+        ])->assertOk();
+
+        $res->assertJsonPath('data.status', 'cancelled');
+        $this->assertSame('cancelled', $confirmed->fresh()->status->value);
+        $this->assertSame(TicketStatus::CANCELLED, $ticket->fresh()->status);
+        $this->assertSame(0, $this->slot->fresh()->booked_count);
+
+        $this->assertDatabaseHas('refunds', [
+            'booking_id' => $confirmed->id,
+            'exam_fee_refunded' => 200000,
+            'service_fee_refunded' => 0,
+            'status' => 'requested',
+        ]);
+    }
+
+    public function test_patient_cannot_cancel_confirmed_booking_under_24_hours(): void
+    {
+        $confirmed = $this->confirm($this->book());
+
+        $this->travelTo(now()->setDate(2026, 11, 6)->setTime(12, 0));
+
+        Sanctum::actingAs($this->patient);
+        $this->postJson('/api/hospital-bookings/'.$confirmed->id.'/cancel', [
+            'reason' => 'Muốn hủy cận giờ',
+        ])->assertStatus(422)
+          ->assertJsonFragment(['message' => 'Lịch còn dưới 24 giờ; vui lòng liên hệ Admin.']);
+
+        $this->assertSame('confirmed', $confirmed->fresh()->status->value);
+    }
+
     private function user(string $role, ?int $hospital = null): User
     {
         return User::create(['name' => 'Synthetic '.$role, 'email' => Str::uuid().'@example.test', 'password' => 'test-password', 'role' => $role, 'status' => 'active', 'hospital_id' => $hospital]);
