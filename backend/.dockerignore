@@ -1,0 +1,12 @@
+.git
+.github
+.vscode
+node_modules
+vendor
+tests
+.env
+.env.*
+!.env.example
+.phpunit.result.cache
+*.log
+
