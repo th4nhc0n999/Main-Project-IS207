@@ -18,7 +18,11 @@ class PaymentController extends Controller
 
     private function simulationOnly(): void
     {
-        abort_unless(app()->environment(['local', 'testing']), 403, 'Chỉ dùng chức năng mô phỏng trong môi trường thử nghiệm.');
+        abort_unless(
+            app()->environment(['local', 'testing']) || config('payment.demo_gateway.enabled'),
+            403,
+            'Chỉ dùng chức năng mô phỏng trong môi trường thử nghiệm.'
+        );
     }
 
     private function result(PaymentRequest $request, object $result)

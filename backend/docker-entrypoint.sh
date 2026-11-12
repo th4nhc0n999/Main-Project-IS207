@@ -35,6 +35,14 @@ php artisan config:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
 
+# Khoi dong scheduler xu ly het han giu cho (chay nen trong container moi phut)
+(
+    while true; do
+        php /var/www/html/artisan schedule:run --no-interaction >> /var/www/html/storage/logs/scheduler.log 2>&1 || true
+        sleep 60
+    done
+) &
+
 echo ">>> Apache san sang tiep nhan request."
 
 # Chay Apache foreground

@@ -16,7 +16,11 @@ class MomoSandboxService
 
     public function assertConfigured(): void
     {
-        abort_unless(app()->environment(['local', 'testing']), 403, 'MoMo sandbox chỉ dùng trong môi trường thử nghiệm.');
+        abort_unless(
+            app()->environment(['local', 'testing']) || config('payment.demo_gateway.enabled'),
+            403,
+            'MoMo sandbox chỉ dùng trong môi trường thử nghiệm.'
+        );
         foreach (['partner_code', 'access_key', 'secret_key'] as $key) {
             abort_if(blank(config('payment.momo.'.$key)), 503, 'Laravel chưa nhận đủ thông tin đối tác MoMo Sandbox.');
         }
@@ -67,13 +71,16 @@ class MomoSandboxService
         $code = $transaction->transaction_code;
         $localOrigin = in_array($origin, ['http://localhost:5173', 'http://127.0.0.1:5173'], true)
             ? $origin : 'http://localhost:5173';
+        $baseRedirect = $this->localCheckout()
+            ? ($localOrigin.'/payment')
+            : (string) config('payment.momo.redirect_url');
+        $separator = str_contains($baseRedirect, '?') ? '&' : '?';
+        $redirectUrl = "{$baseRedirect}{$separator}booking_id={$bookingId}&from=momo";
         $body = [
             'partnerCode' => config('payment.momo.partner_code'), 'requestId' => $code,
             'orderId' => $code, 'amount' => (int) $transaction->amount,
             'orderInfo' => $description,
-            'redirectUrl' => $this->localCheckout()
-                ? $localOrigin.'/payment?booking_id='.$bookingId.'&from=momo'
-                : config('payment.momo.redirect_url'),
+            'redirectUrl' => $redirectUrl,
             // Sandbox create requires this field. Local checkout retrieves results via query.
             'ipnUrl' => $this->localCheckout() ? 'https://localhost/api/payments/momo/ipn' : config('payment.momo.ipn_url'),
             'requestType' => self::METHODS[$method],

@@ -23,8 +23,6 @@ return [
         '/^https:\/\/.*\.netlify\.app$/',
     ],
 
-    'allowed_origins_patterns' => [],
-
     // 4. Cho phép gửi các header phổ biến (Authorization, Content-Type,...)
     'allowed_headers' => ['*'],
 
