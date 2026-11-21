@@ -5,7 +5,7 @@ import { PatientCancellation } from './DoctorBookingCancelButton'
 export default function DoctorBookingRescheduleButton({ booking, onResult }) {
   const { user } = useAuth()
   const navigate = useNavigate()
-  if (user?.role !== 'patient' || String(booking.user_id) !== String(user.id)
+  if (user?.role !== 'patient' || (booking.user_id != null && String(booking.user_id) !== String(user.id))
     || booking.booking_type !== 'doctor' || booking.status !== 'confirmed') return null
 
   function chooseNewSlot(cancelled) {
