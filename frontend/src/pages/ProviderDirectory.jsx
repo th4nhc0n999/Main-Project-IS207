@@ -1,5 +1,5 @@
 import { Link, NavLink, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Building2, ChevronRight, MapPin, Search, Star, Stethoscope } from 'lucide-react'
+import { ArrowRight, Building2, ChevronRight, MapPin, Navigation, Search, Star, Stethoscope } from 'lucide-react'
 import { initialHospitals } from '@/lib/mockData'
 import useApi from '@/api/useApi'
 import SpecialtyImage from '@/components/SpecialtyImage'
@@ -90,7 +90,18 @@ export default function ProviderDirectory({ hospital = false }) {
     {!hospital && <section className="specialty-picker"><h2>Khám theo chuyên khoa</h2>
       <div>{['',...specialties].map(s=><button key={s} aria-pressed={selectedSpecialty===s} onClick={()=>update('specialty',s)}>{s && <SpecialtyImage name={s} size={24}/>} {s || 'Tất cả'}</button>)}</div>
     </section>}
-    <div className="directory-heading"><h2>{hospital?'Danh sách bệnh viện':'Danh sách bác sĩ'}</h2><span role="status">{loading ? 'Đang tải bác sĩ…' : !hospital && error ? 'Không tải được danh sách bác sĩ' : `${filtered.length} ${hospital ? 'bệnh viện · Dữ liệu mẫu' : 'bác sĩ'}`}</span></div>
+    <div className="directory-heading">
+      <h2>{hospital?'Danh sách bệnh viện':'Danh sách bác sĩ'}</h2>
+      <div className="flex items-center gap-3">
+        <Link
+          to={hospital ? "/doctors?type=hospital" : "/doctors?type=doctor"}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-emerald-600 text-emerald-700 hover:bg-emerald-50 transition-colors"
+        >
+          <Navigation size={13} /> Tìm gần tôi theo GPS
+        </Link>
+        <span role="status">{loading ? 'Đang tải bác sĩ…' : !hospital && error ? 'Không tải được danh sách bác sĩ' : `${filtered.length} ${hospital ? 'bệnh viện · Dữ liệu mẫu' : 'bác sĩ'}`}</span>
+      </div>
+    </div>
     {loading ? <p role="status">Đang tải danh sách bác sĩ…</p> : !hospital && error ?
       <div className="directory-empty" role="alert"><p>Không tải được danh sách bác sĩ: {error}</p></div> :
       !hospital && doctors.length === 0 ? <div className="directory-empty"><p role="status">Hiện chưa có bác sĩ trong danh mục.</p></div> :

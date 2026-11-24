@@ -118,10 +118,18 @@ export default function SearchResultsPage() {
 
   // Geolocation
   function handleNearby() {
-    const fallback = () => {
+    const fallback = (err) => {
       setCoords(null)
       setLocating(false)
-      setNotice('Không lấy được vị trí. Hãy chọn tỉnh/thành để tìm nơi khám gần bạn.')
+      if (err?.code === 1) {
+        setNotice('Bạn đã từ chối hoặc chặn quyền truy cập vị trí. Để sử dụng tính năng "Gần tôi", vui lòng bật lại quyền vị trí trong cài đặt trình duyệt (biểu tượng ổ khoá/cài đặt trang trên thanh địa chỉ) rồi bấm lại "Gần tôi", hoặc chọn tỉnh/thành bên dưới.')
+      } else if (err?.code === 2) {
+        setNotice('Không thể bắt được tín hiệu định vị GPS từ thiết bị. Hãy chọn tỉnh/thành để tìm nơi khám gần bạn.')
+      } else if (err?.code === 3) {
+        setNotice('Hết thời gian chờ phản hồi GPS (Timeout). Vui lòng thử lại hoặc chọn tỉnh/thành.')
+      } else {
+        setNotice('Không lấy được vị trí. Hãy chọn tỉnh/thành để tìm nơi khám gần bạn.')
+      }
     }
     if (!navigator.geolocation) return fallback()
     setLocating(true)
@@ -133,7 +141,7 @@ export default function SearchResultsPage() {
         setNotice('')
       },
       fallback,
-      { timeout: 10000 }
+      { timeout: 10000, enableHighAccuracy: true }
     )
   }
 
@@ -296,7 +304,7 @@ export default function SearchResultsPage() {
             >
               {[2, 5, 10, 20].map((r) => (
                 <option key={r} value={r}>
-                  {r} km
+                  {r} km {r === 5 ? '(Mặc định)' : ''}
                 </option>
               ))}
             </select>

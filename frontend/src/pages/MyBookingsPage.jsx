@@ -42,6 +42,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import photo from "@/assets/consultation.jpg"
+import DoctorBookingCancelButton from "@/components/bkd/DoctorBookingCancelButton"
+import DoctorBookingRescheduleButton from "@/components/bkd/DoctorBookingRescheduleButton"
 
 function getRoleLabel(role) {
   switch (role) {
@@ -696,17 +698,24 @@ export default function MyBookingsPage() {
                           {b.status === "cancelled" && "❌ Phiếu khám đã được hủy"}
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          {canCancel && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCancellingBooking(b)}
-                              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 text-xs h-8"
-                            >
-                              <XCircle className="w-3.5 h-3.5 mr-1" />
-                              Hủy lịch hẹn
-                            </Button>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {b.booking_type === "doctor" ? (
+                            <>
+                              <DoctorBookingCancelButton booking={b} onResult={(msg) => { setBookingActionMsg(msg); loadBookings() }} />
+                              <DoctorBookingRescheduleButton booking={b} onResult={(msg) => { setBookingActionMsg(msg); loadBookings() }} />
+                            </>
+                          ) : (
+                            canCancel && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCancellingBooking(b)}
+                                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 text-xs h-8"
+                              >
+                                <XCircle className="w-3.5 h-3.5 mr-1" />
+                                Hủy lịch hẹn
+                              </Button>
+                            )
                           )}
 
                           <Button
